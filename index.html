@@ -1,0 +1,2261 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>PlanJoy – Your Fun Planner</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <style>
+:root {
+  --bg: #FFF8F0;
+  --card: #FFFFFF;
+  --primary: #FF6B6B;
+  --secondary: #4ECDC4;
+  --accent: #FFE66D;
+  --purple: #A78BFA;
+  --text: #2D3436;
+  --muted: #636E72;
+  --success: #55EFC4;
+  --shadow: 0 8px 24px rgba(0,0,0,0.08);
+  --radius: 20px;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+  -webkit-tap-highlight-color: transparent;
+}
+
+body {
+  font-family: 'Nunito', system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  overflow-x: hidden;
+}
+
+.screen {
+  display: none !important;
+  min-height: 100vh;
+}
+.screen.active {
+  display: block !important;
+}
+
+/* ========== AUTH ========== */
+#auth-screen.active {
+  display: flex !important;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  background: linear-gradient(135deg, #FFE66D 0%, #FF6B6B 50%, #A78BFA 100%);
+  min-height: 100vh;
+}
+#auth-screen {
+  background: linear-gradient(135deg, #FFE66D 0%, #FF6B6B 50%, #A78BFA 100%);
+  min-height: 100vh;
+}
+
+.auth-card {
+  background: white;
+  border-radius: 28px;
+  padding: 32px 24px;
+  width: 100%;
+  max-width: 380px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+
+.logo {
+  font-size: 2.4rem;
+  font-weight: 800;
+  margin-bottom: 4px;
+}
+
+.tagline {
+  color: var(--muted);
+  margin-bottom: 28px;
+  font-size: 1.05rem;
+}
+
+#auth-screen input {
+  width: 100%;
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  border: 2px solid #eee;
+  border-radius: 14px;
+  font-size: 1rem;
+  font-family: inherit;
+  outline: none;
+  transition: border 0.2s;
+}
+#auth-screen input:focus {
+  border-color: var(--secondary);
+}
+
+.password-wrap {
+  position: relative;
+  margin-bottom: 12px;
+}
+.password-wrap input {
+  margin-bottom: 0;
+  padding-right: 48px;
+}
+.pw-toggle {
+  position: absolute;
+  right: 10px;
+  top: 50%;
+  transform: translateY(-50%);
+  background: none;
+  border: none;
+  font-size: 1.25rem;
+  cursor: pointer;
+  padding: 4px 8px;
+  border-radius: 8px;
+  line-height: 1;
+}
+.pw-toggle:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+.avatar-picker {
+  margin: 16px 0;
+  text-align: left;
+}
+.avatar-picker p {
+  font-weight: 600;
+  margin-bottom: 8px;
+}
+.avatars {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  justify-content: center;
+}
+.avatar {
+  font-size: 1.8rem;
+  width: 48px;
+  height: 48px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: #f0f0f0;
+  cursor: pointer;
+  transition: transform 0.15s, background 0.15s;
+}
+.avatar:hover, .avatar.selected {
+  background: var(--accent);
+  transform: scale(1.15);
+}
+
+.switch {
+  margin-top: 18px;
+  font-size: 0.95rem;
+  color: var(--muted);
+}
+.switch a {
+  color: var(--primary);
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.hidden {
+  display: none !important;
+}
+
+/* ========== BUTTONS ========== */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  padding: 14px 22px;
+  border: none;
+  border-radius: 16px;
+  font-family: inherit;
+  font-size: 1.05rem;
+  font-weight: 700;
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+}
+.btn:active {
+  transform: scale(0.97);
+}
+.btn.primary {
+  background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  color: white;
+  width: 100%;
+  box-shadow: 0 6px 16px rgba(255,107,107,0.35);
+}
+.btn.add-btn {
+  background: var(--secondary);
+  color: white;
+  width: 100%;
+  margin-top: 12px;
+  box-shadow: 0 6px 16px rgba(78,205,196,0.3);
+}
+.icon-btn {
+  background: none;
+  border: none;
+  font-size: 1.4rem;
+  cursor: pointer;
+  padding: 6px;
+  border-radius: 12px;
+}
+.icon-btn:hover {
+  background: rgba(0,0,0,0.05);
+}
+
+/* ========== APP HEADER ========== */
+.app-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 16px 20px 12px;
+  background: white;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.04);
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.user-info {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.avatar-display {
+  font-size: 2.2rem;
+  width: 52px;
+  height: 52px;
+  background: var(--accent);
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.avatar-display:hover {
+  transform: scale(1.08);
+}
+.user-name {
+  font-weight: 800;
+  font-size: 1.15rem;
+}
+.points {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* ========== BOTTOM NAV ========== */
+.bottom-nav {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: white;
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 4px 12px;
+  box-shadow: 0 -4px 20px rgba(0,0,0,0.06);
+  z-index: 100;
+  overflow-x: auto;
+}
+.nav-btn {
+  background: none;
+  border: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 2px;
+  font-family: inherit;
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: var(--muted);
+  cursor: pointer;
+  padding: 6px 8px;
+  border-radius: 12px;
+  min-width: 56px;
+  transition: color 0.2s, background 0.2s;
+}
+.nav-btn.active {
+  color: var(--primary);
+  background: #FFF0F0;
+}
+.nav-icon {
+  font-size: 1.35rem;
+}
+
+/* ========== CONTENT ========== */
+.content {
+  padding: 16px 16px 100px;
+  max-width: 600px;
+  margin: 0 auto;
+}
+
+.tab {
+  display: none;
+}
+.tab.active {
+  display: block;
+  animation: fadeIn 0.25s ease;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.section-title {
+  font-size: 1.35rem;
+  font-weight: 800;
+  margin: 8px 0 12px;
+}
+.date-label {
+  color: var(--muted);
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+.hint {
+  color: var(--muted);
+  font-size: 0.95rem;
+  margin-bottom: 14px;
+}
+
+/* ========== CARDS ========== */
+.card-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  position: relative;
+}
+.card.completed {
+  opacity: 0.7;
+}
+.card-header {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+.checkbox {
+  width: 26px;
+  height: 26px;
+  border: 3px solid var(--secondary);
+  border-radius: 8px;
+  flex-shrink: 0;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1rem;
+  transition: background 0.15s;
+}
+.checkbox.checked {
+  background: var(--secondary);
+  color: white;
+}
+.card-title {
+  font-weight: 700;
+  font-size: 1.05rem;
+  flex: 1;
+}
+.card-title.done {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.card-meta {
+  font-size: 0.85rem;
+  color: var(--muted);
+  margin-top: 4px;
+}
+.card-actions {
+  display: flex;
+  gap: 8px;
+  margin-top: 10px;
+}
+.small-btn {
+  background: #f0f0f0;
+  border: none;
+  border-radius: 10px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  font-family: inherit;
+}
+.small-btn.danger {
+  background: #FFE0E0;
+  color: #E74C3C;
+}
+
+/* Steps */
+.steps {
+  margin-top: 12px;
+  padding-left: 8px;
+  border-left: 3px solid var(--accent);
+}
+.step {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 6px 0;
+  font-size: 0.95rem;
+}
+.step .mini-check {
+  width: 20px;
+  height: 20px;
+  border: 2px solid #ccc;
+  border-radius: 6px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.75rem;
+}
+.step .mini-check.checked {
+  background: var(--success);
+  border-color: var(--success);
+  color: white;
+}
+.step.done span {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+
+/* Habits */
+.habit-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+}
+.habit-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 16px 12px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.habit-card:active {
+  transform: scale(0.96);
+}
+.habit-card.done-today {
+  background: linear-gradient(135deg, #55EFC4, #00B894);
+  color: white;
+}
+.habit-emoji {
+  font-size: 2rem;
+  margin-bottom: 6px;
+}
+.habit-name {
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.habit-streak {
+  font-size: 0.8rem;
+  margin-top: 4px;
+  opacity: 0.85;
+}
+
+/* Week view */
+.week-grid {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.day-row {
+  background: white;
+  border-radius: 16px;
+  padding: 14px;
+  box-shadow: var(--shadow);
+}
+.day-row.today {
+  border: 3px solid var(--primary);
+}
+.day-row.special-week {
+  background: linear-gradient(135deg, #FFF3CD 0%, #FFE0B2 100%);
+  border: 2px solid #FFB74D;
+}
+.day-row.special-week.today {
+  border: 3px solid var(--primary);
+}
+.month-day.special-week {
+  background: #FFE0B2;
+  color: #5D4037;
+}
+.month-day.special-week.today {
+  background: var(--primary);
+  color: white;
+}
+.special-week-label {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #E65100;
+  margin-top: 4px;
+}
+.day-event {
+  padding: 4px 0;
+  border-bottom: 1px solid rgba(0,0,0,0.06);
+  line-height: 1.35;
+}
+.day-event:last-child {
+  border-bottom: none;
+}
+.day-event.special-event {
+  font-weight: 700;
+  color: #E65100;
+  background: rgba(255,183,77,0.25);
+  margin: 2px 0;
+  padding: 6px 8px;
+  border-radius: 8px;
+  border-bottom: none;
+}
+.emoji-keyboard {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 12px;
+  padding: 10px;
+  background: #f8f8f8;
+  border-radius: 14px;
+}
+.emoji-pick {
+  font-size: 1.6rem;
+  width: 44px;
+  height: 44px;
+  border: none;
+  background: white;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 2px 6px rgba(0,0,0,0.06);
+  transition: transform 0.1s;
+}
+.emoji-pick:active {
+  transform: scale(0.92);
+  background: var(--accent);
+}
+.day-label {
+  font-weight: 800;
+  margin-bottom: 6px;
+  display: flex;
+  justify-content: space-between;
+}
+.day-items {
+  font-size: 0.9rem;
+  color: var(--muted);
+}
+
+/* Month view */
+.month-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: 12px;
+}
+.month-grid {
+  display: grid;
+  grid-template-columns: repeat(7, 1fr);
+  gap: 4px;
+  background: white;
+  padding: 12px;
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+}
+.month-day-name {
+  text-align: center;
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: var(--muted);
+  padding: 6px 0;
+}
+.month-day {
+  aspect-ratio: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  border-radius: 12px;
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  position: relative;
+}
+.month-day.other {
+  color: #ccc;
+}
+.month-day.today {
+  background: var(--primary);
+  color: white;
+}
+.month-day.has-items::after {
+  content: '';
+  width: 6px;
+  height: 6px;
+  background: var(--secondary);
+  border-radius: 50%;
+  position: absolute;
+  bottom: 4px;
+}
+
+/* Classes / Sessions */
+.class-card .zoom-link {
+  display: inline-block;
+  margin-top: 8px;
+  background: #E8F4FD;
+  color: #0984E3;
+  padding: 8px 14px;
+  border-radius: 12px;
+  text-decoration: none;
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+.class-card .zoom-link:hover {
+  background: #D6EBFA;
+}
+.session-badge {
+  display: inline-block;
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 3px 8px;
+  border-radius: 8px;
+  margin-top: 6px;
+}
+.session-badge.morning {
+  background: #FFF3CD;
+  color: #856404;
+}
+.session-badge.afternoon {
+  background: #D1ECF1;
+  color: #0C5460;
+}
+.session-badge.mentoring {
+  background: #E8DAEF;
+  color: #6C3483;
+}
+.session-badge.morning-a {
+  background: #FFF3CD;
+  color: #856404;
+}
+.session-badge.morning-b {
+  background: #FCE4D6;
+  color: #9A3412;
+}
+
+/* Modal */
+.modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.4);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  z-index: 200;
+  padding: 16px;
+}
+.modal-overlay.hidden {
+  display: none;
+}
+.modal {
+  background: white;
+  border-radius: 24px 24px 16px 16px;
+  padding: 24px 20px 32px;
+  width: 100%;
+  max-width: 420px;
+  max-height: 85vh;
+  overflow-y: auto;
+  position: relative;
+  animation: slideUp 0.25s ease;
+}
+@keyframes slideUp {
+  from { transform: translateY(40px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+.modal-close {
+  position: absolute;
+  top: 12px;
+  right: 14px;
+  background: #f0f0f0;
+  border: none;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+.modal h3 {
+  font-size: 1.3rem;
+  margin-bottom: 16px;
+}
+.modal label {
+  display: block;
+  font-weight: 700;
+  margin: 12px 0 6px;
+  font-size: 0.95rem;
+}
+.modal input, .modal textarea, .modal select {
+  width: 100%;
+  padding: 12px 14px;
+  border: 2px solid #eee;
+  border-radius: 12px;
+  font-family: inherit;
+  font-size: 1rem;
+  outline: none;
+}
+.modal input:focus, .modal textarea:focus {
+  border-color: var(--secondary);
+}
+.modal textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+.modal .btn {
+  margin-top: 18px;
+}
+
+/* Toast */
+.toast {
+  position: fixed;
+  bottom: 90px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #2D3436;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 40px;
+  font-weight: 700;
+  z-index: 300;
+  animation: toastIn 0.3s ease;
+}
+.toast.hidden {
+  display: none;
+}
+@keyframes toastIn {
+  from { opacity: 0; transform: translateX(-50%) translateY(20px); }
+  to { opacity: 1; transform: translateX(-50%) translateY(0); }
+}
+
+/* Empty state */
+.empty {
+  text-align: center;
+  padding: 30px 16px;
+  color: var(--muted);
+}
+.empty .emoji {
+  font-size: 2.5rem;
+  margin-bottom: 8px;
+}
+
+/* Responsive tweaks */
+@media (min-width: 500px) {
+  .bottom-nav {
+    max-width: 600px;
+    left: 50%;
+    transform: translateX(-50%);
+    border-radius: 20px 20px 0 0;
+  }
+}
+
+</style>
+</head>
+<body>
+  <!-- LOGIN / REGISTER SCREEN -->
+  <div id="auth-screen" class="screen active">
+    <div class="auth-card">
+      <div class="logo">🌈 PlanJoy</div>
+      <p class="tagline">Plan your day with joy!</p>
+
+      <div id="login-form">
+        <input type="email" id="login-email" placeholder="yourname@school-beyond-limitations.com"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          data-lpignore="true" data-1p-ignore data-form-type="other">
+        <div class="password-wrap">
+          <input type="password" id="login-password" placeholder="Password" autocomplete="off"
+            autocorrect="off" autocapitalize="off" spellcheck="false"
+            data-lpignore="true" data-1p-ignore data-form-type="other">
+          <button type="button" class="pw-toggle" onclick="togglePassword('login-password', this)" title="Show password">👁</button>
+        </div>
+        <button class="btn primary" onclick="login()">Let's Go! 🚀</button>
+        <p class="switch">New here? <a href="#" onclick="showRegister()">Create account</a></p>
+      </div>
+
+      <div id="register-form" class="hidden">
+        <input type="email" id="reg-email" placeholder="yourname@school-beyond-limitations.com"
+          autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
+          data-lpignore="true" data-1p-ignore data-form-type="other">
+        <input type="text" id="reg-displayname" placeholder="What should we call you?" autocomplete="off">
+        <div class="password-wrap">
+          <input type="password" id="reg-password" placeholder="Make a password" autocomplete="off"
+            autocorrect="off" autocapitalize="off" spellcheck="false"
+            data-lpignore="true" data-1p-ignore data-form-type="other">
+          <button type="button" class="pw-toggle" onclick="togglePassword('reg-password', this)" title="Show password">👁</button>
+        </div>
+        <div class="avatar-picker">
+          <p>Pick your avatar:</p>
+          <div class="avatars" id="avatar-options">
+            <span class="avatar selected" data-avatar="🦊">🦊</span>
+            <span class="avatar" data-avatar="🐼">🐼</span>
+            <span class="avatar" data-avatar="🦄">🦄</span>
+            <span class="avatar" data-avatar="🐱">🐱</span>
+            <span class="avatar" data-avatar="🐶">🐶</span>
+            <span class="avatar" data-avatar="🦁">🦁</span>
+            <span class="avatar" data-avatar="🐸">🐸</span>
+            <span class="avatar" data-avatar="🐰">🐰</span>
+            <span class="avatar" data-avatar="🐨">🐨</span>
+            <span class="avatar" data-avatar="🐯">🐯</span>
+            <span class="avatar" data-avatar="🐵">🐵</span>
+            <span class="avatar" data-avatar="🐮">🐮</span>
+            <span class="avatar" data-avatar="🐷">🐷</span>
+            <span class="avatar" data-avatar="🦋">🦋</span>
+            <span class="avatar" data-avatar="🐢">🐢</span>
+            <span class="avatar" data-avatar="🐙">🐙</span>
+            <span class="avatar" data-avatar="🦖">🦖</span>
+            <span class="avatar" data-avatar="🐝">🐝</span>
+            <span class="avatar" data-avatar="🦉">🦉</span>
+            <span class="avatar" data-avatar="🐧">🐧</span>
+            <span class="avatar" data-avatar="🐬">🐬</span>
+            <span class="avatar" data-avatar="🦕">🦕</span>
+            <span class="avatar" data-avatar="🌟">🌟</span>
+            <span class="avatar" data-avatar="🚀">🚀</span>
+            <span class="avatar" data-avatar="🌈">🌈</span>
+            <span class="avatar" data-avatar="🐲">🐲</span>
+            <span class="avatar" data-avatar="🎮">🎮</span>
+            <span class="avatar" data-avatar="🎨">🎨</span>
+            <span class="avatar" data-avatar="⚡">⚡</span>
+            <span class="avatar" data-avatar="🏆">🏆</span>
+          </div>
+        </div>
+        <button class="btn primary" onclick="register()">Create My Account ✨</button>
+        <p class="switch">Already have one? <a href="#" onclick="showLogin()">Log in</a></p>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN APP -->
+  <div id="app-screen" class="screen">
+    <!-- Header (no logout door icon) -->
+    <header class="app-header">
+      <div class="user-info">
+        <span id="user-avatar" class="avatar-display" onclick="openAvatarModal()" title="Change avatar">🦊</span>
+        <div>
+          <div id="user-name" class="user-name">Hi!</div>
+          <div class="points">⭐ <span id="user-points">0</span> stars · <span id="tz-label" onclick="openTimezoneModal()" style="cursor:pointer;text-decoration:underline">CET</span></div>
+        </div>
+      </div>
+      <button class="icon-btn" onclick="openTimezoneModal()" title="Change timezone">🌍</button>
+    </header>
+
+    <!-- Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-btn active" data-tab="today" onclick="switchTab('today')">
+        <span class="nav-icon">☀️</span>
+        <span>Today</span>
+      </button>
+      <button class="nav-btn" data-tab="week" onclick="switchTab('week')">
+        <span class="nav-icon">📅</span>
+        <span>Week</span>
+      </button>
+      <button class="nav-btn" data-tab="month" onclick="switchTab('month')">
+        <span class="nav-icon">🗓️</span>
+        <span>Month</span>
+      </button>
+      <button class="nav-btn" data-tab="habits" onclick="switchTab('habits')">
+        <span class="nav-icon">🔥</span>
+        <span>Habits</span>
+      </button>
+      <button class="nav-btn" data-tab="classes" onclick="switchTab('classes')">
+        <span class="nav-icon">🎨</span>
+        <span>Sessions</span>
+      </button>
+      <button class="nav-btn" data-tab="remember" onclick="switchTab('remember')">
+        <span class="nav-icon">📝</span>
+        <span>Remember</span>
+      </button>
+    </nav>
+
+    <!-- Content Area -->
+    <main class="content">
+      <!-- TODAY -->
+      <section id="tab-today" class="tab active">
+        <h2 class="section-title">Today's Missions 🚀</h2>
+        <div id="today-date" class="date-label"></div>
+        <div id="today-tasks" class="card-list"></div>
+        <button class="btn add-btn" onclick="openTaskModal()">+ Add Task</button>
+
+        <h2 class="section-title">Today's Habits 🔥</h2>
+        <div id="today-habits" class="habit-grid"></div>
+      </section>
+
+      <!-- WEEK -->
+      <section id="tab-week" class="tab">
+        <h2 class="section-title">This Week 📅</h2>
+        <div id="week-view" class="week-grid"></div>
+      </section>
+
+      <!-- MONTH -->
+      <section id="tab-month" class="tab">
+        <div class="month-header">
+          <button class="icon-btn" onclick="changeMonth(-1)">◀</button>
+          <h2 id="month-title" class="section-title">Month</h2>
+          <button class="icon-btn" onclick="changeMonth(1)">▶</button>
+        </div>
+        <div id="month-view" class="month-grid"></div>
+      </section>
+
+      <!-- HABITS -->
+      <section id="tab-habits" class="tab">
+        <h2 class="section-title">My Daily Habits 🔥</h2>
+        <div id="habits-list" class="card-list"></div>
+        <button class="btn add-btn" onclick="openHabitModal()">+ Add Custom Habit</button>
+      </section>
+
+      <!-- AFTERNOON / MORNING SESSIONS -->
+      <section id="tab-classes" class="tab">
+        <h2 class="section-title">Sessions 🎨</h2>
+        <p class="hint">Morning (A/B), Afternoon & Mentoring · Zoom links ready</p>
+        <div id="classes-list" class="card-list"></div>
+        <button class="btn add-btn" onclick="openClassModal()">+ Add Session</button>
+      </section>
+
+      <!-- REMEMBER -->
+      <section id="tab-remember" class="tab">
+        <h2 class="section-title">Stuff to Remember 📝</h2>
+        <p class="hint">School calendar highlights + your own notes</p>
+        <div id="notes-list" class="card-list"></div>
+        <button class="btn add-btn" onclick="openNoteModal()">+ Add Note</button>
+      </section>
+    </main>
+  </div>
+
+  <!-- MODALS -->
+  <div id="modal-overlay" class="modal-overlay hidden">
+    <div class="modal">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div id="modal-content"></div>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"></div>
+
+  <script>
+// ========== PlanJoy App ==========
+// Simple kid-friendly planner with localStorage
+
+const STORAGE_KEY = 'planjoy_data_v1';
+const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+
+// ISO week number (1–53)
+function getISOWeek(d) {
+  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
+  const dayNum = date.getUTCDay() || 7;
+  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
+  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
+  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+}
+
+// true if this every-other-week session is active on the given date
+// Rule: odd ISO weeks = active (week 1, 3, 5…)
+function isEveryOtherWeekActive(date) {
+  const d = date instanceof Date ? date : new Date(date + 'T12:00:00');
+  return getISOWeek(d) % 2 === 1;
+}
+
+function sessionOnDay(c, weekday, dateStr) {
+  // day-of-week match
+  let dayMatch = false;
+  if (Array.isArray(c.days) && c.days.length) {
+    dayMatch = c.days.map(Number).includes(Number(weekday));
+  } else {
+    dayMatch = Number(c.day) === Number(weekday);
+  }
+  if (!dayMatch) return false;
+
+  // every-other-week filter
+  if (c.everyOtherWeek) {
+    if (!dateStr) {
+      // no specific date (e.g. listing all sessions) — still show in Sessions list
+      return true;
+    }
+    return isEveryOtherWeekActive(dateStr);
+  }
+  return true;
+}
+
+
+// Special weeks (bootcamps, residentials, holidays, hackathon) — full date ranges
+const SPECIAL_WEEKS = [
+  { start: '2026-09-27', end: '2026-10-02', label: '🏠 Residential 1 · 27 Sep – 2 Oct 2026', type: 'residential' },
+  { start: '2026-10-12', end: '2026-10-16', label: '🔥 Bootcamp / Focus Week · 12–16 Oct 2026', type: 'bootcamp' },
+  { start: '2026-10-16', end: '2026-10-16', label: '🎉 Community Celebration · Fri 16 Oct 2026', type: 'celebration' },
+  { start: '2026-10-26', end: '2026-10-30', label: '🍂 Autumn Holiday · 26–30 Oct 2026', type: 'holiday' },
+  { start: '2026-12-21', end: '2027-01-08', label: '🎄 Winter Holiday · 21 Dec 2026 – 8 Jan 2027', type: 'holiday' },
+  { start: '2027-01-31', end: '2027-02-05', label: '🏠 Residential 2 · 31 Jan – 5 Feb 2027', type: 'residential' },
+  { start: '2027-02-08', end: '2027-02-12', label: '🎭 Carnival Holiday · 8–12 Feb 2027', type: 'holiday' },
+  { start: '2027-03-01', end: '2027-03-05', label: '🔥 Bootcamp / Focus Week · 1–5 Mar 2027', type: 'bootcamp' },
+  { start: '2027-03-04', end: '2027-03-04', label: '📚 World Book Day · 4 Mar 2027', type: 'event' },
+  { start: '2027-03-05', end: '2027-03-05', label: '🎉 Community Celebration · Fri 5 Mar 2027', type: 'celebration' },
+  { start: '2027-03-22', end: '2027-03-30', label: '🐣 Easter Holiday · 22–30 Mar 2027', type: 'holiday' },
+  { start: '2027-05-07', end: '2027-05-09', label: '✝️ Ascension Weekend · 7–9 May 2027', type: 'holiday' },
+  { start: '2027-05-17', end: '2027-05-17', label: '✝️ Pentecost · 17 May 2027', type: 'holiday' },
+  { start: '2027-06-07', end: '2027-06-11', label: '💡 Hackathon · 7–11 Jun 2027', type: 'hackathon' },
+  { start: '2027-06-11', end: '2027-06-11', label: '🎉 Community Celebration · Fri 11 Jun 2027', type: 'celebration' },
+  { start: '2027-06-24', end: '2027-06-29', label: '🏠 Residential 3 · 24–29 Jun 2027', type: 'residential' },
+  { start: '2027-06-30', end: '2027-08-27', label: '☀️ Summer Holiday · 30 Jun – 27 Aug 2027', type: 'holiday' }
+];
+
+function dateInRange(dateStr, start, end) {
+  return dateStr >= start && dateStr <= end;
+}
+
+// All special events that fall on this date (can be more than one)
+function getSpecialEvents(dateStr) {
+  return SPECIAL_WEEKS.filter(w => dateInRange(dateStr, w.start, w.end));
+}
+
+function getSpecialWeek(dateStr) {
+  const all = getSpecialEvents(dateStr);
+  return all[0] || null;
+}
+
+function sessionDaysLabel(c) {
+  const names = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  let ds = [];
+  if (Array.isArray(c.days) && c.days.length) ds = c.days.map(Number);
+  else if (c.day !== undefined && c.day !== null && c.day !== '') ds = [Number(c.day)];
+  if (!ds.length) return '';
+  return ds.sort((a,b)=>a-b).map(d => names[d] || '').filter(Boolean).join(', ');
+}
+
+
+let state = {
+  currentUser: null,
+  users: {},
+  tasks: [],
+  habits: [],
+  notes: [],
+  classes: [],
+  currentMonth: new Date(),
+  timezone: 'CET' // CET | UK | UTC
+};
+
+// ---------- Helpers ----------
+function uid() {
+  return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
+}
+
+function todayStr() {
+  return new Date().toISOString().slice(0, 10);
+}
+
+function formatDate(d) {
+  const options = { weekday: 'long', month: 'short', day: 'numeric' };
+  return new Date(d).toLocaleDateString('en-US', options);
+}
+
+function formatShort(d) {
+  return new Date(d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+}
+
+// School times are stored in CET. Convert for display.
+// Offsets = hours to ADD to stored CET school times for local display
+// Only list zones that DIFFER from school CET
+const TIMEZONE_OPTIONS = {
+  CET: { label: 'CET — school time', offset: 0 },
+  // −1h from CET
+  UK: { label: 'United Kingdom (−1h)', offset: -1 },
+  IE: { label: 'Ireland (−1h)', offset: -1 },
+  PT: { label: 'Portugal (−1h)', offset: -1 },
+  IS: { label: 'Iceland (−1h)', offset: -1 },
+  // +1h from CET (Eastern European Time)
+  BG: { label: 'Bulgaria (+1h)', offset: 1 },
+  CY: { label: 'Cyprus (+1h)', offset: 1 },
+  EE: { label: 'Estonia (+1h)', offset: 1 },
+  FI: { label: 'Finland (+1h)', offset: 1 },
+  GR: { label: 'Greece (+1h)', offset: 1 },
+  LV: { label: 'Latvia (+1h)', offset: 1 },
+  LT: { label: 'Lithuania (+1h)', offset: 1 },
+  RO: { label: 'Romania (+1h)', offset: 1 },
+  // Georgia
+  GE: { label: 'Georgia (+3h)', offset: 3 }
+};
+
+function getTzOffset() {
+  const tz = state.timezone || 'CET';
+  return (TIMEZONE_OPTIONS[tz] || TIMEZONE_OPTIONS.CET).offset;
+}
+
+function formatTimeCET(timeStr) {
+  if (!timeStr) return '';
+  const parts = String(timeStr).split(':');
+  if (parts.length < 2) return timeStr;
+  let h = parseInt(parts[0], 10);
+  let m = parts[1];
+  if (isNaN(h)) return timeStr;
+  h = h + getTzOffset();
+  if (h < 0) h += 24;
+  if (h >= 24) h -= 24;
+  return String(h).padStart(2, '0') + ':' + m;
+}
+
+function openTimezoneModal() {
+  const current = state.timezone || 'CET';
+  // Sort: CET first, then A–Z by label
+  const entries = Object.entries(TIMEZONE_OPTIONS).sort((a, b) => {
+    if (a[0] === 'CET') return -1;
+    if (b[0] === 'CET') return 1;
+    return a[1].label.localeCompare(b[1].label);
+  });
+  const opts = entries.map(([key, v]) =>
+    `<option value="${key}" ${key === current ? 'selected' : ''}>${v.label}</option>`
+  ).join('');
+  openModal(`
+    <h3>Timezone 🌍</h3>
+    <p style="color:var(--muted);font-size:0.95rem;margin-bottom:12px">
+      School times are stored in <strong>CET</strong>. Choose your country so session times show in your local time.
+    </p>
+    <label>Your country / timezone</label>
+    <select id="tz-select">${opts}</select>
+    <button class="btn primary" onclick="saveTimezone()">Save</button>
+  `);
+}
+
+function saveTimezone() {
+  const sel = document.getElementById('tz-select');
+  if (!sel) return;
+  state.timezone = sel.value;
+  save();
+  closeModal();
+  renderAll();
+  toast('Timezone set to ' + (TIMEZONE_OPTIONS[state.timezone]?.label || state.timezone));
+}
+
+function save() {
+  try {
+    // Keep each account's data safe
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+  } catch (e) {
+    console.warn('Could not save', e);
+    toast('Could not save — storage may be full');
+  }
+}
+
+function load() {
+  const raw = localStorage.getItem(STORAGE_KEY);
+  if (raw) {
+    try {
+      const data = JSON.parse(raw);
+      state = { ...state, ...data };
+      if (data.currentMonth) state.currentMonth = new Date(data.currentMonth);
+      if (!state.users) state.users = {};
+      if (!state.tasks) state.tasks = [];
+      if (!state.habits) state.habits = [];
+      if (!state.notes) state.notes = [];
+      if (!state.classes) state.classes = [];
+    } catch (e) {
+      console.warn('Could not load data', e);
+    }
+  }
+}
+
+// Auto-save when leaving the page so accounts are never lost
+window.addEventListener('beforeunload', () => {
+  try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+});
+window.addEventListener('visibilitychange', () => {
+  if (document.visibilityState === 'hidden') {
+    try { localStorage.setItem(STORAGE_KEY, JSON.stringify(state)); } catch (e) {}
+  }
+});
+
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg;
+  el.classList.remove('hidden');
+  setTimeout(() => el.classList.add('hidden'), 2200);
+}
+
+function showConfetti() {
+  const emojis = ['⭐', '🎉', '✨', '🌟', '💫'];
+  for (let i = 0; i < 12; i++) {
+    const span = document.createElement('span');
+    span.textContent = emojis[Math.floor(Math.random() * emojis.length)];
+    span.style.cssText = `
+      position: fixed;
+      left: ${50 + (Math.random() - 0.5) * 60}%;
+      top: 40%;
+      font-size: ${1.5 + Math.random()}rem;
+      pointer-events: none;
+      z-index: 999;
+      animation: confetti 1s ease forwards;
+    `;
+    document.body.appendChild(span);
+    setTimeout(() => span.remove(), 1000);
+  }
+}
+
+const style = document.createElement('style');
+style.textContent = `
+  @keyframes confetti {
+    0% { transform: translateY(0) scale(1); opacity: 1; }
+    100% { transform: translateY(-120px) scale(0.5); opacity: 0; }
+  }
+`;
+document.head.appendChild(style);
+
+// ---------- Password visibility ----------
+function togglePassword(inputId, btn) {
+  const input = document.getElementById(inputId);
+  if (!input) return;
+  if (input.type === 'password') {
+    input.type = 'text';
+    btn.textContent = '🙈';
+    btn.title = 'Hide password';
+  } else {
+    input.type = 'password';
+    btn.textContent = '👁';
+    btn.title = 'Show password';
+  }
+}
+
+// ---------- Auth ----------
+const SCHOOL_DOMAIN = '@school-beyond-limitations.com';
+
+function prefillEmailFields() {
+  ['login-email', 'reg-email'].forEach(id => {
+    const el = document.getElementById(id);
+    if (el && !el.value) el.value = SCHOOL_DOMAIN;
+  });
+}
+
+function focusBeforeDomain(el) {
+  if (!el.value) el.value = SCHOOL_DOMAIN;
+  const at = el.value.indexOf('@');
+  const pos = at === -1 ? 0 : at;
+  requestAnimationFrame(() => el.setSelectionRange(pos, pos));
+}
+
+['login-email', 'reg-email'].forEach(id => {
+  const el = document.getElementById(id);
+  if (el) el.addEventListener('focus', () => focusBeforeDomain(el));
+});
+
+function showLogin() {
+  document.getElementById('login-form').classList.remove('hidden');
+  document.getElementById('register-form').classList.add('hidden');
+  prefillEmailFields();
+}
+
+function showRegister() {
+  document.getElementById('login-form').classList.add('hidden');
+  document.getElementById('register-form').classList.remove('hidden');
+  prefillEmailFields();
+}
+
+// Avatar selection (register)
+document.querySelectorAll('#avatar-options .avatar').forEach(el => {
+  el.addEventListener('click', () => {
+    document.querySelectorAll('#avatar-options .avatar').forEach(a => a.classList.remove('selected'));
+    el.classList.add('selected');
+  });
+});
+
+function register() {
+  const username = document.getElementById('reg-email').value.trim().toLowerCase();
+  const display = document.getElementById('reg-displayname').value.trim() || username.split('@')[0];
+  const password = document.getElementById('reg-password').value;
+  const avatar = document.querySelector('#avatar-options .avatar.selected')?.dataset.avatar || '🦊';
+
+  if (!username || username === SCHOOL_DOMAIN.toLowerCase() || !password) {
+    toast('Please fill in your name and password');
+    return;
+  }
+  if (state.users[username]) {
+    toast('That username is taken 😅');
+    return;
+  }
+
+  state.users[username] = {
+    username,
+    displayName: display,
+    password,
+    avatar,
+    points: 0,
+    created: todayStr()
+  };
+
+  // Seed default habits: Reading, Writing, Maths
+  if (state.habits.length === 0) {
+    state.habits = [
+      { id: uid(), name: 'Reading 📚', emoji: '📚', history: {} },
+      { id: uid(), name: 'Writing ✍️', emoji: '✍️', history: {} },
+      { id: uid(), name: 'Maths 🔢', emoji: '🔢', history: {} }
+    ];
+  }
+  state.currentUser = username;
+  save();
+  enterApp();
+  toast(`Welcome ${display}! 🎉`);
+}
+
+function login() {
+  const username = document.getElementById('login-email').value.trim().toLowerCase();
+  const password = document.getElementById('login-password').value;
+
+  const user = state.users[username];
+  if (!user || user.password !== password) {
+    toast('Wrong name or password 🙈');
+    return;
+  }
+
+  state.currentUser = username;
+  save();
+  enterApp();
+  toast(`Welcome back ${user.displayName}! 🌟`);
+}
+
+function ensureSchoolCalendar() {
+  const CAL_VERSION = 9;
+  if (state.calVersion === CAL_VERSION) return;
+
+  // Canonical school calendar notes (all with full dates, no duplicates)
+  const importantNotes = [
+    { text: '🏠 Residential 1 · 27 Sep – 2 Oct 2026', reminder: '2026-09-27' },
+    { text: '🚫 No school · 5 Oct 2026 (day after Residential 1)', reminder: '2026-10-05' },
+    { text: '🔥 Bootcamp / Focus Week · 12–16 Oct 2026', reminder: '2026-10-12' },
+    { text: '🎉 Community Celebration · Fri 16 Oct 2026', reminder: '2026-10-16' },
+    { text: '🍂 Autumn Holiday · 26–30 Oct 2026', reminder: '2026-10-26' },
+    { text: '🎄 Winter Holiday · 21 Dec 2026 – 8 Jan 2027', reminder: '2026-12-21' },
+    { text: '🏠 Residential 2 · 31 Jan – 5 Feb 2027', reminder: '2027-01-31' },
+    { text: '🎭 Carnival Holiday · 8–12 Feb 2027', reminder: '2027-02-08' },
+    { text: '🔥 Bootcamp / Focus Week · 1–5 Mar 2027', reminder: '2027-03-01' },
+    { text: '📚 World Book Day · 4 Mar 2027', reminder: '2027-03-04' },
+    { text: '🎉 Community Celebration · Fri 5 Mar 2027', reminder: '2027-03-05' },
+    { text: '🐣 Easter Holiday · 22–30 Mar 2027', reminder: '2027-03-22' },
+    { text: '✝️ Ascension Weekend · 7–9 May 2027 (no school)', reminder: '2027-05-07' },
+    { text: '✝️ Pentecost · 17 May 2027 (no school)', reminder: '2027-05-17' },
+    { text: '💡 Hackathon · 7–11 Jun 2027', reminder: '2027-06-07' },
+    { text: '🎉 Community Celebration · Fri 11 Jun 2027', reminder: '2027-06-11' },
+    { text: '🏠 Residential 3 · 24–29 Jun 2027', reminder: '2027-06-24' },
+    { text: '🏁 Last day of school · 29 Jun 2027', reminder: '2027-06-29' },
+    { text: '☀️ Summer Holiday · 30 Jun – 27 Aug 2027', reminder: '2027-06-30' }
+  ];
+
+  // Remove ALL previous school-calendar notes (old short + old long versions)
+  const schoolEmoji = /^[🏠🚫🔥🎉🍂🐉🎄🎭📚🐣✝️💡🏁☀️]/;
+  state.notes = (state.notes || []).filter(n => !schoolEmoji.test((n.text || '').trim()));
+  // Also strip banned leftovers
+  const ban = /thessaloniki|dolomites|south africa|prague|mock exam|Career Days|Goal-setting|Summer Holiday begins|Dragon.?s Den/i;
+  state.notes = state.notes.filter(n => !ban.test(n.text || ''));
+
+  importantNotes.forEach(n => {
+    state.notes.push({
+      id: uid(),
+      text: n.text,
+      reminder: n.reminder,
+      created: todayStr()
+    });
+  });
+
+  const keyEvents = [
+    { title: '🏠 Residential 1 · 27 Sep – 2 Oct 2026', date: '2026-09-27', notes: '27 Sep – 2 Oct 2026' },
+    { title: '🚫 No school · 5 Oct 2026', date: '2026-10-05', notes: 'Day after Residential 1' },
+    { title: '🔥 Bootcamp / Focus Week · 12–16 Oct 2026', date: '2026-10-12', notes: '12–16 Oct 2026' },
+    { title: '🎉 Community Celebration · Fri 16 Oct 2026', date: '2026-10-16', notes: 'Friday' },
+    { title: '🍂 Autumn Holiday · 26–30 Oct 2026', date: '2026-10-26', notes: '26–30 Oct 2026' },
+    { title: '🎄 Winter Holiday · 21 Dec 2026 – 8 Jan 2027', date: '2026-12-21', notes: '21 Dec 2026 – 8 Jan 2027' },
+    { title: '🏠 Residential 2 · 31 Jan – 5 Feb 2027', date: '2027-01-31', notes: '31 Jan – 5 Feb 2027' },
+    { title: '🎭 Carnival Holiday · 8–12 Feb 2027', date: '2027-02-08', notes: '8–12 Feb 2027' },
+    { title: '🔥 Bootcamp / Focus Week · 1–5 Mar 2027', date: '2027-03-01', notes: '1–5 Mar 2027' },
+    { title: '📚 World Book Day · 4 Mar 2027', date: '2027-03-04', notes: '4 Mar 2027' },
+    { title: '🎉 Community Celebration · Fri 5 Mar 2027', date: '2027-03-05', notes: 'Friday' },
+    { title: '🐣 Easter Holiday · 22–30 Mar 2027', date: '2027-03-22', notes: '22–30 Mar 2027' },
+    { title: '✝️ Ascension Weekend · 7–9 May 2027', date: '2027-05-07', notes: '7–9 May 2027 (no school)' },
+    { title: '✝️ Pentecost · 17 May 2027', date: '2027-05-17', notes: 'No school' },
+    { title: '💡 Hackathon · 7–11 Jun 2027', date: '2027-06-07', notes: '7–11 Jun 2027' },
+    { title: '🎉 Community Celebration · Fri 11 Jun 2027', date: '2027-06-11', notes: 'Friday' },
+    { title: '🏠 Residential 3 · 24–29 Jun 2027', date: '2027-06-24', notes: '24–29 Jun 2027' },
+    { title: '🏁 Last day of school · 29 Jun 2027', date: '2027-06-29', notes: '29 Jun 2027' },
+    { title: '☀️ Summer Holiday · 30 Jun – 27 Aug 2027', date: '2027-06-30', notes: '30 Jun – 27 Aug 2027' }
+  ];
+
+  // Remove old school tasks (by emoji prefix or known short titles)
+  state.tasks = (state.tasks || []).filter(t => {
+    const title = (t.title || '').trim();
+    if (schoolEmoji.test(title)) return false;
+    if (/^(Residential|Bootcamp|Hackathon|Community Celebration|Autumn Holiday|Winter Holiday|Carnival|Easter|Ascension|Pentecost|Summer Holiday|Dragon|No school|Last day|World Book)/i.test(title)) return false;
+    return true;
+  });
+
+  keyEvents.forEach(e => {
+    state.tasks.push({
+      id: uid(),
+      title: e.title,
+      date: e.date,
+      notes: e.notes,
+      steps: [],
+      completed: false,
+      created: todayStr()
+    });
+  });
+
+  state.calVersion = CAL_VERSION;
+  save();
+}
+
+function enterApp() {
+  // Force hide login – never show it again while logged in
+  const auth = document.getElementById('auth-screen');
+  const app = document.getElementById('app-screen');
+  auth.classList.remove('active');
+  auth.style.display = 'none';
+  app.classList.add('active');
+  app.style.display = 'block';
+  ensureSchoolCalendar();
+  renderAll();
+}
+
+// ---------- Navigation ----------
+function switchTab(tab) {
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.querySelector(`.nav-btn[data-tab="${tab}"]`).classList.add('active');
+
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.getElementById(`tab-${tab}`).classList.add('active');
+
+  if (tab === 'today') renderToday();
+  if (tab === 'week') renderWeek();
+  if (tab === 'month') renderMonth();
+  if (tab === 'habits') renderHabits();
+  if (tab === 'classes') renderClasses();
+  if (tab === 'remember') renderNotes();
+}
+
+// ---------- Render Header ----------
+function renderHeader() {
+  const user = state.users[state.currentUser];
+  if (!user) return;
+  document.getElementById('user-avatar').textContent = user.avatar;
+  document.getElementById('user-name').textContent = `Hi ${user.displayName}!`;
+  document.getElementById('user-points').textContent = user.points || 0;
+  const tzEl = document.getElementById('tz-label');
+  if (tzEl) tzEl.textContent = state.timezone || 'CET';
+}
+
+// ---------- Change Avatar anytime ----------
+function openAvatarModal() {
+  const current = state.users[state.currentUser]?.avatar || '🦊';
+  const avatars = ['🦊','🐼','🦄','🐱','🐶','🦁','🐸','🐰','🐨','🐯','🐵','🐮','🐷','🦋','🐢','🐙','🦖','🐝','🦉','🐧','🐬','🦕','🌟','🚀','🌈','🐲','🎮','🎨','⚡','🏆'];
+  const options = avatars.map(a =>
+    `<span class="avatar ${a === current ? 'selected' : ''}" data-avatar="${a}" onclick="selectAvatar(this)">${a}</span>`
+  ).join('');
+
+  openModal(`
+    <h3>Change Your Avatar ✨</h3>
+    <p style="color:var(--muted);margin-bottom:12px">Tap a new one!</p>
+    <div class="avatars" style="justify-content:center">${options}</div>
+    <button class="btn primary" onclick="saveAvatar()">Save Avatar</button>
+  `);
+}
+
+function selectAvatar(el) {
+  document.querySelectorAll('#modal-content .avatar').forEach(a => a.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function saveAvatar() {
+  const selected = document.querySelector('#modal-content .avatar.selected');
+  if (!selected) return;
+  const user = state.users[state.currentUser];
+  if (user) {
+    user.avatar = selected.dataset.avatar;
+    save();
+    renderHeader();
+    toast('Avatar updated! 🌈');
+  }
+  closeModal();
+}
+
+// ---------- Tasks ----------
+function getTodayTasks() {
+  const t = todayStr();
+  return state.tasks.filter(task => task.date === t);
+}
+
+function renderToday() {
+  document.getElementById('today-date').textContent = formatDate(todayStr());
+
+  const list = document.getElementById('today-tasks');
+  const tasks = getTodayTasks();
+
+  if (tasks.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="emoji">🎯</div>No missions yet.<br>Add your first task!</div>`;
+  } else {
+    list.innerHTML = tasks.map(task => taskCardHTML(task)).join('');
+  }
+
+  renderTodayHabits();
+}
+
+function taskCardHTML(task) {
+  const stepsHTML = (task.steps || []).map((s, i) => `
+    <div class="step ${s.done ? 'done' : ''}">
+      <div class="mini-check ${s.done ? 'checked' : ''}" onclick="toggleStep('${task.id}', ${i})">${s.done ? '✓' : ''}</div>
+      <span>${s.text}</span>
+    </div>
+  `).join('');
+
+  return `
+    <div class="card ${task.completed ? 'completed' : ''}" data-id="${task.id}">
+      <div class="card-header">
+        <div class="checkbox ${task.completed ? 'checked' : ''}" onclick="toggleTask('${task.id}')">${task.completed ? '✓' : ''}</div>
+        <div>
+          <div class="card-title ${task.completed ? 'done' : ''}">${task.title}</div>
+          ${task.notes ? `<div class="card-meta">${task.notes}</div>` : ''}
+        </div>
+      </div>
+      ${task.steps && task.steps.length ? `<div class="steps">${stepsHTML}</div>` : ''}
+      <div class="card-actions">
+        <button class="small-btn" onclick="editTask('${task.id}')">Edit</button>
+        <button class="small-btn danger" onclick="deleteTask('${task.id}')">Delete</button>
+      </div>
+    </div>
+  `;
+}
+
+function toggleTask(id) {
+  const task = state.tasks.find(t => t.id === id);
+  if (!task) return;
+  if (task.completed) {
+    toast("Already done — can't undo 🔒");
+    return;
+  }
+  if (!confirm('Mark as done?\n\nYou cannot undo this.')) return;
+  task.completed = true;
+  addPoints(5);
+  showConfetti();
+  toast('+5 stars! Nice work ⭐');
+  save();
+  renderToday();
+  renderWeek();
+}
+
+function toggleStep(taskId, stepIndex) {
+  const task = state.tasks.find(t => t.id === taskId);
+  if (!task || !task.steps[stepIndex]) return;
+  if (task.steps[stepIndex].done) {
+    toast("Step already done — can't undo 🔒");
+    return;
+  }
+  if (!confirm('Step done?\n\nYou cannot undo this.')) return;
+  task.steps[stepIndex].done = true;
+  if (task.steps.every(s => s.done) && !task.completed) {
+    task.completed = true;
+    addPoints(5);
+    showConfetti();
+    toast('All steps done! +5 stars 🎉');
+  }
+  save();
+  renderToday();
+}
+
+function deleteTask(id) {
+  if (!confirm('Delete this task? This cannot be undone.')) return;
+  state.tasks = state.tasks.filter(t => t.id !== id);
+  save();
+  renderToday();
+  renderWeek();
+  renderMonth();
+  toast('Task deleted');
+}
+
+function addPoints(n) {
+  const user = state.users[state.currentUser];
+  if (user) {
+    user.points = (user.points || 0) + n;
+    renderHeader();
+  }
+}
+
+// ---------- Habits ----------
+function renderTodayHabits() {
+  const grid = document.getElementById('today-habits');
+  const t = todayStr();
+
+  if (state.habits.length === 0) {
+    grid.innerHTML = `<div class="empty"><div class="emoji">🔥</div>No habits yet</div>`;
+    return;
+  }
+
+  grid.innerHTML = state.habits.map(h => {
+    const done = h.history && h.history[t];
+    const streak = calcStreak(h);
+    return `
+      <div class="habit-card ${done ? 'done-today' : ''}" onclick="toggleHabit('${h.id}')">
+        <div class="habit-emoji">${h.emoji || '✅'}</div>
+        <div class="habit-name">${h.name}</div>
+        <div class="habit-streak">${done ? 'Done!' : 'Tap me'} · 🔥 ${streak}</div>
+      </div>
+    `;
+  }).join('');
+}
+
+function renderHabits() {
+  const list = document.getElementById('habits-list');
+  if (state.habits.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="emoji">🔥</div>Add your first habit!</div>`;
+    return;
+  }
+
+  list.innerHTML = state.habits.map(h => {
+    const streak = calcStreak(h);
+    const t = todayStr();
+    const done = h.history && h.history[t];
+    return `
+      <div class="card">
+        <div class="card-header">
+          <div class="checkbox ${done ? 'checked' : ''}" onclick="toggleHabit('${h.id}')">${done ? '✓' : ''}</div>
+          <div>
+            <div class="card-title">${h.emoji || ''} ${h.name}</div>
+            <div class="card-meta">🔥 Streak: ${streak} days</div>
+          </div>
+        </div>
+        <div class="card-actions">
+          <button class="small-btn danger" onclick="deleteHabit('${h.id}')">Delete</button>
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+function calcStreak(habit) {
+  if (!habit.history) return 0;
+  let streak = 0;
+  let d = new Date();
+  for (let i = 0; i < 60; i++) {
+    const key = d.toISOString().slice(0, 10);
+    if (habit.history[key]) {
+      streak++;
+      d.setDate(d.getDate() - 1);
+    } else {
+      if (i === 0) {
+        d.setDate(d.getDate() - 1);
+        continue;
+      }
+      break;
+    }
+  }
+  return streak;
+}
+
+function toggleHabit(id) {
+  const habit = state.habits.find(h => h.id === id);
+  if (!habit) return;
+  if (!habit.history) habit.history = {};
+  const t = todayStr();
+  if (habit.history[t]) {
+    toast("Already done today — can't undo 🔒");
+    return;
+  }
+  if (!confirm('Done for today?\n\nYou cannot undo this.')) return;
+  habit.history[t] = true;
+  addPoints(3);
+  showConfetti();
+  toast('+3 stars for habit! 🔥');
+  save();
+  renderTodayHabits();
+  renderHabits();
+}
+
+function deleteHabit(id) {
+  if (!confirm('Delete this habit? This cannot be undone.')) return;
+  state.habits = state.habits.filter(h => h.id !== id);
+  save();
+  renderHabits();
+  renderTodayHabits();
+  toast('Habit removed');
+}
+
+// ---------- Week ----------
+function renderWeek() {
+  const container = document.getElementById('week-view');
+  const days = [];
+  const start = new Date();
+  start.setHours(0, 0, 0, 0);
+
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    days.push(d);
+  }
+
+  container.innerHTML = days.map(d => {
+    const key = d.toISOString().slice(0, 10);
+    const isToday = key === todayStr();
+    const weekday = d.getDay();
+    const dayTasks = state.tasks.filter(t => t.date === key);
+    const dayClasses = state.classes.filter(c => sessionOnDay(c, weekday, key));
+    const specials = getSpecialEvents(key);
+    const specialItems = specials.map(s =>
+      `<div class="day-event special-event">${s.label}</div>`
+    );
+    const taskItems = dayTasks.map(t =>
+      `<div class="day-event">${t.completed ? '✓ ' : '• '}${t.title}</div>`
+    );
+    const classItems = dayClasses
+      .sort((a, b) => (a.time || '').localeCompare(b.time || ''))
+      .map(c => {
+        const icon = c.sessionType === 'morning' ? '🌅' : (c.sessionType === 'mentoring' ? '🤝' : '🎨');
+        return `<div class="day-event">${icon} ${c.time ? formatTimeCET(c.time) + ' ' : ''}${c.title}${c.location ? ' · ' + c.location : ''}</div>`;
+      });
+    const allItems = [...specialItems, ...taskItems, ...classItems];
+
+    const specialClass = specials.length ? 'special-week' : '';
+    return `
+      <div class="day-row ${isToday ? 'today' : ''} ${specialClass}" onclick="viewDay('${key}')" style="cursor:pointer">
+        <div class="day-label">
+          <span>${formatShort(key)}</span>
+          ${isToday ? '<span style="color:var(--primary)">Today</span>' : ''}
+        </div>
+        <div class="day-items">
+          ${allItems.length ? allItems.join('') : '<span style="opacity:0.5">Nothing planned · tap to add</span>'}
+        </div>
+      </div>
+    `;
+  }).join('');
+}
+
+// ---------- Month ----------
+function changeMonth(delta) {
+  state.currentMonth.setMonth(state.currentMonth.getMonth() + delta);
+  save();
+  renderMonth();
+}
+
+function renderMonth() {
+  const year = state.currentMonth.getFullYear();
+  const month = state.currentMonth.getMonth();
+  document.getElementById('month-title').textContent =
+    state.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+
+  const firstDay = new Date(year, month, 1);
+  const startDay = firstDay.getDay();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+
+  const grid = document.getElementById('month-view');
+  const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  let html = dayNames.map(n => `<div class="month-day-name">${n}</div>`).join('');
+
+  for (let i = 0; i < startDay; i++) {
+    html += `<div class="month-day other"></div>`;
+  }
+
+  const today = todayStr();
+  for (let day = 1; day <= daysInMonth; day++) {
+    const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
+    const weekday = new Date(year, month, day).getDay();
+    const hasItems = state.tasks.some(t => t.date === key) || state.classes.some(c => sessionOnDay(c, weekday, key)) || getSpecialEvents(key).length > 0;
+    const isToday = key === today;
+    const special = getSpecialWeek(key);
+    const specialClass = special ? 'special-week' : '';
+    html += `
+      <div class="month-day ${isToday ? 'today' : ''} ${hasItems ? 'has-items' : ''} ${specialClass}"
+           onclick="viewDay('${key}')" title="${special ? special.label : ''}">
+        ${day}
+      </div>
+    `;
+  }
+
+  grid.innerHTML = html;
+}
+
+function viewDay(dateStr) {
+  const weekday = new Date(dateStr + 'T00:00:00').getDay();
+  const tasks = state.tasks.filter(t => t.date === dateStr);
+  const classes = state.classes.filter(c => sessionOnDay(c, weekday, dateStr));
+  const specials = getSpecialEvents(dateStr);
+
+  let listHtml = '';
+  if (specials.length === 0 && tasks.length === 0 && classes.length === 0) {
+    listHtml = `<p style="color:var(--muted);margin:12px 0">Nothing planned yet for this day.</p>`;
+  } else {
+    listHtml = '<div style="margin:12px 0;text-align:left">';
+    specials.forEach(s => {
+      listHtml += `<div class="day-event special-event" style="padding:8px 0">${s.label}</div>`;
+    });
+    tasks.forEach(t => {
+      listHtml += `<div class="day-event" style="padding:6px 0">• ${t.completed ? '✓ ' : ''}${t.title}</div>`;
+    });
+    classes
+      .sort((a, b) => (a.time || '').localeCompare(b.time || ''))
+      .forEach(c => {
+        const icon = c.sessionType === 'morning' ? '🌅' : (c.sessionType === 'mentoring' ? '🤝' : '🎨');
+        listHtml += `<div class="day-event" style="padding:6px 0">${icon} ${c.time ? formatTimeCET(c.time) + ' ' : ''}${c.title}${c.location ? ' · ' + c.location : ''}</div>`;
+      });
+    listHtml += '</div>';
+  }
+
+  openModal(`
+    <h3>${formatShort(dateStr)}</h3>
+    ${listHtml}
+    <button class="btn primary" onclick="closeModal(); openTaskModal(null, '${dateStr}')">+ Add Task / Event for this day</button>
+  `);
+}
+
+// ---------- Sessions (Morning 3hr + Afternoon) ----------
+function renderClasses() {
+  const list = document.getElementById('classes-list');
+  const sorted = [...state.classes].sort((a, b) => (Number(a.day) - Number(b.day)) || (a.time || '').localeCompare(b.time || ''));
+
+  if (sorted.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="emoji">🎨</div>No sessions yet.<br>Add morning (A/B), afternoon or mentoring sessions!</div>`;
+    return;
+  }
+
+  list.innerHTML = sorted.map(c => {
+    let typeBadge = '';
+    if (c.sessionType === 'morning') {
+      const grp = c.morningGroup === 'B' ? 'B' : 'A';
+      typeBadge = `<span class="session-badge morning-${grp.toLowerCase()}">🌅 Morning ${grp}</span>`;
+    } else if (c.sessionType === 'mentoring') {
+      typeBadge = '<span class="session-badge mentoring">🤝 Mentoring</span>';
+    } else {
+      typeBadge = '<span class="session-badge afternoon">🎨 Afternoon</span>';
+    }
+    const everyOther = c.everyOtherWeek
+      ? `<div class="card-meta">📅 Every other week · 1 facilitator · ${isEveryOtherWeekActive(todayStr()) ? '✅ this week' : '⏸ not this week'}</div>`
+      : '';
+    return `
+    <div class="card class-card">
+      <div class="card-title">${c.title}</div>
+      <div class="card-meta">${sessionDaysLabel(c)}${c.time ? ' · ' + formatTimeCET(c.time) : ''}${c.location ? ' · ' + c.location : ''}</div>
+      ${typeBadge}
+      ${everyOther}
+      ${c.notes ? `<div class="card-meta">${c.notes}</div>` : ''}
+      ${c.zoom ? `<a class="zoom-link" href="${c.zoom}" target="_blank" rel="noopener">Join Zoom / Link 🔗</a>` : ''}
+      <div class="card-actions">
+        <button class="small-btn" onclick="openClassModal('${c.id}')">Edit</button>
+        <button class="small-btn danger" onclick="deleteClass('${c.id}')">Delete</button>
+      </div>
+    </div>
+  `;
+  }).join('');
+}
+
+function deleteClass(id) {
+  if (!confirm('Delete this session? This cannot be undone.')) return;
+  state.classes = state.classes.filter(c => c.id !== id);
+  save();
+  renderClasses();
+  renderWeek();
+  renderMonth();
+  toast('Session removed');
+}
+
+// ---------- Notes / Remember ----------
+function renderNotes() {
+  const list = document.getElementById('notes-list');
+  if (state.notes.length === 0) {
+    list.innerHTML = `<div class="empty"><div class="emoji">📝</div>Nothing to remember yet</div>`;
+    return;
+  }
+
+  list.innerHTML = state.notes.map(n => `
+    <div class="card">
+      <div class="card-title">${n.text}</div>
+      ${n.reminder ? `<div class="card-meta">⏰ ${formatShort(n.reminder)}</div>` : ''}
+      <div class="card-actions">
+        <button class="small-btn danger" onclick="deleteNote('${n.id}')">Delete</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+function deleteNote(id) {
+  if (!confirm('Delete this note? This cannot be undone.')) return;
+  state.notes = state.notes.filter(n => n.id !== id);
+  save();
+  renderNotes();
+  toast('Note deleted');
+}
+
+// ---------- Modals ----------
+function openModal(html) {
+  document.getElementById('modal-content').innerHTML = html;
+  document.getElementById('modal-overlay').classList.remove('hidden');
+}
+
+function closeModal() {
+  document.getElementById('modal-overlay').classList.add('hidden');
+}
+
+function openTaskModal(editId = null, prefillDate = null) {
+  const task = editId ? state.tasks.find(t => t.id === editId) : null;
+  const title = task ? task.title : '';
+  const date = task ? task.date : (prefillDate || todayStr());
+  const notes = task ? (task.notes || '') : '';
+  const steps = task && task.steps ? task.steps.map(s => s.text).join('\n') : '';
+
+  openModal(`
+    <h3>${task ? 'Edit Task' : 'New Mission'} 🚀</h3>
+    <label>What do you need to do?</label>
+    <input type="text" id="task-title" value="${title}" placeholder="e.g. Finish math worksheet">
+    <label>Date</label>
+    <input type="date" id="task-date" value="${date}">
+    <label>Action steps (one per line)</label>
+    <textarea id="task-steps" placeholder="1. Open the book&#10;2. Do questions 1-5&#10;3. Check answers">${steps}</textarea>
+    <label>Extra notes (optional)</label>
+    <input type="text" id="task-notes" value="${notes}" placeholder="Any extra details">
+    <button class="btn primary" onclick="saveTask('${editId || ''}')">${task ? 'Save Changes' : 'Add Mission'}</button>
+  `);
+}
+
+function saveTask(editId) {
+  const title = document.getElementById('task-title').value.trim();
+  if (!title) {
+    toast('Please write what you need to do');
+    return;
+  }
+  const date = document.getElementById('task-date').value || todayStr();
+  const notes = document.getElementById('task-notes').value.trim();
+  const stepsRaw = document.getElementById('task-steps').value.trim();
+  const steps = stepsRaw
+    ? stepsRaw.split('\n').map(s => s.trim()).filter(Boolean).map(text => ({ text, done: false }))
+    : [];
+
+  if (editId) {
+    const task = state.tasks.find(t => t.id === editId);
+    if (task) {
+      task.title = title;
+      task.date = date;
+      task.notes = notes;
+      task.steps = steps;
+    }
+  } else {
+    state.tasks.push({
+      id: uid(),
+      title,
+      date,
+      notes,
+      steps,
+      completed: false,
+      created: todayStr()
+    });
+  }
+  save();
+  closeModal();
+  renderToday();
+  renderWeek();
+  renderMonth();
+  toast(editId ? 'Task updated!' : 'Mission added! 🚀');
+}
+
+function editTask(id) {
+  openTaskModal(id);
+}
+
+function openHabitModal() {
+  const quickEmojis = ['🛏️','🦷','📚','💧','🏃','🧘','🍎','🧹','🎒','🎵','🎨','✍️','🔢','😴','🌟','❤️','🌈','⚡','🏆','🎮'];
+  const emojiBtns = quickEmojis.map(e =>
+    `<button type="button" class="emoji-pick" onclick="pickHabitEmoji('${e}')">${e}</button>`
+  ).join('');
+  openModal(`
+    <h3>New Custom Habit 🔥</h3>
+    <label>Habit name</label>
+    <input type="text" id="habit-name" placeholder="e.g. Make my bed">
+    <label>Emoji</label>
+    <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
+      <input type="text" id="habit-emoji" placeholder="Tap below or type" maxlength="4" style="flex:1;margin:0">
+    </div>
+    <p style="font-size:0.85rem;color:var(--muted);margin-bottom:6px">Pick an emoji:</p>
+    <div class="emoji-keyboard">${emojiBtns}</div>
+    <button class="btn primary" onclick="saveHabit()">Add Habit</button>
+  `);
+}
+
+function pickHabitEmoji(emoji) {
+  const el = document.getElementById('habit-emoji');
+  if (el) el.value = emoji;
+}
+
+function saveHabit() {
+  const name = document.getElementById('habit-name').value.trim();
+  if (!name) {
+    toast('Please give your habit a name');
+    return;
+  }
+  const emoji = document.getElementById('habit-emoji').value.trim() || '✅';
+  state.habits.push({
+    id: uid(),
+    name,
+    emoji,
+    history: {}
+  });
+  save();
+  closeModal();
+  renderHabits();
+  renderTodayHabits();
+  toast('Habit added! 🔥');
+}
+
+function openClassModal(editId = null) {
+  const c = editId ? state.classes.find(x => x.id === editId) : null;
+  const sessionType = c ? (c.sessionType || 'afternoon') : 'afternoon';
+  const morningGroup = c ? (c.morningGroup || 'A') : 'A';
+  const title = c ? c.title : (sessionType === 'morning' ? (morningGroup === 'B' ? 'Morning · Facilitator B' : 'Morning · Facilitator A') : '');
+  // days can be single number (legacy) or array
+  let selectedDays = [];
+  if (c) {
+    if (Array.isArray(c.days)) selectedDays = c.days.map(Number);
+    else if (c.day !== undefined && c.day !== null && c.day !== '') selectedDays = [Number(c.day)];
+  }
+  if (selectedDays.length === 0) selectedDays = [1]; // default Monday
+
+  const time = c ? c.time : (sessionType === 'morning' ? '09:00' : '15:00');
+  const location = c ? (c.location || '') : (sessionType === 'morning' ? (morningGroup === 'B' ? 'Facilitator B' : 'Facilitator A') : '');
+  const zoom = c ? (c.zoom || '') : '';
+  const notes = c ? (c.notes || '') : (sessionType === 'morning' ? '3 hours' : '');
+  const everyOther = c ? !!c.everyOtherWeek : false;
+
+  // Mon–Fri only (1=Mon … 5=Fri) — multi-select
+  const weekdays = [
+    { i: 1, name: 'Mon' },
+    { i: 2, name: 'Tue' },
+    { i: 3, name: 'Wed' },
+    { i: 4, name: 'Thu' },
+    { i: 5, name: 'Fri' }
+  ];
+  const dayChecks = weekdays.map(({ i, name }) =>
+    `<label style="display:inline-flex;align-items:center;gap:4px;margin-right:10px;font-weight:600;font-size:0.9rem">
+      <input type="checkbox" class="class-day-check" value="${i}" ${selectedDays.includes(i) ? 'checked' : ''} style="width:auto">
+      ${name}
+    </label>`
+  ).join('');
+
+  const showMorningGroup = sessionType === 'morning' ? '' : 'display:none';
+  const durationHint = sessionType === 'morning' ? '⏱ Duration: 3 hours (auto)' : '';
+
+  openModal(`
+    <h3>${c ? 'Edit Session' : 'Add Session'} 🎨</h3>
+    <label>Session name</label>
+    <input type="text" id="class-title" value="${title}" placeholder="e.g. Creative Writing or Morning Block">
+    <label>Type</label>
+    <select id="class-type" onchange="onSessionTypeChange()">
+      <option value="morning" ${sessionType === 'morning' ? 'selected' : ''}>🌅 Morning Session</option>
+      <option value="afternoon" ${sessionType === 'afternoon' ? 'selected' : ''}>🎨 Afternoon Session</option>
+      <option value="mentoring" ${sessionType === 'mentoring' ? 'selected' : ''}>🤝 Mentoring</option>
+    </select>
+    <div id="morning-group-wrap" style="${showMorningGroup}">
+      <label>Morning group</label>
+      <select id="class-morning-group" onchange="onMorningGroupChange()">
+        <option value="A" ${morningGroup === 'A' ? 'selected' : ''}>Week A · Facilitator A</option>
+        <option value="B" ${morningGroup === 'B' ? 'selected' : ''}>Week B · Facilitator B</option>
+      </select>
+    </div>
+    <label>Days (Mon–Fri) — select any</label>
+    <div id="class-days" style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px">${dayChecks}</div>
+    <label>Start time</label>
+    <input type="time" id="class-time" value="${time}">
+    <p id="duration-hint" style="font-size:0.85rem;color:var(--muted);margin-top:4px">${durationHint}</p>
+    <label>Facilitator name</label>
+    <input type="text" id="class-location" value="${location}" placeholder="e.g. Facilitator name">
+    <label>Zoom / Meeting Link</label>
+    <input type="url" id="class-zoom" value="${zoom}" placeholder="https://zoom.us/j/...">
+    <div id="every-other-wrap" style="${showMorningGroup}">
+      <label style="display:flex;align-items:center;gap:8px;font-weight:600">
+        <input type="checkbox" id="class-every-other" ${everyOther ? 'checked' : ''} style="width:auto">
+        Every other week (1 facilitator) — shows on odd weeks only
+      </label>
+    </div>
+    <label>Notes (optional)</label>
+    <input type="text" id="class-notes" value="${notes}" placeholder="Anything else to know">
+    <button class="btn primary" onclick="saveClass('${editId || ''}')">${c ? 'Save Changes' : 'Add Session'}</button>
+  `);
+}
+
+function onSessionTypeChange() {
+  const type = document.getElementById('class-type').value;
+  const timeEl = document.getElementById('class-time');
+  const hint = document.getElementById('duration-hint');
+  const notesEl = document.getElementById('class-notes');
+  const groupWrap = document.getElementById('morning-group-wrap');
+  const locEl = document.getElementById('class-location');
+  const groupEl = document.getElementById('class-morning-group');
+  if (groupWrap) groupWrap.style.display = type === 'morning' ? '' : 'none';
+  const everyWrap = document.getElementById('every-other-wrap');
+  if (everyWrap) everyWrap.style.display = type === 'morning' ? '' : 'none';
+  if (type === 'morning') {
+    if (!timeEl.value || timeEl.value === '15:00') timeEl.value = '09:00';
+    if (hint) hint.textContent = '⏱ Duration: 3 hours (auto)';
+    if (notesEl && !notesEl.value.includes('3 hours')) {
+      notesEl.value = (notesEl.value ? notesEl.value + ' · ' : '') + '3 hours';
+    }
+    // Week A = Facilitator A, Week B = Facilitator B
+    if (locEl && groupEl) {
+      const g = groupEl.value;
+      if (!locEl.value || locEl.value === 'Facilitator A' || locEl.value === 'Facilitator B') {
+        locEl.value = g === 'B' ? 'Facilitator B' : 'Facilitator A';
+      }
+    }
+  } else {
+    if (hint) hint.textContent = '';
+  }
+}
+
+function onMorningGroupChange() {
+  const groupEl = document.getElementById('class-morning-group');
+  const locEl = document.getElementById('class-location');
+  const titleEl = document.getElementById('class-title');
+  if (!groupEl || !locEl) return;
+  const g = groupEl.value;
+  locEl.value = g === 'B' ? 'Facilitator B' : 'Facilitator A';
+  if (titleEl && (!titleEl.value || titleEl.value.startsWith('Morning'))) {
+    titleEl.value = g === 'B' ? 'Morning · Facilitator B' : 'Morning · Facilitator A';
+  }
+}
+
+function saveClass(editId) {
+  const title = document.getElementById('class-title').value.trim();
+  if (!title) {
+    toast('Please give the session a name');
+    return;
+  }
+  const dayChecks = [...document.querySelectorAll('.class-day-check:checked')].map(el => Number(el.value));
+  if (dayChecks.length === 0) {
+    toast('Please select at least one day');
+    return;
+  }
+  const days = dayChecks.sort((a, b) => a - b);
+  const day = days[0]; // keep single day for backward compat
+  const time = document.getElementById('class-time').value;
+  const location = document.getElementById('class-location').value.trim();
+  const zoom = document.getElementById('class-zoom').value.trim();
+  const notes = document.getElementById('class-notes').value.trim();
+  const sessionType = document.getElementById('class-type').value;
+  const everyOtherEl = document.getElementById('class-every-other');
+  const everyOtherWeek = (sessionType === 'morning' && everyOtherEl) ? everyOtherEl.checked : false;
+  const morningGroupEl = document.getElementById('class-morning-group');
+  const morningGroup = (sessionType === 'morning' && morningGroupEl) ? morningGroupEl.value : null;
+
+  // Auto put 3 hours for morning sessions
+  let finalNotes = notes;
+  if (sessionType === 'morning' && !finalNotes.includes('3 hours')) {
+    finalNotes = (finalNotes ? finalNotes + ' · ' : '') + '3 hours';
+  }
+
+  if (editId) {
+    const c = state.classes.find(x => x.id === editId);
+    if (c) {
+      c.title = title;
+      c.day = day;
+      c.days = days;
+      c.time = time;
+      c.location = location;
+      c.zoom = zoom;
+      c.notes = finalNotes;
+      c.sessionType = sessionType;
+      c.morningGroup = morningGroup;
+      c.everyOtherWeek = everyOtherWeek;
+    }
+  } else {
+    state.classes.push({
+      id: uid(),
+      title,
+      day,
+      days,
+      time,
+      location,
+      zoom,
+      notes: finalNotes,
+      sessionType,
+      morningGroup,
+      everyOtherWeek
+    });
+  }
+  save();
+  closeModal();
+  renderClasses();
+  renderWeek();
+  renderMonth();
+  toast(editId ? 'Session updated!' : 'Session added! 🎨');
+}
+
+function openNoteModal() {
+  openModal(`
+    <h3>Stuff to Remember 📝</h3>
+    <label>What do you need to remember?</label>
+    <textarea id="note-text" placeholder="e.g. Bring art supplies for project"></textarea>
+    <label>Reminder date (optional)</label>
+    <input type="date" id="note-reminder">
+    <button class="btn primary" onclick="saveNote()">Save Note</button>
+  `);
+}
+
+function saveNote() {
+  const text = document.getElementById('note-text').value.trim();
+  if (!text) {
+    toast('Please write something');
+    return;
+  }
+  const reminder = document.getElementById('note-reminder').value || null;
+  state.notes.push({
+    id: uid(),
+    text,
+    reminder,
+    created: todayStr()
+  });
+  save();
+  closeModal();
+  renderNotes();
+  toast('Saved! 📝');
+}
+
+// ---------- Init ----------
+function renderAll() {
+  renderHeader();
+  renderToday();
+  renderWeek();
+  renderMonth();
+  renderHabits();
+  renderClasses();
+  renderNotes();
+}
+
+// Close modal on overlay click
+document.getElementById('modal-overlay').addEventListener('click', (e) => {
+  if (e.target.id === 'modal-overlay') closeModal();
+});
+
+// Start – never show login if already logged in
+load();
+if (state.currentUser && state.users[state.currentUser]) {
+  // Immediately hide auth so it never flashes
+  const auth = document.getElementById('auth-screen');
+  const app = document.getElementById('app-screen');
+  auth.classList.remove('active');
+  auth.style.display = 'none';
+  app.classList.add('active');
+  app.style.display = 'block';
+  ensureSchoolCalendar();
+  renderAll();
+} else {
+  document.getElementById('auth-screen').classList.add('active');
+  document.getElementById('auth-screen').style.display = '';
+  document.getElementById('app-screen').classList.remove('active');
+  document.getElementById('app-screen').style.display = '';
+  prefillEmailFields();
+}
+
+</script>
+</body>
+</html>
