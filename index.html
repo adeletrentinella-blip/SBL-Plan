@@ -410,51 +410,139 @@ body {
   margin: 0 auto;
   width: 100%;
 }
-/* Laptop: wider column, still stacked cards (not stretched edge-to-edge) */
+/* Laptop: bigger + wider, still stacked centered */
 @media (min-width: 900px) {
+  :root {
+    --font-size-base: 1.12rem;
+  }
+  body {
+    font-size: 1.12rem;
+  }
   .content {
-    max-width: 720px;
-    padding: 24px 28px 110px;
+    max-width: 900px;
+    padding: 28px 36px 130px;
   }
   .app-header {
-    max-width: 720px;
+    max-width: 900px;
     margin: 0 auto;
     width: 100%;
-    border-radius: 0 0 16px 16px;
+    padding: 18px 28px 14px;
+    border-radius: 0 0 18px 18px;
+  }
+  .avatar-display {
+    width: 60px;
+    height: 60px;
+    font-size: 2.5rem;
+  }
+  .user-name {
+    font-size: 1.35rem;
+  }
+  .points {
+    font-size: 1rem;
+  }
+  .section-title {
+    font-size: 1.55rem;
+    margin-bottom: 16px;
   }
   .card {
-    padding: 18px 20px;
+    padding: 22px 24px;
+    border-radius: 22px;
+  }
+  .card-title {
+    font-size: 1.2rem;
+  }
+  .card-meta {
+    font-size: 0.95rem;
+  }
+  .btn, .btn.primary, .btn.add-btn {
+    padding: 16px 26px;
+    font-size: 1.15rem;
+    border-radius: 18px;
   }
   .week-grid {
     display: flex;
     flex-direction: column;
-    gap: 12px;
+    gap: 14px;
   }
   .day-row {
-    padding: 16px 18px;
+    padding: 18px 20px;
+    border-radius: 18px;
+  }
+  .day-label {
+    font-size: 1.05rem;
+  }
+  .day-event {
+    font-size: 1.02rem;
+    padding: 8px 10px;
   }
   .habit-grid {
-    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+    gap: 16px;
+  }
+  .habit-card {
+    padding: 22px 16px;
+  }
+  .habit-emoji {
+    font-size: 2.2rem;
+  }
+  .month-grid {
+    gap: 8px;
+  }
+  .month-day {
+    min-height: 48px;
+    font-size: 1.05rem;
   }
   .bottom-nav {
-    max-width: 720px;
+    max-width: 900px;
     left: 50%;
     right: auto;
     transform: translateX(-50%);
     width: 100%;
-    border-radius: 20px 20px 0 0;
+    border-radius: 24px 24px 0 0;
+    padding: 14px 8px 18px;
+  }
+  .nav-btn {
+    font-size: 0.95rem;
+    padding: 10px 12px;
+    gap: 4px;
+  }
+  .nav-btn .nav-icon {
+    font-size: 1.5rem;
+  }
+  .a11y-chip {
+    font-size: 0.8rem;
+    padding: 8px 12px;
+  }
+  .icon-btn {
+    font-size: 1.55rem;
+    padding: 8px;
+  }
+  .modal {
+    max-width: 520px;
   }
 }
 @media (min-width: 1200px) {
   .content {
-    max-width: 780px;
-    padding: 28px 32px 120px;
+    max-width: 980px;
+    padding: 32px 40px 140px;
   }
   .app-header {
-    max-width: 780px;
+    max-width: 980px;
+    padding: 20px 32px 16px;
   }
   .bottom-nav {
-    max-width: 780px;
+    max-width: 980px;
+    padding: 16px 12px 20px;
+  }
+  .section-title {
+    font-size: 1.7rem;
+  }
+  .nav-btn {
+    font-size: 1rem;
+    padding: 12px 14px;
+  }
+  .nav-btn .nav-icon {
+    font-size: 1.65rem;
   }
 }
 
@@ -959,11 +1047,12 @@ body {
   margin-bottom: 8px;
 }
 
-/* Responsive tweaks */
-@media (min-width: 500px) {
+/* Tablet: center nav a bit wider */
+@media (min-width: 500px) and (max-width: 899px) {
   .bottom-nav {
-    max-width: 600px;
+    max-width: 560px;
     left: 50%;
+    right: auto;
     transform: translateX(-50%);
     border-radius: 20px 20px 0 0;
   }
