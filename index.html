@@ -61,7 +61,7 @@ body.mode-adhd .section-title {
   font-size: 1.5rem;
 }
 body.mode-adhd .content {
-  max-width: 420px;
+  max-width: 480px;
 }
 .focus-banner {
   background: linear-gradient(135deg, #A78BFA, #4ECDC4);
@@ -406,8 +406,56 @@ body {
 /* ========== CONTENT ========== */
 .content {
   padding: 16px 16px 100px;
-  max-width: 600px;
+  max-width: 560px;
   margin: 0 auto;
+  width: 100%;
+}
+/* Laptop: wider column, still stacked cards (not stretched edge-to-edge) */
+@media (min-width: 900px) {
+  .content {
+    max-width: 720px;
+    padding: 24px 28px 110px;
+  }
+  .app-header {
+    max-width: 720px;
+    margin: 0 auto;
+    width: 100%;
+    border-radius: 0 0 16px 16px;
+  }
+  .card {
+    padding: 18px 20px;
+  }
+  .week-grid {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+  }
+  .day-row {
+    padding: 16px 18px;
+  }
+  .habit-grid {
+    grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  }
+  .bottom-nav {
+    max-width: 720px;
+    left: 50%;
+    right: auto;
+    transform: translateX(-50%);
+    width: 100%;
+    border-radius: 20px 20px 0 0;
+  }
+}
+@media (min-width: 1200px) {
+  .content {
+    max-width: 780px;
+    padding: 28px 32px 120px;
+  }
+  .app-header {
+    max-width: 780px;
+  }
+  .bottom-nav {
+    max-width: 780px;
+  }
 }
 
 .tab {
@@ -929,6 +977,7 @@ body {
     <div class="auth-card">
       <div class="logo">🌈 SBL Plan</div>
       <p class="tagline">Plan your SBL day with joy!</p>
+      <p id="app-version" style="font-size:0.75rem;color:#999;margin-top:-18px;margin-bottom:20px"></p>
 
       <div id="login-form">
         <input type="email" id="login-email" placeholder="yourname@school-beyond-limitations.com"
@@ -1136,22 +1185,12 @@ body {
   <!-- Toast -->
   <div id="toast" class="toast hidden"></div>
 
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js"></script>
-  <script src="https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js"></script>
   <script>
 // ========== SBL Plan App ==========
-// Cloud accounts (any device) + local fallback
-
+const APP_VERSION = '2026-09-08c';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
-/* ==== FIREBASE CONFIG (required for login-from-anywhere + password reset) ====
-   1. Create free project at https://console.firebase.google.com
-   2. Enable Authentication → Email/Password
-   3. Create Firestore database (test mode, then lock down rules)
-   4. Project settings → Your apps → Web → copy config below
-   Leave empty to use this device only (not recommended for school-wide use).
-*/
+/* Firebase optional — leave empty for this-device accounts */
 const FIREBASE_CONFIG = {
   apiKey: "",
   authDomain: "",
@@ -1164,18 +1203,41 @@ const FIREBASE_CONFIG = {
 let firebaseReady = false;
 let auth = null;
 let db = null;
-(function initFirebase() {
+function initFirebaseSafe() {
   const ok = FIREBASE_CONFIG.apiKey && FIREBASE_CONFIG.projectId;
-  if (!ok) return;
-  try {
-    firebase.initializeApp(FIREBASE_CONFIG);
-    auth = firebase.auth();
-    db = firebase.firestore();
-    firebaseReady = true;
-  } catch (e) {
-    console.warn('Firebase init failed', e);
+  if (!ok) return; // local-only mode — fully works without Firebase
+  function start() {
+    if (typeof firebase === 'undefined') {
+      console.warn('Firebase SDK not loaded; using this device only');
+      return;
+    }
+    try {
+      firebase.initializeApp(FIREBASE_CONFIG);
+      auth = firebase.auth();
+      db = firebase.firestore();
+      firebaseReady = true;
+    } catch (e) {
+      console.warn('Firebase init failed', e);
+      firebaseReady = false;
+    }
   }
-})();
+  if (typeof firebase !== 'undefined') { start(); return; }
+  const urls = [
+    'https://www.gstatic.com/firebasejs/10.14.1/firebase-app-compat.js',
+    'https://www.gstatic.com/firebasejs/10.14.1/firebase-auth-compat.js',
+    'https://www.gstatic.com/firebasejs/10.14.1/firebase-firestore-compat.js'
+  ];
+  let i = 0;
+  function next() {
+    if (i >= urls.length) { start(); return; }
+    const s = document.createElement('script');
+    s.src = urls[i++];
+    s.onload = next;
+    s.onerror = () => { console.warn('Firebase script failed'); };
+    document.head.appendChild(s);
+  }
+  next();
+}
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
 // ISO week number (1–53)
@@ -2753,6 +2815,11 @@ document.getElementById('modal-overlay').addEventListener('click', (e) => {
 // Start – never show login if already logged in
 load();
 applyA11yModes();
+(function showVer(){
+  const el = document.getElementById('app-version');
+  if (el) el.textContent = 'v' + APP_VERSION;
+})();
+initFirebaseSafe();
 if (firebaseReady && auth) {
   auth.onAuthStateChanged(async (user) => {
     if (user) {
