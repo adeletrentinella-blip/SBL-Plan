@@ -1186,7 +1186,8 @@ body {
       <p id="app-version" style="font-size:0.75rem;color:#999;margin-top:-18px;margin-bottom:20px"></p>
 
       <div id="login-form">
-        <input type="email" id="login-email" placeholder="yourname@school-beyond-limitations.com"
+        <input type="email" id="login-email" value="@school-beyond-limitations.com"
+          placeholder="name@school-beyond-limitations.com"
           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           data-lpignore="true" data-1p-ignore data-form-type="other">
         <div class="password-wrap">
@@ -1203,14 +1204,15 @@ body {
 
       <div id="forgot-form" class="hidden">
         <p style="color:var(--muted);margin-bottom:12px;font-size:0.95rem">Enter your school email. We will send a reset link if cloud accounts are enabled.</p>
-        <input type="email" id="forgot-email" placeholder="yourname@school-beyond-limitations.com"
+        <input type="email" id="forgot-email" value="@school-beyond-limitations.com" placeholder="name@school-beyond-limitations.com"
           autocomplete="off" data-lpignore="true" data-1p-ignore>
         <button class="btn primary" onclick="resetPassword()">Send reset link</button>
         <p class="switch"><a href="#" onclick="showLogin(); return false;">Back to log in</a></p>
       </div>
 
       <div id="register-form" class="hidden">
-        <input type="email" id="reg-email" placeholder="yourname@school-beyond-limitations.com"
+        <input type="email" id="reg-email" value="@school-beyond-limitations.com"
+          placeholder="name@school-beyond-limitations.com"
           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           data-lpignore="true" data-1p-ignore data-form-type="other">
         <input type="text" id="reg-displayname" placeholder="What should we call you?" autocomplete="off">
@@ -1445,7 +1447,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-09g';
+const APP_VERSION = '2026-09-09h';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1963,22 +1965,37 @@ function togglePassword(inputId, btn) {
 const SCHOOL_DOMAIN = '@school-beyond-limitations.com';
 
 function prefillEmailFields() {
-  ['login-email', 'reg-email'].forEach(id => {
+  ['login-email', 'reg-email', 'forgot-email'].forEach(id => {
     const el = document.getElementById(id);
-    if (el && !el.value) el.value = SCHOOL_DOMAIN;
+    if (!el) return;
+    // Always ensure domain is present
+    if (!el.value || el.value.trim() === '') {
+      el.value = SCHOOL_DOMAIN;
+    } else if (!el.value.includes('@')) {
+      el.value = el.value.trim() + SCHOOL_DOMAIN;
+    } else if (el.value.trim() === '@' || el.value.endsWith('@')) {
+      el.value = SCHOOL_DOMAIN;
+    }
   });
 }
 
 function focusBeforeDomain(el) {
-  if (!el.value) el.value = SCHOOL_DOMAIN;
+  prefillEmailFields();
+  const val = el.value || SCHOOL_DOMAIN;
+  if (!val.includes('@')) el.value = val + SCHOOL_DOMAIN;
+  else if (!el.value) el.value = SCHOOL_DOMAIN;
   const at = el.value.indexOf('@');
   const pos = at === -1 ? 0 : at;
-  requestAnimationFrame(() => el.setSelectionRange(pos, pos));
+  requestAnimationFrame(() => {
+    try { el.setSelectionRange(pos, pos); } catch (e) {}
+  });
 }
 
-['login-email', 'reg-email'].forEach(id => {
+['login-email', 'reg-email', 'forgot-email'].forEach(id => {
   const el = document.getElementById(id);
-  if (el) el.addEventListener('focus', () => focusBeforeDomain(el));
+  if (!el) return;
+  el.addEventListener('focus', () => focusBeforeDomain(el));
+  el.addEventListener('click', () => focusBeforeDomain(el));
 });
 
 function showLogin() {
