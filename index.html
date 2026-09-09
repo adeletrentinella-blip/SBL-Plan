@@ -243,10 +243,12 @@ body {
   margin-bottom: 8px;
 }
 .avatars {
-  display: flex;
-  flex-wrap: wrap;
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
   gap: 10px;
-  justify-content: center;
+  justify-items: center;
+  max-width: 360px;
+  margin: 0 auto;
 }
 .avatar {
   font-size: 1.8rem;
@@ -1136,6 +1138,12 @@ body {
             <span class="avatar" data-avatar="🎨">🎨</span>
             <span class="avatar" data-avatar="⚡">⚡</span>
             <span class="avatar" data-avatar="🏆">🏆</span>
+            <span class="avatar" data-avatar="🌸">🌸</span>
+            <span class="avatar" data-avatar="🍀">🍀</span>
+            <span class="avatar" data-avatar="🎯">🎯</span>
+            <span class="avatar" data-avatar="📚">📚</span>
+            <span class="avatar" data-avatar="🧩">🧩</span>
+            <span class="avatar" data-avatar="🎈">🎈</span>
           </div>
         </div>
         <div class="consent-box">
@@ -1166,8 +1174,8 @@ body {
         </div>
       </div>
       <div class="a11y-bar">
-        <button type="button" class="a11y-chip" id="chip-adhd" onclick="toggleAdhdMode()" title="ADHD focus mode">ADHD</button>
-        <button type="button" class="a11y-chip" id="chip-dyslexia" onclick="toggleDyslexiaMode()" title="Dyslexia-friendly text">Dyslexia</button>
+        <button type="button" class="a11y-chip" id="chip-adhd" onclick="toggleAdhdMode()" title="Focus mode">Focus</button>
+        <button type="button" class="a11y-chip" id="chip-dyslexia" onclick="toggleDyslexiaMode()" title="Friendly fonts">Fonts</button>
         <button class="icon-btn" onclick="openTimezoneModal()" title="Change timezone">🌍</button>
         <button class="icon-btn" onclick="openSettingsModal()" title="Settings">⚙️</button>
       </div>
@@ -1276,7 +1284,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-08c';
+const APP_VERSION = '2026-09-09a';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1464,11 +1472,30 @@ const TIMEZONE_OPTIONS = {
   LT: { label: 'Lithuania (+1h)', offset: 1 },
   RO: { label: 'Romania (+1h)', offset: 1 },
   // Georgia
-  GE: { label: 'Georgia (+3h)', offset: 3 }
+  GE: { label: 'Georgia (+2 summer / +3 winter)', offset: 3 }
 };
+
+function isEuropeanSummerTime(date) {
+  // Approx EU DST: last Sunday of March → last Sunday of October
+  const d = date instanceof Date ? date : new Date();
+  const y = d.getFullYear();
+  function lastSunday(month) {
+    const end = new Date(Date.UTC(y, month + 1, 0));
+    const day = end.getUTCDay();
+    end.setUTCDate(end.getUTCDate() - day);
+    end.setUTCHours(1, 0, 0, 0);
+    return end;
+  }
+  const start = lastSunday(2); // March
+  const end = lastSunday(9);   // October
+  return d >= start && d < end;
+}
 
 function getTzOffset() {
   const tz = state.timezone || 'CET';
+  // Georgia is UTC+4 year-round. School CET = UTC+1, CEST = UTC+2
+  // → +3 in winter, +2 in summer relative to school clock
+  if (tz === 'GE') return isEuropeanSummerTime(new Date()) ? 2 : 3;
   return (TIMEZONE_OPTIONS[tz] || TIMEZONE_OPTIONS.CET).offset;
 }
 
@@ -1704,7 +1731,7 @@ function toggleAdhdMode() {
   applyA11yModes();
   save();
   if (firebaseReady && auth.currentUser) cloudSaveUserData();
-  toast(state.adhdMode ? 'ADHD focus mode on 🎯' : 'Focus mode off');
+  toast(state.adhdMode ? 'Focus mode on 🎯' : 'Focus mode off');
 }
 
 function toggleDyslexiaMode() {
@@ -1712,7 +1739,7 @@ function toggleDyslexiaMode() {
   applyA11yModes();
   save();
   if (firebaseReady && auth.currentUser) cloudSaveUserData();
-  toast(state.dyslexiaMode ? 'Dyslexia-friendly text on' : 'Standard text');
+  toast(state.dyslexiaMode ? 'Friendly fonts on' : 'Standard fonts');
 }
 
 function applyA11yModes() {
@@ -1747,8 +1774,8 @@ function openSettingsModal() {
   openModal(`
     <h3>Settings ⚙️</h3>
     <div class="settings-panel" style="text-align:left">
-      <button class="btn add-btn" style="margin-top:8px" onclick="toggleAdhdMode(); closeModal();">🎯 ADHD focus mode: ${state.adhdMode ? 'ON' : 'OFF'}</button>
-      <button class="btn add-btn" style="margin-top:8px;background:#A78BFA" onclick="toggleDyslexiaMode(); closeModal();">📖 Dyslexia text: ${state.dyslexiaMode ? 'ON' : 'OFF'}</button>
+      <button class="btn add-btn" style="margin-top:8px" onclick="toggleAdhdMode(); closeModal();">🎯 Focus mode: ${state.adhdMode ? 'ON' : 'OFF'}</button>
+      <button class="btn add-btn" style="margin-top:8px;background:#A78BFA" onclick="toggleDyslexiaMode(); closeModal();">📖 Fonts: ${state.dyslexiaMode ? 'ON' : 'OFF'}</button>
       <button class="btn add-btn" style="margin-top:8px;background:#636E72" onclick="closeModal(); openTimezoneModal();">🌍 Timezone</button>
       <button class="btn add-btn" style="margin-top:8px;background:#0984E3" onclick="exportMyData()">⬇️ Export my data</button>
       <button class="btn add-btn" style="margin-top:8px;background:#E17055" onclick="closeModal(); openPrivacyModal();">🔒 Privacy notice</button>
@@ -2116,7 +2143,7 @@ function renderHeader() {
 // ---------- Change Avatar anytime ----------
 function openAvatarModal() {
   const current = state.users[state.currentUser]?.avatar || '🦊';
-  const avatars = ['🦊','🐼','🦄','🐱','🐶','🦁','🐸','🐰','🐨','🐯','🐵','🐮','🐷','🦋','🐢','🐙','🦖','🐝','🦉','🐧','🐬','🦕','🌟','🚀','🌈','🐲','🎮','🎨','⚡','🏆'];
+  const avatars = ['🦊','🐼','🦄','🐱','🐶','🦁','🐸','🐰','🐨','🐯','🐵','🐮','🐷','🦋','🐢','🐙','🦖','🐝','🦉','🐧','🐬','🦕','🌟','🚀','🌈','🐲','🎮','🎨','⚡','🏆','🌸','🍀','🎯','📚','🧩','🎈'];
   const options = avatars.map(a =>
     `<span class="avatar ${a === current ? 'selected' : ''}" data-avatar="${a}" onclick="selectAvatar(this)">${a}</span>`
   ).join('');
