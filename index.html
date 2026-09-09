@@ -788,6 +788,7 @@ body {
 .day-event.type-session-morning { background: #FFF8E1; color: #F9A825; border-left: 4px solid #FFC107; padding: 6px 8px; border-radius: 8px; border-bottom: none; margin: 2px 0; }
 .day-event.type-session-afternoon { background: #E0F7FA; color: #00838F; border-left: 4px solid #26C6DA; padding: 6px 8px; border-radius: 8px; border-bottom: none; margin: 2px 0; }
 .day-event.type-session-mentoring { background: #EDE7F6; color: #5E35B1; border-left: 4px solid #7E57C2; padding: 6px 8px; border-radius: 8px; border-bottom: none; margin: 2px 0; }
+.day-event.type-note { background: #F5F5F5; color: #424242; border-left: 4px solid #9E9E9E; padding: 6px 8px; border-radius: 8px; border-bottom: none; margin: 2px 0; font-weight: 600; }
 
 .day-row.special-week.sw-holiday { background: linear-gradient(135deg, #E3F2FD, #BBDEFB); border-color: #1E88E5; }
 .day-row.special-week.sw-residential { background: linear-gradient(135deg, #F3E5F5, #E1BEE7); border-color: #8E24AA; }
@@ -1219,6 +1220,12 @@ body {
         <div id="today-tasks" class="card-list"></div>
         <button class="btn add-btn" onclick="openTaskModal()">+ Add Task</button>
 
+        <h2 class="section-title">Today's Sessions 🎨</h2>
+        <div id="today-sessions" class="card-list"></div>
+
+        <h2 class="section-title">Remember today 📝</h2>
+        <div id="today-notes" class="card-list"></div>
+
         <h2 class="section-title">Today's Habits 🔥</h2>
         <div id="today-habits" class="habit-grid"></div>
       </section>
@@ -1284,7 +1291,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-09a';
+const APP_VERSION = '2026-09-09c';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1348,13 +1355,22 @@ function getISOWeek(d) {
 
 // true if this every-other-week session is active on the given date
 // Rule: odd ISO weeks = active (week 1, 3, 5…)
-function isEveryOtherWeekActive(date) {
+// Odd ISO weeks = Week A; even ISO weeks = Week B
+function isWeekA(date) {
   const d = date instanceof Date ? date : new Date(date + 'T12:00:00');
   return getISOWeek(d) % 2 === 1;
 }
 
+function isEveryOtherWeekActive(date, morningGroup) {
+  const weekA = isWeekA(date);
+  const group = (morningGroup || 'A').toUpperCase();
+  // Morning A runs on A-weeks; Morning B on B-weeks
+  if (group === 'B') return !weekA;
+  return weekA;
+}
+
 function sessionOnDay(c, weekday, dateStr) {
-  // day-of-week match
+  // day-of-week match (whatever days you selected)
   let dayMatch = false;
   if (Array.isArray(c.days) && c.days.length) {
     dayMatch = c.days.map(Number).includes(Number(weekday));
@@ -1363,13 +1379,10 @@ function sessionOnDay(c, weekday, dateStr) {
   }
   if (!dayMatch) return false;
 
-  // every-other-week filter
+  // every-other-week: A and B alternate (never both the same week)
   if (c.everyOtherWeek) {
-    if (!dateStr) {
-      // no specific date (e.g. listing all sessions) — still show in Sessions list
-      return true;
-    }
-    return isEveryOtherWeekActive(dateStr);
+    if (!dateStr) return true; // Sessions list still shows both
+    return isEveryOtherWeekActive(dateStr, c.morningGroup);
   }
   return true;
 }
@@ -2180,8 +2193,23 @@ function getTodayTasks() {
   return state.tasks.filter(task => task.date === t);
 }
 
+
+function notesForDate(dateStr) {
+  return (state.notes || []).filter(n => n.reminder && n.reminder === dateStr);
+}
+
+function notesWithoutDate() {
+  return (state.notes || []).filter(n => !n.reminder);
+}
+
+function sessionsForDate(dateStr) {
+  const weekday = new Date(dateStr + 'T12:00:00').getDay();
+  return (state.classes || []).filter(c => sessionOnDay(c, weekday, dateStr));
+}
+
 function renderToday() {
-  document.getElementById('today-date').textContent = formatDate(todayStr());
+  const t = todayStr();
+  document.getElementById('today-date').textContent = formatDate(t);
 
   const list = document.getElementById('today-tasks');
   const tasks = getTodayTasks();
@@ -2190,6 +2218,46 @@ function renderToday() {
     list.innerHTML = `<div class="empty"><div class="emoji">🎯</div>No missions yet.<br>Add your first task!</div>`;
   } else {
     list.innerHTML = tasks.map(task => taskCardHTML(task)).join('');
+  }
+
+  // Sessions for today
+  const sessEl = document.getElementById('today-sessions');
+  if (sessEl) {
+    const sessions = sessionsForDate(t).sort((a, b) => (a.time || '').localeCompare(b.time || ''));
+    if (sessions.length === 0) {
+      sessEl.innerHTML = `<div class="empty" style="padding:16px"><div class="emoji">🎨</div>No sessions today</div>`;
+    } else {
+      sessEl.innerHTML = sessions.map(c => {
+        const icon = c.sessionType === 'morning' ? '🌅' : (c.sessionType === 'mentoring' ? '🤝' : '🎨');
+        const st = c.sessionType === 'morning' ? 'morning' : (c.sessionType === 'mentoring' ? 'mentoring' : 'afternoon');
+        const zoom = c.zoom ? `<a class="small-btn" style="background:#E3F2FD;color:#1565C0" href="${c.zoom}" target="_blank" rel="noopener">Join Zoom / Link 🔗</a>` : '';
+        return `<div class="card">
+          <div class="card-title">${icon} ${c.title}</div>
+          <div class="card-meta">${c.time ? formatTimeCET(c.time) + ' · ' : ''}${c.location || ''}${c.notes ? ' · ' + c.notes : ''}</div>
+          <div class="card-actions">${zoom}
+            <button class="small-btn" onclick="openClassModal('${c.id}')">Edit</button>
+          </div>
+        </div>`;
+      }).join('');
+    }
+  }
+
+  // Remember items for today (dated) + undated always useful today
+  const notesEl = document.getElementById('today-notes');
+  if (notesEl) {
+    const dated = notesForDate(t);
+    const undated = notesWithoutDate();
+    const notes = [...dated, ...undated];
+    if (notes.length === 0) {
+      notesEl.innerHTML = `<div class="empty" style="padding:16px"><div class="emoji">📝</div>Nothing to remember today</div>`;
+    } else {
+      notesEl.innerHTML = notes.map(n => `
+        <div class="card">
+          <div class="card-title">📝 ${n.text}</div>
+          ${n.reminder ? `<div class="card-meta">⏰ ${formatShort(n.reminder)}</div>` : '<div class="card-meta">Pinned note</div>'}
+        </div>
+      `).join('');
+    }
   }
 
   renderTodayHabits();
@@ -2393,6 +2461,7 @@ function renderWeek() {
     const weekday = d.getDay();
     const dayTasks = state.tasks.filter(t => t.date === key);
     const dayClasses = state.classes.filter(c => sessionOnDay(c, weekday, key));
+    const dayNotes = notesForDate(key);
     const specials = getSpecialEvents(key);
     const specialItems = specials.map(s =>
       `<div class="day-event special-event type-${s.type || 'event'}">${s.label}</div>`
@@ -2407,7 +2476,10 @@ function renderWeek() {
         const st = c.sessionType === 'morning' ? 'morning' : (c.sessionType === 'mentoring' ? 'mentoring' : 'afternoon');
         return `<div class="day-event type-session-${st}">${icon} ${c.time ? formatTimeCET(c.time) + ' ' : ''}${c.title}${c.location ? ' · ' + c.location : ''}</div>`;
       });
-    const allItems = [...specialItems, ...taskItems, ...classItems];
+    const noteItems = dayNotes.map(n =>
+      `<div class="day-event type-note">📝 ${n.text}</div>`
+    );
+    const allItems = [...specialItems, ...classItems, ...taskItems, ...noteItems];
 
     const primaryType = specials[0]?.type || '';
     const specialClass = specials.length ? `special-week sw-${primaryType}` : '';
@@ -2454,7 +2526,7 @@ function renderMonth() {
   for (let day = 1; day <= daysInMonth; day++) {
     const key = `${year}-${String(month + 1).padStart(2, '0')}-${String(day).padStart(2, '0')}`;
     const weekday = new Date(year, month, day).getDay();
-    const hasItems = state.tasks.some(t => t.date === key) || state.classes.some(c => sessionOnDay(c, weekday, key)) || getSpecialEvents(key).length > 0;
+    const hasItems = state.tasks.some(t => t.date === key) || state.classes.some(c => sessionOnDay(c, weekday, key)) || getSpecialEvents(key).length > 0 || notesForDate(key).length > 0;
     const isToday = key === today;
     const specialsM = getSpecialEvents(key);
     const special = specialsM[0];
@@ -2477,12 +2549,15 @@ function viewDay(dateStr) {
   const specials = getSpecialEvents(dateStr);
 
   let listHtml = '';
-  if (specials.length === 0 && tasks.length === 0 && classes.length === 0) {
+  if (specials.length === 0 && tasks.length === 0 && classes.length === 0 && notesForDate(dateStr).length === 0) {
     listHtml = `<p style="color:var(--muted);margin:12px 0">Nothing planned yet for this day.</p>`;
   } else {
     listHtml = '<div style="margin:12px 0;text-align:left">';
     specials.forEach(s => {
       listHtml += `<div class="day-event special-event type-${s.type || 'event'}" style="padding:8px 0">${s.label}</div>`;
+    });
+    notesForDate(dateStr).forEach(n => {
+      listHtml += `<div class="day-event type-note" style="padding:6px 0">📝 ${n.text}</div>`;
     });
     tasks.forEach(t => {
       listHtml += `<div class="day-event type-task" style="padding:6px 0">• ${t.completed ? '✓ ' : ''}${t.title}</div>`;
@@ -2525,7 +2600,7 @@ function renderClasses() {
       typeBadge = '<span class="session-badge afternoon">🎨 Afternoon</span>';
     }
     const everyOther = c.everyOtherWeek
-      ? `<div class="card-meta">📅 Every other week · 1 facilitator · ${isEveryOtherWeekActive(todayStr()) ? '✅ this week' : '⏸ not this week'}</div>`
+      ? `<div class="card-meta">📅 Every other week · 1 facilitator · ${isEveryOtherWeekActive(todayStr(), c.morningGroup) ? '✅ this week' : '⏸ not this week'}</div>`
       : '';
     return `
     <div class="card class-card">
@@ -2766,7 +2841,7 @@ function openClassModal(editId = null) {
     <div id="every-other-wrap" style="${showMorningGroup}">
       <label style="display:flex;align-items:center;gap:8px;font-weight:600">
         <input type="checkbox" id="class-every-other" ${everyOther ? 'checked' : ''} style="width:auto">
-        Every other week (1 facilitator) — shows on odd weeks only
+        Every other week (1 facilitator) — A-weeks vs B-weeks alternate
       </label>
     </div>
     <label>Notes (optional)</label>
@@ -2877,6 +2952,7 @@ function saveClass(editId) {
   save();
   closeModal();
   renderClasses();
+  renderToday();
   renderWeek();
   renderMonth();
   toast(editId ? 'Session updated!' : 'Session added! 🎨');
@@ -2909,6 +2985,9 @@ function saveNote() {
   save();
   closeModal();
   renderNotes();
+  renderToday();
+  renderWeek();
+  renderMonth();
   toast('Saved! 📝');
 }
 
