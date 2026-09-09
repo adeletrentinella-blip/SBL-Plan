@@ -733,6 +733,70 @@ body {
 .session-tile.type-morning { border-top: 4px solid #FFC107; }
 .session-tile.type-afternoon { border-top: 4px solid #26C6DA; }
 .session-tile.type-mentoring { border-top: 4px solid #7E57C2; }
+.session-tile.done-today {
+  background: linear-gradient(135deg, #55EFC4, #00B894);
+  color: white;
+}
+.session-tile.done-today .session-meta { color: rgba(255,255,255,0.9); }
+.session-tile {
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+.session-tile:active { transform: scale(0.97); }
+.goal-card {
+  background: white;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  margin-bottom: 10px;
+}
+.goal-card.done .goal-text {
+  text-decoration: line-through;
+  color: var(--muted);
+}
+.reflection-box {
+  background: white;
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  margin-bottom: 14px;
+}
+.reflection-box textarea {
+  width: 100%;
+  min-height: 90px;
+  border: 2px solid #eee;
+  border-radius: 12px;
+  padding: 12px;
+  font-family: inherit;
+  font-size: 1rem;
+  resize: vertical;
+  margin-top: 8px;
+}
+
+.goal-term-title {
+  font-size: 1.1rem;
+  font-weight: 800;
+  margin: 8px 0 10px;
+}
+.goal-term-title.short { color: #E64A19; }
+.goal-term-title.medium { color: #00897B; }
+.goal-term-title.long { color: #6A1B9A; }
+.nav-btn span:last-child {
+  font-size: 0.65rem;
+}
+@media (min-width: 900px) {
+  .nav-btn span:last-child {
+    font-size: 0.85rem;
+  }
+}
+
+.reflection-box textarea:focus {
+  outline: none;
+  border-color: var(--secondary);
+}
 @media (min-width: 900px) {
   .session-grid {
     grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
@@ -1246,6 +1310,14 @@ body {
         <span class="nav-icon">🗓️</span>
         <span>Month</span>
       </button>
+      <button class="nav-btn" data-tab="goals" onclick="switchTab('goals')">
+        <span class="nav-icon">🎯</span>
+        <span>Goals</span>
+      </button>
+      <button class="nav-btn" data-tab="reflect" onclick="switchTab('reflect')">
+        <span class="nav-icon">🪞</span>
+        <span>Reflect</span>
+      </button>
       <button class="nav-btn" data-tab="habits" onclick="switchTab('habits')">
         <span class="nav-icon">🔥</span>
         <span>Habits</span>
@@ -1265,12 +1337,14 @@ body {
       <!-- TODAY -->
       <section id="tab-today" class="tab active">
         <div id="focus-banner" class="focus-banner hidden">🎯 Focus mode: one thing at a time. Finish the top mission first.</div>
-        <h2 class="section-title">Today's Missions 🚀</h2>
         <div id="today-date" class="date-label"></div>
+
+        <h2 class="section-title">Action Steps ✅</h2>
         <div id="today-tasks" class="card-list"></div>
-        <button class="btn add-btn" onclick="openTaskModal()">+ Add Task</button>
+        <button class="btn add-btn" onclick="openTaskModal()">+ Add Action Step</button>
 
         <h2 class="section-title">Today's Sessions 🎨</h2>
+        <p class="hint" style="margin-bottom:8px">Tap a session to check it off for today</p>
         <div id="today-sessions" class="session-grid"></div>
 
         <h2 class="section-title">Remember today 📝</h2>
@@ -1301,6 +1375,36 @@ body {
           <button class="icon-btn" onclick="changeMonth(1)">▶</button>
         </div>
         <div id="month-view" class="month-grid"></div>
+      </section>
+
+      <!-- GOALS -->
+      <section id="tab-goals" class="tab">
+        <h2 class="section-title">My Goals 🎯</h2>
+        <p class="hint">Short · Medium · Long term</p>
+
+        <h3 class="goal-term-title short">⚡ Short term</h3>
+        <div id="goals-short" class="card-list"></div>
+        <button class="btn add-btn" style="background:#FF8A65;margin-bottom:18px" onclick="openGoalModal('short')">+ Short-term goal</button>
+
+        <h3 class="goal-term-title medium">📅 Medium term</h3>
+        <div id="goals-medium" class="card-list"></div>
+        <button class="btn add-btn" style="background:#4ECDC4;margin-bottom:18px" onclick="openGoalModal('medium')">+ Medium-term goal</button>
+
+        <h3 class="goal-term-title long">🌟 Long term</h3>
+        <div id="goals-long" class="card-list"></div>
+        <button class="btn add-btn" style="background:#A78BFA;margin-bottom:18px" onclick="openGoalModal('long')">+ Long-term goal</button>
+      </section>
+
+      <!-- REFLECT -->
+      <section id="tab-reflect" class="tab">
+        <h2 class="section-title">Reflection 🪞</h2>
+        <p class="hint">Daily and weekly check-ins with yourself</p>
+
+        <h3 class="goal-term-title short">☀️ Daily reflection</h3>
+        <div id="daily-reflection" class="reflection-box"></div>
+
+        <h3 class="goal-term-title medium" style="margin-top:18px">📅 Weekly reflection</h3>
+        <div id="weekly-reflection" class="reflection-box"></div>
       </section>
 
       <!-- HABITS -->
@@ -1341,7 +1445,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-09d';
+const APP_VERSION = '2026-09-09g';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1490,6 +1594,8 @@ let state = {
   habits: [],
   notes: [],
   classes: [],
+  goals: [],
+  reflections: {},
   currentMonth: new Date(),
   timezone: 'CET',
   adhdMode: false,
@@ -1505,6 +1611,157 @@ function uid() {
 function todayStr() {
   return new Date().toISOString().slice(0, 10);
 }
+
+function weekKey(d) {
+  const date = d instanceof Date ? d : new Date(d + 'T12:00:00');
+  const y = date.getFullYear();
+  const w = getISOWeek(date);
+  return y + '-W' + String(w).padStart(2, '0');
+}
+
+function sessionDoneToday(c, dateStr) {
+  const t = dateStr || todayStr();
+  return !!(c.history && c.history[t]);
+}
+
+function toggleSessionDone(id, dateStr) {
+  const c = state.classes.find(x => x.id === id);
+  if (!c) return;
+  const t = dateStr || todayStr();
+  if (!c.history) c.history = {};
+  if (c.history[t]) {
+    toast("Already checked off — can't undo 🔒");
+    return;
+  }
+  if (!confirm('Mark this session done for today?\n\nYou cannot undo this.')) return;
+  c.history[t] = true;
+  addPoints(4);
+  showConfetti();
+  toast('+4 stars for session! 🎨');
+  save();
+  renderToday();
+  renderClasses();
+  renderWeek();
+}
+
+function renderGoals() {
+  if (!state.goals) state.goals = [];
+  // migrate old goals without term
+  state.goals.forEach(g => { if (!g.term) g.term = 'short'; });
+  ['short', 'medium', 'long'].forEach(term => {
+    const list = document.getElementById('goals-' + term);
+    if (!list) return;
+    const items = state.goals.filter(g => (g.term || 'short') === term);
+    if (items.length === 0) {
+      list.innerHTML = `<div class="empty" style="padding:10px;font-size:0.9rem">No ${term}-term goals yet</div>`;
+      return;
+    }
+    list.innerHTML = items.map(g => `
+      <div class="goal-card ${g.done ? 'done' : ''}">
+        <div class="checkbox ${g.done ? 'checked' : ''}" onclick="toggleGoal('${g.id}')">${g.done ? '✓' : ''}</div>
+        <div style="flex:1">
+          <div class="goal-text card-title">${g.text}</div>
+          ${g.byWhen ? `<div class="card-meta">By ${formatShort(g.byWhen)}</div>` : ''}
+        </div>
+        <button class="small-btn danger" onclick="deleteGoal('${g.id}')">Delete</button>
+      </div>
+    `).join('');
+  });
+}
+
+function openGoalModal(term) {
+  const t = term || 'short';
+  const labels = { short: 'Short-term', medium: 'Medium-term', long: 'Long-term' };
+  openModal(`
+    <h3>${labels[t] || 'New'} Goal 🎯</h3>
+    <input type="hidden" id="goal-term" value="${t}">
+    <label>What do you want to achieve?</label>
+    <input type="text" id="goal-text" placeholder="Write your goal">
+    <label>By when? (optional)</label>
+    <input type="date" id="goal-by">
+    <button class="btn primary" onclick="saveGoal()">Save Goal</button>
+  `);
+}
+
+function saveGoal() {
+  const textVal = document.getElementById('goal-text').value.trim();
+  if (!textVal) { toast('Write your goal'); return; }
+  const byWhen = document.getElementById('goal-by').value || null;
+  const term = (document.getElementById('goal-term') || {}).value || 'short';
+  if (!state.goals) state.goals = [];
+  state.goals.push({ id: uid(), text: textVal, byWhen, term, done: false, created: todayStr() });
+  save();
+  closeModal();
+  renderGoals();
+  toast('Goal saved! 🎯');
+}
+
+function toggleGoal(id) {
+  const g = state.goals.find(x => x.id === id);
+  if (!g) return;
+  if (g.done) {
+    toast("Goal already done — can't undo 🔒");
+    return;
+  }
+  if (!confirm('Mark this goal as reached?\n\nYou cannot undo this.')) return;
+  g.done = true;
+  addPoints(10);
+  showConfetti();
+  toast('+10 stars — goal reached! 🏆');
+  save();
+  renderGoals();
+}
+
+function deleteGoal(id) {
+  if (!confirm('Delete this goal? This cannot be undone.')) return;
+  state.goals = state.goals.filter(x => x.id !== id);
+  save();
+  renderGoals();
+}
+
+function dailyKey(d) {
+  return 'day-' + (d ? (typeof d === 'string' ? d : d.toISOString().slice(0, 10)) : todayStr());
+}
+
+function renderReflection() {
+  if (!state.reflections) state.reflections = {};
+  const dayEl = document.getElementById('daily-reflection');
+  const weekEl = document.getElementById('weekly-reflection');
+  const dk = dailyKey();
+  const wk = weekKey(new Date());
+  if (dayEl) {
+    const val = state.reflections[dk] || '';
+    dayEl.innerHTML = `
+      <p style="font-weight:700;margin-bottom:4px">Today · ${formatShort(todayStr())}</p>
+      <textarea id="reflection-daily" placeholder="How was today? What went well?">${val.replace(/</g,'&lt;')}</textarea>
+      <button class="btn add-btn" style="margin-top:10px" onclick="saveReflection('daily')">Save daily reflection</button>
+    `;
+  }
+  if (weekEl) {
+    const val = state.reflections[wk] || '';
+    weekEl.innerHTML = `
+      <p style="font-weight:700;margin-bottom:4px">This week · ${wk}</p>
+      <textarea id="reflection-weekly" placeholder="What did you learn this week? What are you proud of?">${val.replace(/</g,'&lt;')}</textarea>
+      <button class="btn add-btn" style="margin-top:10px" onclick="saveReflection('weekly')">Save weekly reflection</button>
+    `;
+  }
+}
+
+function saveReflection(which) {
+  if (!state.reflections) state.reflections = {};
+  if (which === 'daily') {
+    const ta = document.getElementById('reflection-daily');
+    if (!ta) return;
+    state.reflections[dailyKey()] = ta.value.trim();
+  } else {
+    const ta = document.getElementById('reflection-weekly');
+    if (!ta) return;
+    state.reflections[weekKey(new Date())] = ta.value.trim();
+  }
+  save();
+  toast('Reflection saved 🪞');
+}
+
 
 function formatDate(d) {
   const options = { weekday: 'long', month: 'short', day: 'numeric' };
@@ -1857,6 +2114,8 @@ function exportMyData() {
     habits: state.habits,
     notes: state.notes,
     classes: state.classes,
+    goals: state.goals || [],
+    reflections: state.reflections || {},
     timezone: state.timezone,
     adhdMode: state.adhdMode,
     dyslexiaMode: state.dyslexiaMode
@@ -1922,6 +2181,8 @@ async function cloudSaveUserData() {
     habits: state.habits,
     notes: state.notes,
     classes: state.classes,
+    goals: state.goals || [],
+    reflections: state.reflections || {},
     timezone: state.timezone,
     adhdMode: state.adhdMode,
     dyslexiaMode: state.dyslexiaMode,
@@ -1953,6 +2214,8 @@ async function cloudLoadUserData() {
     if (data.habits) state.habits = data.habits;
     if (data.notes) state.notes = data.notes;
     if (data.classes) state.classes = data.classes;
+    if (data.goals) state.goals = data.goals;
+    if (data.reflections) state.reflections = data.reflections;
     if (data.timezone) state.timezone = data.timezone;
     if (typeof data.adhdMode === 'boolean') state.adhdMode = data.adhdMode;
     if (typeof data.dyslexiaMode === 'boolean') state.dyslexiaMode = data.dyslexiaMode;
@@ -2187,16 +2450,43 @@ function switchTab(tab) {
   if (tab === 'today') renderToday();
   if (tab === 'week') renderWeek();
   if (tab === 'month') renderMonth();
+  if (tab === 'goals') renderGoals();
+  if (tab === 'reflect') renderReflection();
   if (tab === 'habits') renderHabits();
   if (tab === 'classes') renderClasses();
   if (tab === 'remember') renderNotes();
 }
 
 // ---------- Render Header ----------
+
+const AVATAR_BG = {
+  '🦊': '#FFE0B2', '🐼': '#FFE66D', '🦄': '#E1BEE7', '🐱': '#FFCCBC',
+  '🐶': '#C8E6C9', '🦁': '#FFF59D', '🐸': '#A5D6A7', '🐰': '#F8BBD0',
+  '🐨': '#B0BEC5', '🐯': '#FFCC80', '🐵': '#D7CCC8', '🐮': '#CFD8DC',
+  '🐷': '#F8BBD9', '🦋': '#B3E5FC', '🐢': '#80CBC4', '🐙': '#CE93D8',
+  '🦖': '#A5D6A7', '🐝': '#FFF176', '🦉': '#BCAAA4', '🐧': '#B3E5FC',
+  '🐬': '#81D4FA', '🦕': '#80CBC4', '🌟': '#FFF59D', '🚀': '#90CAF9',
+  '🌈': '#F8BBD0', '🐲': '#A5D6A7', '🎮': '#B39DDB', '🎨': '#FFAB91',
+  '⚡': '#FFE082', '🏆': '#FFD54F', '🌸': '#F48FB1', '🍀': '#81C784',
+  '🎯': '#EF9A9A', '📚': '#90CAF9', '🧩': '#CE93D8', '🎈': '#FF8A65'
+};
+
+function avatarBg(emoji) {
+  return AVATAR_BG[emoji] || '#FFE66D';
+}
+
+function applyAvatarBackground(emoji) {
+  const el = document.getElementById('user-avatar');
+  if (el) {
+    el.textContent = emoji || '🦊';
+    el.style.background = avatarBg(emoji || '🦊');
+  }
+}
+
 function renderHeader() {
   const user = state.users[state.currentUser];
   if (!user) return;
-  document.getElementById('user-avatar').textContent = user.avatar;
+  applyAvatarBackground(user.avatar || '🦊');
   document.getElementById('user-name').textContent = `Hi ${user.displayName}!`;
   document.getElementById('user-points').textContent = user.points || 0;
   const tzEl = document.getElementById('tz-label');
@@ -2208,7 +2498,7 @@ function openAvatarModal() {
   const current = state.users[state.currentUser]?.avatar || '🦊';
   const avatars = ['🦊','🐼','🦄','🐱','🐶','🦁','🐸','🐰','🐨','🐯','🐵','🐮','🐷','🦋','🐢','🐙','🦖','🐝','🦉','🐧','🐬','🦕','🌟','🚀','🌈','🐲','🎮','🎨','⚡','🏆','🌸','🍀','🎯','📚','🧩','🎈'];
   const options = avatars.map(a =>
-    `<span class="avatar ${a === current ? 'selected' : ''}" data-avatar="${a}" onclick="selectAvatar(this)">${a}</span>`
+    `<span class="avatar ${a === current ? 'selected' : ''}" data-avatar="${a}" onclick="selectAvatar(this)" style="background:${avatarBg(a)}">${a}</span>`
   ).join('');
 
   openModal(`
@@ -2265,7 +2555,7 @@ function renderToday() {
   const tasks = getTodayTasks();
 
   if (tasks.length === 0) {
-    list.innerHTML = `<div class="empty"><div class="emoji">🎯</div>No missions yet.<br>Add your first task!</div>`;
+    list.innerHTML = `<div class="empty"><div class="emoji">🎯</div>No action steps yet.<br>Add your first one!</div>`;
   } else {
     list.innerHTML = tasks.map(task => taskCardHTML(task)).join('');
   }
@@ -2280,16 +2570,18 @@ function renderToday() {
       sessEl.innerHTML = sessions.map(c => {
         const icon = c.sessionType === 'morning' ? '🌅' : (c.sessionType === 'mentoring' ? '🤝' : '🎨');
         const st = c.sessionType === 'morning' ? 'morning' : (c.sessionType === 'mentoring' ? 'mentoring' : 'afternoon');
+        const done = sessionDoneToday(c, t);
         const zoom = c.zoom
-          ? `<a class="small-btn" style="background:#E3F2FD;color:#1565C0;text-decoration:none" href="${c.zoom}" target="_blank" rel="noopener">Zoom</a>`
+          ? `<a class="small-btn" style="background:#E3F2FD;color:#1565C0;text-decoration:none" href="${c.zoom}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Zoom</a>`
           : '';
-        return `<div class="session-tile type-${st}">
-          <div class="session-icon">${icon}</div>
+        return `<div class="session-tile type-${st} ${done ? 'done-today' : ''}" onclick="toggleSessionDone('${c.id}')">
+          <div class="session-icon">${done ? '✅' : icon}</div>
           <div class="session-name">${c.title}</div>
           <div class="session-meta">${c.time ? formatTimeCET(c.time) : ''}${c.location ? ' · ' + c.location : ''}</div>
+          <div class="session-meta">${done ? 'Done today!' : 'Tap to check off'}</div>
           <div class="session-actions">
             ${zoom}
-            <button class="small-btn" onclick="openClassModal('${c.id}')">Edit</button>
+            <button class="small-btn" onclick="event.stopPropagation(); openClassModal('${c.id}')">Edit</button>
           </div>
         </div>`;
       }).join('');
@@ -2354,7 +2646,7 @@ function toggleTask(id) {
   task.completed = true;
   addPoints(5);
   showConfetti();
-  toast('+5 stars! Nice work ⭐');
+  toast('+5 stars! Action done ⭐');
   save();
   renderToday();
   renderWeek();
@@ -2380,13 +2672,13 @@ function toggleStep(taskId, stepIndex) {
 }
 
 function deleteTask(id) {
-  if (!confirm('Delete this task? This cannot be undone.')) return;
+  if (!confirm('Delete this action step? This cannot be undone.')) return;
   state.tasks = state.tasks.filter(t => t.id !== id);
   save();
   renderToday();
   renderWeek();
   renderMonth();
-  toast('Task deleted');
+  toast('Action step deleted');
 }
 
 function addPoints(n) {
@@ -2629,7 +2921,7 @@ function viewDay(dateStr) {
   openModal(`
     <h3>${formatShort(dateStr)}</h3>
     ${listHtml}
-    <button class="btn primary" onclick="closeModal(); openTaskModal(null, '${dateStr}')">+ Add Task / Event for this day</button>
+    <button class="btn primary" onclick="closeModal(); openTaskModal(null, '${dateStr}')">+ Add Action Step for this day</button>
   `);
 }
 
@@ -2650,17 +2942,18 @@ function renderClasses() {
     const zoom = c.zoom
       ? `<a class="small-btn" style="background:#E3F2FD;color:#1565C0;text-decoration:none" href="${c.zoom}" target="_blank" rel="noopener">Zoom</a>`
       : '';
-    return `<div class="session-tile type-${st}">
-      <div class="session-icon">${icon}</div>
+    const done = sessionDoneToday(c);
+    return `<div class="session-tile type-${st} ${done ? 'done-today' : ''}" onclick="toggleSessionDone('${c.id}')">
+      <div class="session-icon">${done ? '✅' : icon}</div>
       <div class="session-name">${c.title}</div>
-      <div class="session-meta">${typeLabel}</div>
+      <div class="session-meta">${typeLabel}${done ? ' · done today' : ''}</div>
       <div class="session-meta">${sessionDaysLabel(c)}${c.time ? ' · ' + formatTimeCET(c.time) : ''}</div>
       ${c.location ? `<div class="session-meta">${c.location}</div>` : ''}
       ${everyOther ? `<div class="session-meta">${everyOther}</div>` : ''}
       <div class="session-actions">
-        ${zoom}
-        <button class="small-btn" onclick="openClassModal('${c.id}')">Edit</button>
-        <button class="small-btn danger" onclick="deleteClass('${c.id}')">Delete</button>
+        ${zoom.replace('href=', 'onclick="event.stopPropagation()" href=') if zoom else ''}
+        <button class="small-btn" onclick="event.stopPropagation(); openClassModal('${c.id}')">Edit</button>
+        <button class="small-btn danger" onclick="event.stopPropagation(); deleteClass('${c.id}')">Delete</button>
       </div>
     </div>`;
   }).join('');
@@ -2721,7 +3014,7 @@ function openTaskModal(editId = null, prefillDate = null) {
   const steps = task && task.steps ? task.steps.map(s => s.text).join('\n') : '';
 
   openModal(`
-    <h3>${task ? 'Edit Task' : 'New Mission'} 🚀</h3>
+    <h3>${task ? 'Edit Action Step' : 'New Mission'} 🚀</h3>
     <label>What do you need to do?</label>
     <input type="text" id="task-title" value="${title}" placeholder="e.g. Finish math worksheet">
     <label>Date</label>
@@ -3047,6 +3340,8 @@ function renderAll() {
   renderHabits();
   renderClasses();
   renderNotes();
+  renderGoals();
+  renderReflection();
 }
 
 // Close modal on overlay click
@@ -3061,6 +3356,10 @@ applyA11yModes();
   const el = document.getElementById('app-version');
   if (el) el.textContent = 'v' + APP_VERSION;
 })();
+document.querySelectorAll('#avatar-options .avatar').forEach(el => {
+  const a = el.dataset.avatar;
+  if (a) el.style.background = avatarBg(a);
+});
 initFirebaseSafe();
 if (firebaseReady && auth) {
   auth.onAuthStateChanged(async (user) => {
