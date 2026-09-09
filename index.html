@@ -219,19 +219,24 @@ body {
 }
 .pw-toggle {
   position: absolute;
-  right: 10px;
+  right: 8px;
   top: 50%;
   transform: translateY(-50%);
-  background: none;
+  background: #f0f0f0;
   border: none;
-  font-size: 1.25rem;
+  font-size: 1.35rem;
   cursor: pointer;
-  padding: 4px 8px;
-  border-radius: 8px;
+  padding: 8px 10px;
+  border-radius: 10px;
   line-height: 1;
+  z-index: 5;
+  pointer-events: auto;
 }
 .pw-toggle:hover {
-  background: rgba(0,0,0,0.05);
+  background: #e0e0e0;
+}
+.password-wrap input {
+  padding-right: 56px !important;
 }
 
 .avatar-picker {
@@ -1072,7 +1077,8 @@ body {
   padding: 16px;
 }
 .modal-overlay.hidden {
-  display: none;
+  display: none !important;
+  pointer-events: none !important;
 }
 .modal {
   background: white;
@@ -1447,7 +1453,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-09h';
+const APP_VERSION = '2026-09-09i';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1950,14 +1956,11 @@ document.head.appendChild(style);
 function togglePassword(inputId, btn) {
   const input = document.getElementById(inputId);
   if (!input) return;
-  if (input.type === 'password') {
-    input.type = 'text';
-    btn.textContent = '🙈';
-    btn.title = 'Hide password';
-  } else {
-    input.type = 'password';
-    btn.textContent = '👁';
-    btn.title = 'Show password';
+  const show = input.type === 'password';
+  input.type = show ? 'text' : 'password';
+  if (btn) {
+    btn.textContent = show ? '🙈' : '👁';
+    btn.title = show ? 'Hide password' : 'Show password';
   }
 }
 
@@ -2968,7 +2971,7 @@ function renderClasses() {
       ${c.location ? `<div class="session-meta">${c.location}</div>` : ''}
       ${everyOther ? `<div class="session-meta">${everyOther}</div>` : ''}
       <div class="session-actions">
-        ${zoom.replace('href=', 'onclick="event.stopPropagation()" href=') if zoom else ''}
+        ${zoom ? zoom.replace('href=', 'onclick="event.stopPropagation()" href=') : ''}
         <button class="small-btn" onclick="event.stopPropagation(); openClassModal('${c.id}')">Edit</button>
         <button class="small-btn danger" onclick="event.stopPropagation(); deleteClass('${c.id}')">Delete</button>
       </div>
