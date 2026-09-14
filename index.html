@@ -1453,7 +1453,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-09i';
+const APP_VERSION = '2026-09-14a';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1727,31 +1727,90 @@ function deleteGoal(id) {
   renderGoals();
 }
 
+const DAILY_QUESTIONS = [
+  'What made you smile today?',
+  'What was the hardest part of today?',
+  'Who helped you today, or who did you help?',
+  'What is one thing you learned today?',
+  'How did your body feel today (tired, energetic, calm…)?',
+  'What are you proud of from today?',
+  'What would you do differently if you could redo today?',
+  'What are you grateful for today?',
+  'Did you try something new today? How did it go?',
+  'What emotion showed up the most today?',
+  'What is one kind thing you did (or can do) for yourself?',
+  'What challenged your brain today?',
+  'Who or what inspired you today?',
+  'What do you want to remember from today?',
+  'How will you rest or recharge tonight?'
+];
+
+const WEEKLY_QUESTIONS = [
+  'What was the highlight of your week?',
+  'What was the biggest challenge this week?',
+  'What goal did you move closer to?',
+  'Who supported you this week?',
+  'What skill did you practise or improve?',
+  'What are you most proud of this week?',
+  'What will you do differently next week?',
+  'How did you take care of yourself this week?',
+  'What surprised you this week?',
+  'What are you looking forward to next week?'
+];
+
 function dailyKey(d) {
-  return 'day-' + (d ? (typeof d === 'string' ? d : d.toISOString().slice(0, 10)) : todayStr());
+  return 'day-' + (d ? (typeof d === 'string' ? d.slice(0, 10) : toISODate(d)) : todayStr());
+}
+
+function dailyQuestionIndex(dateStr) {
+  // stable cycle by day number since epoch
+  const dt = parseDateInput(dateStr || todayStr());
+  const dayNum = Math.floor(dt.getTime() / 86400000);
+  return ((dayNum % DAILY_QUESTIONS.length) + DAILY_QUESTIONS.length) % DAILY_QUESTIONS.length;
+}
+
+function weeklyQuestionIndex(date) {
+  const w = getISOWeek(date instanceof Date ? date : new Date());
+  const y = (date instanceof Date ? date : new Date()).getFullYear();
+  return Math.abs((y * 53 + w) % WEEKLY_QUESTIONS.length);
 }
 
 function renderReflection() {
   if (!state.reflections) state.reflections = {};
   const dayEl = document.getElementById('daily-reflection');
   const weekEl = document.getElementById('weekly-reflection');
-  const dk = dailyKey();
+  const today = todayStr();
+  const dk = dailyKey(today);
   const wk = weekKey(new Date());
+  const dq = DAILY_QUESTIONS[dailyQuestionIndex(today)];
+  const wq = WEEKLY_QUESTIONS[weeklyQuestionIndex(new Date())];
+  const isFriday = new Date().getDay() === 5;
+
   if (dayEl) {
     const val = state.reflections[dk] || '';
     dayEl.innerHTML = `
-      <p style="font-weight:700;margin-bottom:4px">Today · ${formatShort(todayStr())}</p>
-      <textarea id="reflection-daily" placeholder="How was today? What went well?">${val.replace(/</g,'&lt;')}</textarea>
+      <p style="font-weight:700;margin-bottom:4px">Today · ${formatShort(today)}</p>
+      <p style="color:var(--primary);font-weight:800;margin:8px 0 6px;line-height:1.35">❓ ${dq}</p>
+      <textarea id="reflection-daily" placeholder="Write your answer…">${val.replace(/</g,'&lt;')}</textarea>
       <button class="btn add-btn" style="margin-top:10px" onclick="saveReflection('daily')">Save daily reflection</button>
     `;
   }
   if (weekEl) {
     const val = state.reflections[wk] || '';
-    weekEl.innerHTML = `
-      <p style="font-weight:700;margin-bottom:4px">This week · ${wk}</p>
-      <textarea id="reflection-weekly" placeholder="What did you learn this week? What are you proud of?">${val.replace(/</g,'&lt;')}</textarea>
-      <button class="btn add-btn" style="margin-top:10px" onclick="saveReflection('weekly')">Save weekly reflection</button>
-    `;
+    if (isFriday || val) {
+      weekEl.innerHTML = `
+        <p style="font-weight:700;margin-bottom:4px">This week · ${formatDMY(today)}${isFriday ? ' · Friday check-in' : ''}</p>
+        <p style="color:#00897B;font-weight:800;margin:8px 0 6px;line-height:1.35">❓ ${wq}</p>
+        <textarea id="reflection-weekly" placeholder="Write your answer…">${val.replace(/</g,'&lt;')}</textarea>
+        <button class="btn add-btn" style="margin-top:10px" onclick="saveReflection('weekly')">Save weekly reflection</button>
+      `;
+    } else {
+      weekEl.innerHTML = `
+        <p style="font-weight:700;margin-bottom:6px">Weekly reflection</p>
+        <p style="color:var(--muted);line-height:1.45">Weekly questions open on <strong>Fridays</strong>. Come back then for this week’s question!</p>
+        <p style="margin-top:10px;font-size:0.9rem;color:var(--muted)">Preview: <em>${wq}</em></p>
+      `;
+    }
   }
 }
 
@@ -1771,13 +1830,48 @@ function saveReflection(which) {
 }
 
 
+function parseDateInput(d) {
+  if (!d) return null;
+  if (d instanceof Date) return d;
+  const s = String(d);
+  // already ISO yyyy-mm-dd
+  if (/^\d{4}-\d{2}-\d{2}/.test(s)) return new Date(s.slice(0, 10) + 'T12:00:00');
+  // dd/mm/yyyy
+  const m = s.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (m) return new Date(+m[3], +m[2] - 1, +m[1], 12, 0, 0);
+  return new Date(s);
+}
+
+function toISODate(d) {
+  const dt = parseDateInput(d);
+  if (!dt || isNaN(dt.getTime())) return '';
+  const y = dt.getFullYear();
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const day = String(dt.getDate()).padStart(2, '0');
+  return y + '-' + m + '-' + day;
+}
+
+function formatDMY(d) {
+  const dt = parseDateInput(d);
+  if (!dt || isNaN(dt.getTime())) return '';
+  const day = String(dt.getDate()).padStart(2, '0');
+  const m = String(dt.getMonth() + 1).padStart(2, '0');
+  const y = dt.getFullYear();
+  return day + '/' + m + '/' + y;
+}
+
 function formatDate(d) {
-  const options = { weekday: 'long', month: 'short', day: 'numeric' };
-  return new Date(d).toLocaleDateString('en-US', options);
+  const dt = parseDateInput(d);
+  if (!dt || isNaN(dt.getTime())) return '';
+  const days = ['Sunday','Monday','Tuesday','Wednesday','Thursday','Friday','Saturday'];
+  return days[dt.getDay()] + ' · ' + formatDMY(dt);
 }
 
 function formatShort(d) {
-  return new Date(d).toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
+  const dt = parseDateInput(d);
+  if (!dt || isNaN(dt.getTime())) return '';
+  const days = ['Sun','Mon','Tue','Wed','Thu','Fri','Sat'];
+  return days[dt.getDay()] + ' ' + formatDMY(dt);
 }
 
 // School times are stored in CET. Convert for display.
@@ -2620,7 +2714,9 @@ function renderToday() {
       notesEl.innerHTML = notes.map(n => `
         <div class="card">
           <div class="card-title">📝 ${n.text}</div>
-          ${n.reminder ? `<div class="card-meta">⏰ ${formatShort(n.reminder)}</div>` : '<div class="card-meta">Pinned note</div>'}
+          ${n.reminder ? `<div class="card-meta">📅 ${formatShort(n.reminder)}</div>` : '<div class="card-meta">Pinned note</div>'}
+          ${n.time ? `<div class="card-meta">🕐 ${formatTimeCET(n.time)}</div>` : ''}
+          ${n.zoom ? `<div class="card-meta"><a href="${n.zoom}" target="_blank" rel="noopener" style="color:#1565C0;font-weight:700">Join Zoom / Link 🔗</a></div>` : ''}
         </div>
       `).join('');
     }
@@ -2843,7 +2939,7 @@ function renderWeek() {
         return `<div class="day-event type-session-${st}">${icon} ${c.time ? formatTimeCET(c.time) + ' ' : ''}${c.title}${c.location ? ' · ' + c.location : ''}</div>`;
       });
     const noteItems = dayNotes.map(n =>
-      `<div class="day-event type-note">📝 ${n.text}</div>`
+      `<div class="day-event type-note">📝 ${n.text}${n.time ? ' · ' + formatTimeCET(n.time) : ''}${n.zoom ? ' 🔗' : ''}</div>`
     );
     const allItems = [...specialItems, ...classItems, ...taskItems, ...noteItems];
 
@@ -2873,8 +2969,9 @@ function changeMonth(delta) {
 function renderMonth() {
   const year = state.currentMonth.getFullYear();
   const month = state.currentMonth.getMonth();
+  const mn = ['January','February','March','April','May','June','July','August','September','October','November','December'];
   document.getElementById('month-title').textContent =
-    state.currentMonth.toLocaleDateString('en-US', { month: 'long', year: 'numeric' });
+    mn[state.currentMonth.getMonth()] + ' ' + state.currentMonth.getFullYear();
 
   const firstDay = new Date(year, month, 1);
   const startDay = firstDay.getDay();
@@ -3000,8 +3097,11 @@ function renderNotes() {
   list.innerHTML = state.notes.map(n => `
     <div class="card">
       <div class="card-title">${n.text}</div>
-      ${n.reminder ? `<div class="card-meta">⏰ ${formatShort(n.reminder)}</div>` : ''}
+      ${n.reminder ? `<div class="card-meta">📅 ${formatShort(n.reminder)}</div>` : ''}
+      ${n.time ? `<div class="card-meta">🕐 ${formatTimeCET(n.time)}</div>` : ''}
+      ${n.zoom ? `<div class="card-meta"><a href="${n.zoom}" target="_blank" rel="noopener" style="color:#1565C0;font-weight:700">Join Zoom / Link 🔗</a></div>` : ''}
       <div class="card-actions">
+        ${n.zoom ? `<a class="small-btn" style="background:#E3F2FD;color:#1565C0;text-decoration:none" href="${n.zoom}" target="_blank" rel="noopener">Zoom</a>` : ''}
         <button class="small-btn danger" onclick="deleteNote('${n.id}')">Delete</button>
       </div>
     </div>
@@ -3320,26 +3420,34 @@ function saveClass(editId) {
 
 function openNoteModal() {
   openModal(`
-    <h3>Stuff to Remember 📝</h3>
-    <label>What do you need to remember?</label>
-    <textarea id="note-text" placeholder="e.g. Bring art supplies for project"></textarea>
-    <label>Reminder date (optional)</label>
+    <h3>Add a Note 📝</h3>
+    <label>What should we remember?</label>
+    <textarea id="note-text" placeholder="Don't forget..."></textarea>
+    <label>Remind me on (optional)</label>
     <input type="date" id="note-reminder">
+    <label>Time (optional)</label>
+    <input type="time" id="note-time">
+    <label>Zoom / link (optional)</label>
+    <input type="url" id="note-zoom" placeholder="https://...">
     <button class="btn primary" onclick="saveNote()">Save Note</button>
   `);
 }
 
 function saveNote() {
-  const text = document.getElementById('note-text').value.trim();
-  if (!text) {
+  const textVal = document.getElementById('note-text').value.trim();
+  if (!textVal) {
     toast('Please write something');
     return;
   }
   const reminder = document.getElementById('note-reminder').value || null;
+  const time = document.getElementById('note-time').value || null;
+  const zoom = document.getElementById('note-zoom').value.trim() || null;
   state.notes.push({
     id: uid(),
-    text,
+    text: textVal,
     reminder,
+    time,
+    zoom,
     created: todayStr()
   });
   save();
