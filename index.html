@@ -1489,7 +1489,7 @@ body {
       <!-- REMEMBER -->
       <section id="tab-remember" class="tab">
         <h2 class="section-title">Stuff to Remember 📝</h2>
-        <p class="hint">Tap a note to check it off · optional time & Zoom</p>
+        <p class="hint">Date required · disappears after that day · tap to check off</p>
         <div id="notes-list" class="note-grid"></div>
         <button class="btn add-btn" onclick="openNoteModal()">+ Add Note</button>
       </section>
@@ -1509,7 +1509,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-14c';
+const APP_VERSION = '2026-09-16a';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1831,6 +1831,16 @@ function weeklyQuestionIndex(date) {
   return Math.abs((y * 53 + w) % WEEKLY_QUESTIONS.length);
 }
 
+function normalizeReflection(entry, key) {
+  if (!entry) return null;
+  if (typeof entry === 'string') {
+    if (!entry.trim()) return null;
+    return { text: entry, writtenAt: key && key.startsWith('day-') ? key.slice(4) : todayStr(), question: '', type: key && key.startsWith('day-') ? 'daily' : 'weekly' };
+  }
+  if (!entry.text || !String(entry.text).trim()) return null;
+  return entry;
+}
+
 function renderReflection() {
   if (!state.reflections) state.reflections = {};
   const dayEl = document.getElementById('daily-reflection');
@@ -1842,48 +1852,94 @@ function renderReflection() {
   const wq = WEEKLY_QUESTIONS[weeklyQuestionIndex(new Date())];
   const isFriday = new Date().getDay() === 5;
 
+  const dayEntry = normalizeReflection(state.reflections[dk], dk);
+  const weekEntry = normalizeReflection(state.reflections[wk], wk);
+
   if (dayEl) {
-    const val = state.reflections[dk] || '';
+    const val = dayEntry ? dayEntry.text : '';
     dayEl.innerHTML = `
       <p style="font-weight:700;margin-bottom:4px">Today · ${formatShort(today)}</p>
       <p style="color:var(--primary);font-weight:800;margin:8px 0 6px;line-height:1.35">❓ ${dq}</p>
       <textarea id="reflection-daily" placeholder="Write your answer…">${val.replace(/</g,'&lt;')}</textarea>
       <button class="btn add-btn" style="margin-top:10px" onclick="saveReflection('daily')">Save daily reflection</button>
+      ${renderSavedReflections('daily')}
     `;
   }
   if (weekEl) {
-    const val = state.reflections[wk] || '';
+    const val = weekEntry ? weekEntry.text : '';
     if (isFriday || val) {
       weekEl.innerHTML = `
         <p style="font-weight:700;margin-bottom:4px">This week · ${formatDMY(today)}${isFriday ? ' · Friday check-in' : ''}</p>
         <p style="color:#00897B;font-weight:800;margin:8px 0 6px;line-height:1.35">❓ ${wq}</p>
         <textarea id="reflection-weekly" placeholder="Write your answer…">${val.replace(/</g,'&lt;')}</textarea>
         <button class="btn add-btn" style="margin-top:10px" onclick="saveReflection('weekly')">Save weekly reflection</button>
+        ${renderSavedReflections('weekly')}
       `;
     } else {
       weekEl.innerHTML = `
         <p style="font-weight:700;margin-bottom:6px">Weekly reflection</p>
         <p style="color:var(--muted);line-height:1.45">Weekly questions open on <strong>Fridays</strong>. Come back then for this week’s question!</p>
         <p style="margin-top:10px;font-size:0.9rem;color:var(--muted)">Preview: <em>${wq}</em></p>
+        ${renderSavedReflections('weekly')}
       `;
     }
   }
 }
 
+function renderSavedReflections(type) {
+  if (!state.reflections) return '';
+  const items = [];
+  Object.keys(state.reflections).forEach(key => {
+    const e = normalizeReflection(state.reflections[key], key);
+    if (!e) return;
+    const isDaily = key.startsWith('day-') || e.type === 'daily';
+    if (type === 'daily' && !isDaily) return;
+    if (type === 'weekly' && isDaily) return;
+    // skip empty
+    if (!e.text.trim()) return;
+    items.push({ key, ...e, isDaily });
+  });
+  // newest first
+  items.sort((a, b) => String(b.writtenAt || b.key).localeCompare(String(a.writtenAt || a.key)));
+  if (!items.length) {
+    return `<div class="saved-reflections"><h4>Saved reflections</h4><p style="color:var(--muted);font-size:0.9rem">None yet — save one above!</p></div>`;
+  }
+  return `<div class="saved-reflections"><h4>Saved reflections</h4>` + items.map(e => {
+    const when = e.writtenAt ? formatDate(e.writtenAt) : (e.isDaily ? e.key.replace('day-','') : e.key);
+    const whenLabel = e.writtenAt ? formatDMY(e.writtenAt) + (e.writtenTime ? ' · ' + e.writtenTime : '') : when;
+    return `<div class="saved-ref-card">
+      <div class="when">✍️ Written ${whenLabel}</div>
+      ${e.question ? `<div class="q">❓ ${e.question}</div>` : ''}
+      <div class="body">${e.text.replace(/</g,'&lt;')}</div>
+    </div>`;
+  }).join('') + `</div>`;
+}
+
 function saveReflection(which) {
   if (!state.reflections) state.reflections = {};
+  const now = new Date();
+  const writtenAt = todayStr();
+  const writtenTime = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
   if (which === 'daily') {
     const ta = document.getElementById('reflection-daily');
     if (!ta) return;
-    state.reflections[dailyKey()] = ta.value.trim();
+    const textVal = ta.value.trim();
+    if (!textVal) { toast('Write something first'); return; }
+    const q = DAILY_QUESTIONS[dailyQuestionIndex(todayStr())];
+    state.reflections[dailyKey()] = { text: textVal, writtenAt, writtenTime, question: q, type: 'daily' };
   } else {
     const ta = document.getElementById('reflection-weekly');
     if (!ta) return;
-    state.reflections[weekKey(new Date())] = ta.value.trim();
+    const textVal = ta.value.trim();
+    if (!textVal) { toast('Write something first'); return; }
+    const q = WEEKLY_QUESTIONS[weeklyQuestionIndex(new Date())];
+    state.reflections[weekKey(new Date())] = { text: textVal, writtenAt, writtenTime, question: q, type: 'weekly' };
   }
   save();
+  renderReflection();
   toast('Reflection saved 🪞');
 }
+
 
 
 function parseDateInput(d) {
@@ -2716,13 +2772,29 @@ function getTodayTasks() {
 }
 
 
+function activeNotes() {
+  // Only notes with a date that is today or in the future
+  const t = todayStr();
+  return (state.notes || []).filter(n => n.reminder && n.reminder >= t);
+}
+
 function notesForDate(dateStr) {
   return (state.notes || []).filter(n => n.reminder && n.reminder === dateStr);
 }
 
 function notesWithoutDate() {
-  return (state.notes || []).filter(n => !n.reminder);
+  // Dates are required — no undated notes
+  return [];
 }
+
+function prunePastNotes() {
+  // Drop notes whose day has already passed
+  const t = todayStr();
+  const before = (state.notes || []).length;
+  state.notes = (state.notes || []).filter(n => n.reminder && n.reminder >= t);
+  if (state.notes.length !== before) save();
+}
+
 
 function sessionsForDate(dateStr) {
   const weekday = new Date(dateStr + 'T12:00:00').getDay();
@@ -2773,9 +2845,7 @@ function renderToday() {
   // Remember items for today (dated) + undated always useful today
   const notesEl = document.getElementById('today-notes');
   if (notesEl) {
-    const dated = notesForDate(t);
-    const undated = notesWithoutDate();
-    const notes = [...dated, ...undated];
+    const notes = notesForDate(t);
     if (notes.length === 0) {
       notesEl.innerHTML = `<div class="empty" style="grid-column:1/-1;padding:16px"><div class="emoji">📝</div>Nothing to remember today</div>`;
     } else {
@@ -3191,13 +3261,15 @@ function noteTileHTML(n) {
 }
 
 function renderNotes() {
+  prunePastNotes();
   const list = document.getElementById('notes-list');
   if (!list) return;
-  if (!state.notes.length) {
-    list.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="emoji">📝</div>Nothing to remember yet</div>`;
+  const notes = activeNotes().sort((a, b) => (a.reminder || '').localeCompare(b.reminder || '') || (a.time || '').localeCompare(b.time || ''));
+  if (!notes.length) {
+    list.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="emoji">📝</div>Nothing to remember yet<br><span style="font-size:0.85rem">Past dates disappear automatically</span></div>`;
     return;
   }
-  list.innerHTML = state.notes.map(n => noteTileHTML(n)).join('');
+  list.innerHTML = notes.map(n => noteTileHTML(n)).join('');
 }
 
 function deleteNote(id) {
@@ -3515,8 +3587,8 @@ function openNoteModal() {
     <h3>Add a Note 📝</h3>
     <label>What should we remember?</label>
     <textarea id="note-text" placeholder="Don't forget..."></textarea>
-    <label>Remind me on (optional)</label>
-    <input type="text" id="note-reminder" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
+    <label>Date (required) · dd/mm/yyyy</label>
+    <input type="text" id="note-reminder" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off" value="${inputDateValue(todayStr())}">
     <label>Time (optional)</label>
     <input type="time" id="note-time">
     <label>Zoom / link (optional)</label>
@@ -3532,6 +3604,10 @@ function saveNote() {
     return;
   }
   const reminder = parseUserDate(document.getElementById('note-reminder').value);
+  if (!reminder) {
+    toast('Please add a date (dd/mm/yyyy)');
+    return;
+  }
   const time = document.getElementById('note-time').value || null;
   const zoom = document.getElementById('note-zoom').value.trim() || null;
   state.notes.push({
@@ -3553,6 +3629,7 @@ function saveNote() {
 
 // ---------- Init ----------
 function renderAll() {
+  prunePastNotes();
   renderHeader();
   renderToday();
   renderWeek();
