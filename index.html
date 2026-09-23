@@ -1414,6 +1414,10 @@ body {
         <h2 class="section-title">Remember today 📝</h2>
         <div id="today-notes" class="note-grid"></div>
 
+        <h2 class="section-title">This week 📚</h2>
+        <p class="hint" style="margin-bottom:8px">Stays until Friday · renew to keep it another week</p>
+        <div id="weekly-focus" class="weekly-focus-grid"></div>
+
         <h2 class="section-title">Today's Habits 🔥</h2>
         <div id="today-habits" class="habit-grid"></div>
       </section>
@@ -1509,7 +1513,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-16a';
+const APP_VERSION = '2026-09-23a';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1660,6 +1664,8 @@ let state = {
   classes: [],
   goals: [],
   reflections: {},
+  readingBook: null,
+  topicInquiry: null,
   currentMonth: new Date(),
   timezone: 'CET',
   adhdMode: false,
@@ -2354,6 +2360,8 @@ function exportMyData() {
     classes: state.classes,
     goals: state.goals || [],
     reflections: state.reflections || {},
+    readingBook: state.readingBook || null,
+    topicInquiry: state.topicInquiry || null,
     timezone: state.timezone,
     adhdMode: state.adhdMode,
     dyslexiaMode: state.dyslexiaMode
@@ -2421,6 +2429,8 @@ async function cloudSaveUserData() {
     classes: state.classes,
     goals: state.goals || [],
     reflections: state.reflections || {},
+    readingBook: state.readingBook || null,
+    topicInquiry: state.topicInquiry || null,
     timezone: state.timezone,
     adhdMode: state.adhdMode,
     dyslexiaMode: state.dyslexiaMode,
@@ -2457,6 +2467,8 @@ async function cloudLoadUserData() {
     if (data.timezone) state.timezone = data.timezone;
     if (typeof data.adhdMode === 'boolean') state.adhdMode = data.adhdMode;
     if (typeof data.dyslexiaMode === 'boolean') state.dyslexiaMode = data.dyslexiaMode;
+    if (data.readingBook !== undefined) state.readingBook = data.readingBook;
+    if (data.topicInquiry !== undefined) state.topicInquiry = data.topicInquiry;
     if (data.calVersion) state.calVersion = data.calVersion;
     save();
   } catch (e) {
@@ -2801,6 +2813,158 @@ function sessionsForDate(dateStr) {
   return (state.classes || []).filter(c => sessionOnDay(c, weekday, dateStr));
 }
 
+
+function nextFridayISO(fromDate) {
+  const d = fromDate ? parseDateInput(fromDate) : new Date();
+  d.setHours(12, 0, 0, 0);
+  const day = d.getDay(); // 0 Sun .. 5 Fri
+  let add;
+  if (day === 5) add = 0; // Friday: expires end of today
+  else if (day === 6) add = 6; // Sat -> next Fri
+  else if (day === 0) add = 5; // Sun -> this coming Fri
+  else add = 5 - day; // Mon–Thu
+  d.setDate(d.getDate() + add);
+  return toISODate(d);
+}
+
+function isWeeklyFocusActive(item) {
+  if (!item || !item.until) return false;
+  return item.until >= todayStr();
+}
+
+function expireWeeklyFocus() {
+  let changed = false;
+  if (state.readingBook && !isWeeklyFocusActive(state.readingBook)) {
+    state.readingBook = null;
+    changed = true;
+  }
+  if (state.topicInquiry && !isWeeklyFocusActive(state.topicInquiry)) {
+    state.topicInquiry = null;
+    changed = true;
+  }
+  if (changed) save();
+}
+
+function renderWeeklyFocus() {
+  expireWeeklyFocus();
+  const el = document.getElementById('weekly-focus');
+  if (!el) return;
+  const book = isWeeklyFocusActive(state.readingBook) ? state.readingBook : null;
+  const inq = isWeeklyFocusActive(state.topicInquiry) ? state.topicInquiry : null;
+
+  const bookHtml = book ? `
+    <div class="weekly-focus-card">
+      <h3>📖 Reading book</h3>
+      <div class="wf-body">${book.title.replace(/</g,'&lt;')}</div>
+      <div class="wf-meta">Until Friday ${formatDMY(book.until)}</div>
+      ${book.link ? `<a class="wf-link" href="${book.link}" target="_blank" rel="noopener">Open link 🔗</a>` : ''}
+      <div class="wf-actions">
+        <button class="small-btn" onclick="openReadingModal()">Edit</button>
+        <button class="small-btn" onclick="renewWeeklyFocus('reading')">Renew → next Friday</button>
+        <button class="small-btn danger" onclick="clearWeeklyFocus('reading')">Clear</button>
+      </div>
+    </div>` : `
+    <div class="weekly-focus-card">
+      <h3>📖 Reading book</h3>
+      <p class="empty-wf">No book set for this week</p>
+      <div class="wf-actions">
+        <button class="small-btn" style="background:#42A5F5;color:white" onclick="openReadingModal()">+ Set reading book</button>
+      </div>
+    </div>`;
+
+  const inqHtml = inq ? `
+    <div class="weekly-focus-card inquiry">
+      <h3>🔍 Topic inquiry</h3>
+      <div class="wf-body">${inq.topic.replace(/</g,'&lt;')}</div>
+      <div class="wf-meta">Until Friday ${formatDMY(inq.until)}</div>
+      ${inq.link ? `<a class="wf-link" href="${inq.link}" target="_blank" rel="noopener">Open link 🔗</a>` : ''}
+      <div class="wf-actions">
+        <button class="small-btn" onclick="openInquiryModal()">Edit</button>
+        <button class="small-btn" onclick="renewWeeklyFocus('inquiry')">Renew → next Friday</button>
+        <button class="small-btn danger" onclick="clearWeeklyFocus('inquiry')">Clear</button>
+      </div>
+    </div>` : `
+    <div class="weekly-focus-card inquiry">
+      <h3>🔍 Topic inquiry</h3>
+      <p class="empty-wf">No inquiry topic this week</p>
+      <div class="wf-actions">
+        <button class="small-btn" style="background:#AB47BC;color:white" onclick="openInquiryModal()">+ Set topic inquiry</button>
+      </div>
+    </div>`;
+
+  el.innerHTML = bookHtml + inqHtml;
+}
+
+function openReadingModal() {
+  const b = state.readingBook || {};
+  openModal(`
+    <h3>📖 Reading book</h3>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:10px">Stays on Today until Friday unless you renew.</p>
+    <label>Book title</label>
+    <input type="text" id="reading-title" value="${(b.title || '').replace(/"/g,'&quot;')}" placeholder="e.g. The Hobbit">
+    <label>Link (optional)</label>
+    <input type="url" id="reading-link" value="${(b.link || '').replace(/"/g,'&quot;')}" placeholder="https://...">
+    <button class="btn primary" onclick="saveReadingBook()">Save</button>
+  `);
+}
+
+function saveReadingBook() {
+  const title = document.getElementById('reading-title').value.trim();
+  if (!title) { toast('Enter the book title'); return; }
+  const link = document.getElementById('reading-link').value.trim() || null;
+  state.readingBook = { title, link, until: nextFridayISO(new Date()) };
+  save();
+  closeModal();
+  renderWeeklyFocus();
+  toast('Reading book set until Friday 📚');
+}
+
+function openInquiryModal() {
+  const t = state.topicInquiry || {};
+  openModal(`
+    <h3>🔍 Topic inquiry</h3>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:10px">Stays on Today until Friday unless you renew.</p>
+    <label>Topic</label>
+    <input type="text" id="inquiry-topic" value="${(t.topic || '').replace(/"/g,'&quot;')}" placeholder="e.g. How do volcanoes work?">
+    <label>Link (optional)</label>
+    <input type="url" id="inquiry-link" value="${(t.link || '').replace(/"/g,'&quot;')}" placeholder="https://...">
+    <button class="btn primary" onclick="saveTopicInquiry()">Save</button>
+  `);
+}
+
+function saveTopicInquiry() {
+  const topic = document.getElementById('inquiry-topic').value.trim();
+  if (!topic) { toast('Enter a topic'); return; }
+  const link = document.getElementById('inquiry-link').value.trim() || null;
+  state.topicInquiry = { topic, link, until: nextFridayISO(new Date()) };
+  save();
+  closeModal();
+  renderWeeklyFocus();
+  toast('Topic inquiry set until Friday 🔍');
+}
+
+function renewWeeklyFocus(kind) {
+  // Push until to the Friday after the current until (or next Friday from today)
+  const base = kind === 'reading' ? state.readingBook : state.topicInquiry;
+  if (!base) return;
+  const from = base.until && base.until >= todayStr()
+    ? (() => { const d = parseDateInput(base.until); d.setDate(d.getDate() + 1); return d; })()
+    : new Date();
+  base.until = nextFridayISO(from);
+  save();
+  renderWeeklyFocus();
+  toast('Renewed until Friday ' + formatDMY(base.until));
+}
+
+function clearWeeklyFocus(kind) {
+  if (!confirm('Clear this for the rest of the week?')) return;
+  if (kind === 'reading') state.readingBook = null;
+  else state.topicInquiry = null;
+  save();
+  renderWeeklyFocus();
+  toast('Cleared');
+}
+
 function renderToday() {
   const t = todayStr();
   document.getElementById('today-date').textContent = formatDate(t);
@@ -2853,6 +3017,7 @@ function renderToday() {
     }
   }
 
+  renderWeeklyFocus();
   renderTodayHabits();
 }
 
