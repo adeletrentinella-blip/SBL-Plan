@@ -204,17 +204,21 @@ body {
   margin: 0 auto;
 }
 .header-logo {
-  width: 36px;
-  height: 36px;
+  width: 32px;
+  height: 32px;
   object-fit: contain;
   display: block;
   flex-shrink: 0;
-  border-radius: 6px;
+  border-radius: 4px;
+  align-self: center;
+}
+.a11y-bar {
+  align-items: center;
 }
 @media (min-width: 900px) {
   .header-logo {
-    width: 42px;
-    height: 42px;
+    width: 36px;
+    height: 36px;
   }
 }
 .logo-text {
@@ -532,10 +536,10 @@ body {
   
 /* Books & inquiries — stack like habits */
 .book-grid, .inquiry-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
-  gap: 12px;
-  width: 100%;
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr)) !important;
+  gap: 12px !important;
+  width: 100% !important;
 }
 .book-card, .inquiry-card {
   background: white;
@@ -545,11 +549,14 @@ body {
   box-shadow: var(--shadow);
   cursor: pointer;
   transition: transform 0.15s;
-  min-height: 120px;
+  min-height: 110px;
   display: flex;
   flex-direction: column;
   align-items: center;
+  justify-content: flex-start;
   gap: 6px;
+  width: 100%;
+  box-sizing: border-box;
 }
 .book-card:active, .inquiry-card:active { transform: scale(0.96); }
 .book-card { border-top: 4px solid #42A5F5; }
@@ -1447,7 +1454,6 @@ body {
     <!-- Header (no logout door icon) -->
     <header class="app-header">
       <div class="user-info">
-        <img id="header-logo" class="header-logo" alt="SBL" title="School Beyond Limitations">
         <span id="user-avatar" class="avatar-display" onclick="openAvatarModal()" title="Change avatar">🦊</span>
         <div>
           <div id="user-name" class="user-name">Hi!</div>
@@ -1455,6 +1461,7 @@ body {
         </div>
       </div>
       <div class="a11y-bar">
+        <img id="header-logo" class="header-logo" alt="SBL" title="School Beyond Limitations">
         <button type="button" class="a11y-chip" id="chip-adhd" onclick="toggleAdhdMode()" title="Focus mode">Focus</button>
         <button type="button" class="a11y-chip" id="chip-dyslexia" onclick="toggleDyslexiaMode()" title="Friendly fonts">Fonts</button>
         <button class="icon-btn" onclick="openTimezoneModal()" title="Change timezone">🌍</button>
@@ -1587,14 +1594,14 @@ body {
         <p class="hint">Books stay until you finish them · inquiries until Friday. Check off → write a review.</p>
 
         <h3 class="goal-term-title short">📖 Reading now</h3>
-        <div id="books-active" class="book-grid"></div>
+        <div id="books-active" class="habit-grid book-grid"></div>
         <button class="btn add-btn" style="background:#42A5F5;margin-bottom:18px" onclick="openReadingModal()">+ Add book</button>
 
         <h3 class="goal-term-title medium">✅ Finished books · reviews</h3>
         <div id="books-done" class="card-list"></div>
 
         <h3 class="goal-term-title long" style="margin-top:20px">🔍 Topic inquiries</h3>
-        <div id="inquiry-active" class="inquiry-grid"></div>
+        <div id="inquiry-active" class="habit-grid inquiry-grid"></div>
         <button class="btn add-btn" style="background:#AB47BC;margin-bottom:18px" onclick="openInquiryModal()">+ Add inquiry</button>
 
         <h3 class="goal-term-title medium">✅ Finished inquiries · reviews</h3>
@@ -1639,7 +1646,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-24f';
+const APP_VERSION = '2026-09-24g';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -3092,27 +3099,27 @@ function renderBooksTab() {
 }
 
 function bookTileHTML(b) {
-  return `<div class="book-card" onclick="markBookDone('${b.id}')">
-    <div class="bc-emoji">📖</div>
-    <div class="bc-name">${b.title.replace(/</g,'&lt;')}</div>
-    <div class="bc-meta">Tap when finished ✓</div>
-    <div class="bc-actions">
-      ${b.link ? `<a class="small-btn" style="background:#E3F2FD;color:#1565C0;text-decoration:none" href="${b.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Link</a>` : ''}
-      <button class="small-btn danger" onclick="event.stopPropagation(); deleteBook('${b.id}')">Delete</button>
+  return `<div class="habit-card book-card" onclick="markBookDone('${b.id}')" style="border-top:4px solid #42A5F5">
+    <div class="habit-emoji bc-emoji">📖</div>
+    <div class="habit-name bc-name">${b.title.replace(/</g,'&lt;')}</div>
+    <div class="habit-streak bc-meta">Tap when finished ✓</div>
+    <div class="bc-actions" onclick="event.stopPropagation()">
+      ${b.link ? `<a class="small-btn" style="background:#E3F2FD;color:#1565C0;text-decoration:none" href="${b.link}" target="_blank" rel="noopener">Link</a>` : ''}
+      <button class="small-btn danger" onclick="deleteBook('${b.id}')">Delete</button>
     </div>
   </div>`;
 }
 
 function inquiryTileHTML(i) {
-  return `<div class="inquiry-card" onclick="markInquiryDone('${i.id}')">
-    <div class="bc-emoji">🔍</div>
-    <div class="bc-name">${i.topic.replace(/</g,'&lt;')}</div>
-    <div class="bc-meta">Until Fri ${formatDMY(i.until)}</div>
-    <div class="bc-meta">Tap when finished ✓</div>
-    <div class="bc-actions">
-      ${i.link ? `<a class="small-btn" style="background:#F3E5F5;color:#6A1B9A;text-decoration:none" href="${i.link}" target="_blank" rel="noopener" onclick="event.stopPropagation()">Link</a>` : ''}
-      <button class="small-btn" onclick="event.stopPropagation(); renewInquiry('${i.id}')">Renew</button>
-      <button class="small-btn danger" onclick="event.stopPropagation(); deleteInquiry('${i.id}')">Delete</button>
+  return `<div class="habit-card inquiry-card" onclick="markInquiryDone('${i.id}')" style="border-top:4px solid #AB47BC">
+    <div class="habit-emoji bc-emoji">🔍</div>
+    <div class="habit-name bc-name">${i.topic.replace(/</g,'&lt;')}</div>
+    <div class="habit-streak bc-meta">Until Fri ${formatDMY(i.until)}</div>
+    <div class="habit-streak bc-meta">Tap when finished ✓</div>
+    <div class="bc-actions" onclick="event.stopPropagation()">
+      ${i.link ? `<a class="small-btn" style="background:#F3E5F5;color:#6A1B9A;text-decoration:none" href="${i.link}" target="_blank" rel="noopener">Link</a>` : ''}
+      <button class="small-btn" onclick="renewInquiry('${i.id}')">Renew</button>
+      <button class="small-btn danger" onclick="deleteInquiry('${i.id}')">Delete</button>
     </div>
   </div>`;
 }
