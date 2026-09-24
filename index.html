@@ -1527,9 +1527,13 @@ body {
         <h2 class="section-title">Remember today 📝</h2>
         <div id="today-notes" class="note-grid"></div>
 
-        <h2 class="section-title">This week 📚</h2>
-        <p class="hint" style="margin-bottom:8px">Active book & inquiry · full list in <strong>Books</strong> tab</p>
-        <div id="weekly-focus" class="weekly-focus-grid"></div>
+        <h2 class="section-title">Reading 📖</h2>
+        <div id="today-books" class="habit-grid"></div>
+        <button class="btn add-btn" style="background:#42A5F5;margin-bottom:12px" onclick="openReadingModal()">+ Add book</button>
+
+        <h2 class="section-title">Inquiries 🔍</h2>
+        <div id="today-inquiries" class="habit-grid"></div>
+        <button class="btn add-btn" style="background:#AB47BC;margin-bottom:12px" onclick="openInquiryModal()">+ Add inquiry</button>
 
         <h2 class="section-title">Today's Habits 🔥</h2>
         <div id="today-habits" class="habit-grid"></div>
@@ -1594,14 +1598,14 @@ body {
         <p class="hint">Books stay until you finish them · inquiries until Friday. Check off → write a review.</p>
 
         <h3 class="goal-term-title short">📖 Reading now</h3>
-        <div id="books-active" class="habit-grid book-grid"></div>
+        <div id="books-active" class="habit-grid"></div>
         <button class="btn add-btn" style="background:#42A5F5;margin-bottom:18px" onclick="openReadingModal()">+ Add book</button>
 
         <h3 class="goal-term-title medium">✅ Finished books · reviews</h3>
         <div id="books-done" class="card-list"></div>
 
         <h3 class="goal-term-title long" style="margin-top:20px">🔍 Topic inquiries</h3>
-        <div id="inquiry-active" class="habit-grid inquiry-grid"></div>
+        <div id="inquiry-active" class="habit-grid"></div>
         <button class="btn add-btn" style="background:#AB47BC;margin-bottom:18px" onclick="openInquiryModal()">+ Add inquiry</button>
 
         <h3 class="goal-term-title medium">✅ Finished inquiries · reviews</h3>
@@ -1646,7 +1650,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-24g';
+const APP_VERSION = '2026-09-24h';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -3359,52 +3363,30 @@ function deleteInquiry(id) {
 
 function renderWeeklyFocus() {
   migrateBooksInquiry();
-  const el = document.getElementById('weekly-focus');
-  if (!el) return;
+  const booksEl = document.getElementById('today-books');
+  const inqEl = document.getElementById('today-inquiries');
+  // legacy container (if any)
+  const legacy = document.getElementById('weekly-focus');
   const books = activeBooks();
   const inqs = activeInquiries();
-  const book = books[0] || null;
-  const inq = inqs[0] || null;
 
-  const bookHtml = book ? `
-    <div class="weekly-focus-card">
-      <h3>📖 Reading book</h3>
-      <div class="wf-body">${book.title.replace(/</g,'&lt;')}</div>
-      <div class="wf-meta">Until you finish${books.length > 1 ? ' · +' + (books.length-1) + ' more' : ''}</div>
-      ${book.link ? `<a class="wf-link" href="${book.link}" target="_blank" rel="noopener">Open link 🔗</a>` : ''}
-      <div class="wf-actions">
-        <button class="small-btn" style="background:#00B894;color:white" onclick="markBookDone('${book.id}')">Done → review</button>
-        <button class="small-btn" onclick="switchTab('books')">All books</button>
-      </div>
-    </div>` : `
-    <div class="weekly-focus-card">
-      <h3>📖 Reading book</h3>
-      <p class="empty-wf">No active book</p>
-      <div class="wf-actions">
-        <button class="small-btn" style="background:#42A5F5;color:white" onclick="openReadingModal()">+ Add book</button>
-      </div>
-    </div>`;
-
-  const inqHtml = inq ? `
-    <div class="weekly-focus-card inquiry">
-      <h3>🔍 Topic inquiry</h3>
-      <div class="wf-body">${inq.topic.replace(/</g,'&lt;')}</div>
-      <div class="wf-meta">Until Friday ${formatDMY(inq.until)}${inqs.length > 1 ? ' · +' + (inqs.length-1) + ' more' : ''}</div>
-      ${inq.link ? `<a class="wf-link" href="${inq.link}" target="_blank" rel="noopener">Open link 🔗</a>` : ''}
-      <div class="wf-actions">
-        <button class="small-btn" style="background:#00B894;color:white" onclick="markInquiryDone('${inq.id}')">Done → review</button>
-        <button class="small-btn" onclick="switchTab('books')">All inquiries</button>
-      </div>
-    </div>` : `
-    <div class="weekly-focus-card inquiry">
-      <h3>🔍 Topic inquiry</h3>
-      <p class="empty-wf">No active inquiry</p>
-      <div class="wf-actions">
-        <button class="small-btn" style="background:#AB47BC;color:white" onclick="openInquiryModal()">+ Add inquiry</button>
-      </div>
-    </div>`;
-
-  el.innerHTML = bookHtml + inqHtml;
+  if (booksEl) {
+    booksEl.innerHTML = books.length
+      ? books.map(bookTileHTML).join('')
+      : `<div class="empty" style="grid-column:1/-1;padding:10px;font-size:0.9rem">No books yet</div>`;
+  }
+  if (inqEl) {
+    inqEl.innerHTML = inqs.length
+      ? inqs.map(inquiryTileHTML).join('')
+      : `<div class="empty" style="grid-column:1/-1;padding:10px;font-size:0.9rem">No inquiries yet</div>`;
+  }
+  if (legacy) {
+    legacy.className = 'habit-grid';
+    legacy.innerHTML = [
+      ...books.map(bookTileHTML),
+      ...inqs.map(inquiryTileHTML)
+    ].join('') || `<div class="empty" style="grid-column:1/-1;padding:10px">Nothing yet</div>`;
+  }
 }
 
 
