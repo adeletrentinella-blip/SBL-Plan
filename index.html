@@ -203,6 +203,20 @@ body {
   display: block;
   margin: 0 auto;
 }
+.header-logo {
+  width: 36px;
+  height: 36px;
+  object-fit: contain;
+  display: block;
+  flex-shrink: 0;
+  border-radius: 6px;
+}
+@media (min-width: 900px) {
+  .header-logo {
+    width: 42px;
+    height: 42px;
+  }
+}
 .logo-text {
   font-size: 1.65rem;
   font-weight: 800;
@@ -1433,6 +1447,7 @@ body {
     <!-- Header (no logout door icon) -->
     <header class="app-header">
       <div class="user-info">
+        <img id="header-logo" class="header-logo" alt="SBL" title="School Beyond Limitations">
         <span id="user-avatar" class="avatar-display" onclick="openAvatarModal()" title="Change avatar">🦊</span>
         <div>
           <div id="user-name" class="user-name">Hi!</div>
@@ -1624,7 +1639,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-24e';
+const APP_VERSION = '2026-09-24f';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -4240,6 +4255,14 @@ applyA11yModes();
   const el = document.getElementById('app-version');
   if (el) el.textContent = 'v' + APP_VERSION;
 })();
+
+(function syncHeaderLogo(){
+  const src = document.querySelector('#auth-screen .logo-img')?.src
+    || document.querySelector('.logo-img')?.src;
+  const h = document.getElementById('header-logo');
+  if (h && src) h.src = src;
+})();
+
 document.querySelectorAll('#avatar-options .avatar').forEach(el => {
   const a = el.dataset.avatar;
   if (a) el.style.background = avatarBg(a);
