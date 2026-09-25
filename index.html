@@ -1597,7 +1597,7 @@ body {
       <!-- BOOKS & INQUIRY -->
       <section id="tab-books" class="tab">
         <h2 class="section-title">Books & Inquiry 📚</h2>
-        <p class="hint">Books stay until you finish them · inquiries until Friday. Check off → write a review.</p>
+        <p class="hint">Check off when done → write a review. Open past reviews anytime.</p>
 
         <h3 class="goal-term-title short">📖 Reading now</h3>
         <div id="books-active" class="habit-grid"></div>
@@ -1648,7 +1648,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-25c';
+const APP_VERSION = '2026-09-25e';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -3144,7 +3144,6 @@ function inquiryTileHTML(i) {
     <div class="habit-streak bc-meta">Tap when finished ✓</div>
     <div class="bc-actions" onclick="event.stopPropagation()">
       ${i.link ? `<a class="small-btn" style="background:#F3E5F5;color:#6A1B9A;text-decoration:none" href="${i.link}" target="_blank" rel="noopener">Link</a>` : ''}
-      <button class="small-btn" onclick="renewInquiry('${i.id}')">Renew</button>
       <button class="small-btn danger" onclick="deleteInquiry('${i.id}')">Delete</button>
     </div>
   </div>`;
@@ -3339,33 +3338,6 @@ function saveInquiryReview(id) {
   toast('+8 stars — inquiry reviewed! 🔍');
 }
 
-function renewBook(id) {
-  const b = state.books.find(x => x.id === id);
-  if (!b) return;
-  const from = b.until && b.until >= todayStr()
-    ? (() => { const d = parseDateInput(b.until); d.setDate(d.getDate() + 1); return d; })()
-    : new Date();
-  b.until = nextFridayISO(from);
-  b.status = 'active';
-  save();
-  renderBooksTab();
-  renderWeeklyFocus();
-  toast('Renewed until Friday ' + formatDMY(b.until));
-}
-
-function renewInquiry(id) {
-  const i = state.inquiries.find(x => x.id === id);
-  if (!i) return;
-  const from = i.until && i.until >= todayStr()
-    ? (() => { const d = parseDateInput(i.until); d.setDate(d.getDate() + 1); return d; })()
-    : new Date();
-  i.until = nextFridayISO(from);
-  i.status = 'active';
-  save();
-  renderBooksTab();
-  renderWeeklyFocus();
-  toast('Renewed until Friday ' + formatDMY(i.until));
-}
 
 function deleteBook(id) {
   if (!confirm('Delete this book?')) return;
