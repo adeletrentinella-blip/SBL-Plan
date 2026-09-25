@@ -1524,19 +1524,21 @@ body {
         <p class="hint" style="margin-bottom:8px">Tap a session to check it off for today</p>
         <div id="today-sessions" class="session-grid"></div>
 
+        <h2 class="section-title">Today's Habits 🔥</h2>
+        <div id="today-habits" class="habit-grid"></div>
+
         <h2 class="section-title">Remember today 📝</h2>
         <div id="today-notes" class="note-grid"></div>
 
         <h2 class="section-title">Reading 📖</h2>
         <div id="today-books" class="habit-grid"></div>
-        <button class="btn add-btn" style="background:#42A5F5;margin-bottom:12px" onclick="openReadingModal()">+ Add book</button>
+        <button class="btn add-btn" style="background:#42A5F5;margin-bottom:8px" onclick="openReadingModal()">+ Add book</button>
+        <button class="btn add-btn" style="margin-bottom:12px;background:#636E72" onclick="openPastBookReviews()">📜 Past book reviews</button>
 
         <h2 class="section-title">Inquiries 🔍</h2>
         <div id="today-inquiries" class="habit-grid"></div>
-        <button class="btn add-btn" style="background:#AB47BC;margin-bottom:12px" onclick="openInquiryModal()">+ Add inquiry</button>
-
-        <h2 class="section-title">Today's Habits 🔥</h2>
-        <div id="today-habits" class="habit-grid"></div>
+        <button class="btn add-btn" style="background:#AB47BC;margin-bottom:8px" onclick="openInquiryModal()">+ Add inquiry</button>
+        <button class="btn add-btn" style="margin-bottom:12px;background:#636E72" onclick="openPastInquiryReviews()">📜 Past inquiry reviews</button>
       </section>
 
       <!-- WEEK -->
@@ -1599,17 +1601,13 @@ body {
 
         <h3 class="goal-term-title short">📖 Reading now</h3>
         <div id="books-active" class="habit-grid"></div>
-        <button class="btn add-btn" style="background:#42A5F5;margin-bottom:18px" onclick="openReadingModal()">+ Add book</button>
+        <button class="btn add-btn" style="background:#42A5F5;margin-bottom:10px" onclick="openReadingModal()">+ Add book</button>
+        <button class="btn add-btn" style="margin-bottom:18px;background:#636E72" onclick="openPastBookReviews()">📜 Past book reviews</button>
 
-        <h3 class="goal-term-title medium">✅ Finished books · reviews</h3>
-        <div id="books-done" class="card-list"></div>
-
-        <h3 class="goal-term-title long" style="margin-top:20px">🔍 Topic inquiries</h3>
+        <h3 class="goal-term-title long" style="margin-top:12px">🔍 Topic inquiries</h3>
         <div id="inquiry-active" class="habit-grid"></div>
-        <button class="btn add-btn" style="background:#AB47BC;margin-bottom:18px" onclick="openInquiryModal()">+ Add inquiry</button>
-
-        <h3 class="goal-term-title medium">✅ Finished inquiries · reviews</h3>
-        <div id="inquiry-done" class="card-list"></div>
+        <button class="btn add-btn" style="background:#AB47BC;margin-bottom:10px" onclick="openInquiryModal()">+ Add inquiry</button>
+        <button class="btn add-btn" style="margin-bottom:18px;background:#636E72" onclick="openPastInquiryReviews()">📜 Past inquiry reviews</button>
       </section>
 
       <!-- HABITS -->
@@ -1650,7 +1648,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-24h';
+const APP_VERSION = '2026-09-25c';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -3077,29 +3075,53 @@ function doneInquiries() {
 function renderBooksTab() {
   migrateBooksInquiry();
   const ba = document.getElementById('books-active');
-  const bd = document.getElementById('books-done');
   const ia = document.getElementById('inquiry-active');
-  const id = document.getElementById('inquiry-done');
   if (ba) {
     const list = activeBooks();
     ba.innerHTML = list.length ? list.map(bookTileHTML).join('') :
       `<div class="empty" style="grid-column:1/-1;padding:12px">No active book · add one!</div>`;
-  }
-  if (bd) {
-    const list = doneBooks();
-    bd.innerHTML = list.length ? list.map(bookReviewCardHTML).join('') :
-      `<div class="empty" style="padding:12px">Finished books & reviews appear here</div>`;
   }
   if (ia) {
     const list = activeInquiries();
     ia.innerHTML = list.length ? list.map(inquiryTileHTML).join('') :
       `<div class="empty" style="grid-column:1/-1;padding:12px">No active inquiry · add one!</div>`;
   }
-  if (id) {
-    const list = doneInquiries();
-    id.innerHTML = list.length ? list.map(inquiryReviewCardHTML).join('') :
-      `<div class="empty" style="padding:12px">Finished inquiries & reviews appear here</div>`;
+}
+
+function openPastBookReviews() {
+  migrateBooksInquiry();
+  const list = doneBooks();
+  if (!list.length) {
+    openModal(`
+      <h3>📜 Past book reviews</h3>
+      <p style="color:var(--muted)">None yet. Finish a book and write a review!</p>
+      <button class="btn primary" onclick="closeModal()">OK</button>
+    `);
+    return;
   }
+  openModal(`
+    <h3>📜 Past book reviews</h3>
+    <div style="max-height:55vh;overflow-y:auto;text-align:left">${list.map(bookReviewCardHTML).join('')}</div>
+    <button class="btn primary" onclick="closeModal()">Close</button>
+  `);
+}
+
+function openPastInquiryReviews() {
+  migrateBooksInquiry();
+  const list = doneInquiries();
+  if (!list.length) {
+    openModal(`
+      <h3>📜 Past inquiry reviews</h3>
+      <p style="color:var(--muted)">None yet. Finish an inquiry and write a review!</p>
+      <button class="btn primary" onclick="closeModal()">OK</button>
+    `);
+    return;
+  }
+  openModal(`
+    <h3>📜 Past inquiry reviews</h3>
+    <div style="max-height:55vh;overflow-y:auto;text-align:left">${list.map(inquiryReviewCardHTML).join('')}</div>
+    <button class="btn primary" onclick="closeModal()">Close</button>
+  `);
 }
 
 function bookTileHTML(b) {
