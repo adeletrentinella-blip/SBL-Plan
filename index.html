@@ -1495,6 +1495,10 @@ body {
         <span class="nav-icon">📚</span>
         <span>Books</span>
       </button>
+      <button class="nav-btn" data-tab="inquiry" onclick="switchTab('inquiry')">
+        <span class="nav-icon">🔍</span>
+        <span>Inquiry</span>
+      </button>
       <button class="nav-btn" data-tab="habits" onclick="switchTab('habits')">
         <span class="nav-icon">🔥</span>
         <span>Habits</span>
@@ -1531,14 +1535,12 @@ body {
         <div id="today-notes" class="note-grid"></div>
 
         <h2 class="section-title">Reading 📖</h2>
+        <p class="hint" style="margin-bottom:8px">Add or review books in the <strong>Books</strong> tab</p>
         <div id="today-books" class="habit-grid"></div>
-        <button class="btn add-btn" style="background:#42A5F5;margin-bottom:8px" onclick="openReadingModal()">+ Add book</button>
-        <button class="btn add-btn" style="margin-bottom:12px;background:#636E72" onclick="openPastBookReviews()">📜 Past book reviews</button>
 
         <h2 class="section-title">Inquiries 🔍</h2>
+        <p class="hint" style="margin-bottom:8px">Add or review inquiries in the <strong>Inquiry</strong> tab</p>
         <div id="today-inquiries" class="habit-grid"></div>
-        <button class="btn add-btn" style="background:#AB47BC;margin-bottom:8px" onclick="openInquiryModal()">+ Add inquiry</button>
-        <button class="btn add-btn" style="margin-bottom:12px;background:#636E72" onclick="openPastInquiryReviews()">📜 Past inquiry reviews</button>
       </section>
 
       <!-- WEEK -->
@@ -1594,17 +1596,19 @@ body {
         <div id="weekly-reflection" class="reflection-box"></div>
       </section>
 
-      <!-- BOOKS & INQUIRY -->
+      <!-- BOOKS -->
       <section id="tab-books" class="tab">
-        <h2 class="section-title">Books & Inquiry 📚</h2>
-        <p class="hint">Check off when done → write a review. Open past reviews anytime.</p>
-
-        <h3 class="goal-term-title short">📖 Reading now</h3>
+        <h2 class="section-title">Books 📚</h2>
+        <p class="hint">Check off when done → write a review</p>
         <div id="books-active" class="habit-grid"></div>
         <button class="btn add-btn" style="background:#42A5F5;margin-bottom:10px" onclick="openReadingModal()">+ Add book</button>
         <button class="btn add-btn" style="margin-bottom:18px;background:#636E72" onclick="openPastBookReviews()">📜 Past book reviews</button>
+      </section>
 
-        <h3 class="goal-term-title long" style="margin-top:12px">🔍 Topic inquiries</h3>
+      <!-- INQUIRY -->
+      <section id="tab-inquiry" class="tab">
+        <h2 class="section-title">Inquiry 🔍</h2>
+        <p class="hint">Check off when done → write a review</p>
         <div id="inquiry-active" class="habit-grid"></div>
         <button class="btn add-btn" style="background:#AB47BC;margin-bottom:10px" onclick="openInquiryModal()">+ Add inquiry</button>
         <button class="btn add-btn" style="margin-bottom:18px;background:#636E72" onclick="openPastInquiryReviews()">📜 Past inquiry reviews</button>
@@ -1648,7 +1652,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-25e';
+const APP_VERSION = '2026-09-25f';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -2885,6 +2889,7 @@ function switchTab(tab) {
   if (tab === 'goals') renderGoals();
   if (tab === 'reflect') renderReflection();
   if (tab === 'books') renderBooksTab();
+  if (tab === 'inquiry') renderInquiryTab();
   if (tab === 'habits') renderHabits();
   if (tab === 'classes') renderClasses();
   if (tab === 'remember') renderNotes();
@@ -3075,12 +3080,16 @@ function doneInquiries() {
 function renderBooksTab() {
   migrateBooksInquiry();
   const ba = document.getElementById('books-active');
-  const ia = document.getElementById('inquiry-active');
   if (ba) {
     const list = activeBooks();
     ba.innerHTML = list.length ? list.map(bookTileHTML).join('') :
       `<div class="empty" style="grid-column:1/-1;padding:12px">No active book · add one!</div>`;
   }
+}
+
+function renderInquiryTab() {
+  migrateBooksInquiry();
+  const ia = document.getElementById('inquiry-active');
   if (ia) {
     const list = activeInquiries();
     ia.innerHTML = list.length ? list.map(inquiryTileHTML).join('') :
@@ -3202,6 +3211,7 @@ function saveReadingBook() {
   save();
   closeModal();
   renderBooksTab();
+  renderInquiryTab();
   renderWeeklyFocus();
   toast('Book added 📚');
 }
@@ -3235,8 +3245,9 @@ function saveTopicInquiry() {
   save();
   closeModal();
   renderBooksTab();
+  renderInquiryTab();
   renderWeeklyFocus();
-  toast('Inquiry added until Friday 🔍');
+  toast('Inquiry added 🔍');
 }
 
 function markBookDone(id) {
@@ -3289,6 +3300,7 @@ function saveBookReview(id) {
   save();
   closeModal();
   renderBooksTab();
+  renderInquiryTab();
   renderWeeklyFocus();
   toast('+8 stars — book reviewed! 📚');
 }
@@ -3334,6 +3346,7 @@ function saveInquiryReview(id) {
   save();
   closeModal();
   renderBooksTab();
+  renderInquiryTab();
   renderWeeklyFocus();
   toast('+8 stars — inquiry reviewed! 🔍');
 }
@@ -3344,6 +3357,7 @@ function deleteBook(id) {
   state.books = state.books.filter(x => x.id !== id);
   save();
   renderBooksTab();
+  renderInquiryTab();
   renderWeeklyFocus();
 }
 
@@ -3352,6 +3366,7 @@ function deleteInquiry(id) {
   state.inquiries = state.inquiries.filter(x => x.id !== id);
   save();
   renderBooksTab();
+  renderInquiryTab();
   renderWeeklyFocus();
 }
 
@@ -4224,6 +4239,7 @@ function renderAll() {
   renderGoals();
   renderReflection();
   renderBooksTab();
+  renderInquiryTab();
 }
 
 // Close modal on overlay click
