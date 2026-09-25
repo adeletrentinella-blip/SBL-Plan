@@ -1652,7 +1652,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-25g';
+const APP_VERSION = '2026-09-25i';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1740,12 +1740,8 @@ function sessionOnDay(c, weekday, dateStr) {
   }
   if (!dayMatch) return false;
 
-  // Sessions still run on special weeks (bootcamp, residential, celebration, etc.)
-  // unless this is a pure holiday and session is marked skipHolidays
-  if (dateStr && c.skipHolidays) {
-    const specs = getSpecialEvents(dateStr);
-    if (specs.some(s => s.type === 'holiday')) return false;
-  }
+  // No regular sessions on special weeks
+  if (dateStr && isNoSessionSpecialDay(dateStr)) return false;
 
   // every-other-week: A and B alternate (never both the same week)
   if (c.everyOtherWeek) {
@@ -1755,10 +1751,17 @@ function sessionOnDay(c, weekday, dateStr) {
   return true;
 }
 
+const NO_SESSION_SPECIAL_TYPES = ['holiday', 'residential', 'bootcamp', 'hackathon'];
+
+function isNoSessionSpecialDay(dateStr) {
+  return getSpecialEvents(dateStr).some(s => NO_SESSION_SPECIAL_TYPES.includes(s.type));
+}
+
 
 // Special weeks (bootcamps, residentials, holidays, hackathon) — full date ranges
 const SPECIAL_WEEKS = [
   { start: '2026-09-27', end: '2026-10-02', label: '🏠 Residential 1 · 27 Sep – 2 Oct 2026', type: 'residential' },
+  { start: '2026-10-05', end: '2026-10-05', label: '🚫 No school · 5 Oct 2026', type: 'holiday' },
   { start: '2026-10-12', end: '2026-10-16', label: '🔥 Bootcamp / Focus Week · 12–16 Oct 2026', type: 'bootcamp' },
   { start: '2026-10-16', end: '2026-10-16', label: '🎉 Community Celebration · Fri 16 Oct 2026', type: 'celebration' },
   { start: '2026-10-26', end: '2026-10-30', label: '🍂 Autumn Holiday · 26–30 Oct 2026', type: 'holiday' },
@@ -3653,6 +3656,10 @@ function renderWeek() {
   const days = [];
   const start = new Date();
   start.setHours(0, 0, 0, 0);
+  // Week starts on Monday
+  const day = start.getDay(); // 0 Sun … 6 Sat
+  const mondayOffset = day === 0 ? -6 : 1 - day;
+  start.setDate(start.getDate() + mondayOffset);
 
   for (let i = 0; i < 7; i++) {
     const d = new Date(start);
@@ -3664,7 +3671,7 @@ function renderWeek() {
     const key = localDateKey(d);
     const isToday = key === todayStr();
     const weekday = d.getDay();
-    // Sessions always show — including on special weeks (bootcamp, residential, etc.)
+    // Regular sessions are hidden on holiday / residential / bootcamp / hackathon days
     const dayTasks = state.tasks.filter(t => t.date === key);
     const dayClasses = state.classes.filter(c => sessionOnDay(c, weekday, key));
     const dayNotes = notesForDate(key);
@@ -3718,11 +3725,12 @@ function renderMonth() {
     mn[state.currentMonth.getMonth()] + ' ' + state.currentMonth.getFullYear();
 
   const firstDay = new Date(year, month, 1);
-  const startDay = firstDay.getDay();
+  // Monday-start grid: Mon=0 … Sun=6
+  const startDay = (firstDay.getDay() + 6) % 7;
   const daysInMonth = new Date(year, month + 1, 0).getDate();
 
   const grid = document.getElementById('month-view');
-  const dayNames = ['S', 'M', 'T', 'W', 'T', 'F', 'S'];
+  const dayNames = ['M', 'T', 'W', 'T', 'F', 'S', 'S'];
   let html = dayNames.map(n => `<div class="month-day-name">${n}</div>`).join('');
 
   for (let i = 0; i < startDay; i++) {
