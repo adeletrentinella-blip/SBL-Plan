@@ -1652,7 +1652,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-25f';
+const APP_VERSION = '2026-09-25g';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1740,6 +1740,13 @@ function sessionOnDay(c, weekday, dateStr) {
   }
   if (!dayMatch) return false;
 
+  // Sessions still run on special weeks (bootcamp, residential, celebration, etc.)
+  // unless this is a pure holiday and session is marked skipHolidays
+  if (dateStr && c.skipHolidays) {
+    const specs = getSpecialEvents(dateStr);
+    if (specs.some(s => s.type === 'holiday')) return false;
+  }
+
   // every-other-week: A and B alternate (never both the same week)
   if (c.everyOtherWeek) {
     if (!dateStr) return true; // Sessions list still shows both
@@ -1819,8 +1826,14 @@ function uid() {
   return Date.now().toString(36) + Math.random().toString(36).slice(2, 7);
 }
 
+function localDateKey(d) {
+  const dt = d instanceof Date ? d : new Date(d);
+  if (isNaN(dt.getTime())) return '';
+  return dt.getFullYear() + '-' + String(dt.getMonth() + 1).padStart(2, '0') + '-' + String(dt.getDate()).padStart(2, '0');
+}
+
 function todayStr() {
-  return new Date().toISOString().slice(0, 10);
+  return localDateKey(new Date());
 }
 
 function weekKey(d) {
@@ -3648,9 +3661,10 @@ function renderWeek() {
   }
 
   container.innerHTML = days.map(d => {
-    const key = d.toISOString().slice(0, 10);
+    const key = localDateKey(d);
     const isToday = key === todayStr();
     const weekday = d.getDay();
+    // Sessions always show — including on special weeks (bootcamp, residential, etc.)
     const dayTasks = state.tasks.filter(t => t.date === key);
     const dayClasses = state.classes.filter(c => sessionOnDay(c, weekday, key));
     const dayNotes = notesForDate(key);
@@ -3736,8 +3750,9 @@ function renderMonth() {
 }
 
 function viewDay(dateStr) {
-  const weekday = new Date(dateStr + 'T00:00:00').getDay();
+  const weekday = new Date(dateStr + 'T12:00:00').getDay();
   const tasks = state.tasks.filter(t => t.date === dateStr);
+  // Keep normal sessions visible on special weeks
   const classes = state.classes.filter(c => sessionOnDay(c, weekday, dateStr));
   const specials = getSpecialEvents(dateStr);
 
