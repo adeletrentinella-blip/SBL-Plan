@@ -1652,7 +1652,7 @@ body {
 
   <script>
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-25i';
+const APP_VERSION = '2026-09-28a';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1740,7 +1740,15 @@ function sessionOnDay(c, weekday, dateStr) {
   }
   if (!dayMatch) return false;
 
-  // No regular sessions on special weeks
+  // Session tied to one special week only (e.g. residential timetable)
+  if (c.specialWeekKey) {
+    if (!dateStr) return true;
+    const sw = getSpecialWeekByKey(c.specialWeekKey);
+    if (!sw) return false;
+    return dateInRange(dateStr, sw.start, sw.end);
+  }
+
+  // Regular sessions are hidden on holiday / residential / bootcamp / hackathon
   if (dateStr && isNoSessionSpecialDay(dateStr)) return false;
 
   // every-other-week: A and B alternate (never both the same week)
@@ -1755,6 +1763,24 @@ const NO_SESSION_SPECIAL_TYPES = ['holiday', 'residential', 'bootcamp', 'hackath
 
 function isNoSessionSpecialDay(dateStr) {
   return getSpecialEvents(dateStr).some(s => NO_SESSION_SPECIAL_TYPES.includes(s.type));
+}
+
+function assignableSpecialWeeks() {
+  return SPECIAL_WEEKS.filter(w => ['residential', 'bootcamp', 'hackathon'].includes(w.type));
+}
+
+function specialWeekKeyOf(w) {
+  return w.start + '_' + w.end;
+}
+
+function getSpecialWeekByKey(key) {
+  if (!key) return null;
+  return SPECIAL_WEEKS.find(w => specialWeekKeyOf(w) === key) || null;
+}
+
+function specialWeekLabel(key) {
+  const sw = getSpecialWeekByKey(key);
+  return sw ? sw.label : '';
 }
 
 
@@ -3809,6 +3835,7 @@ function renderClasses() {
     const everyOther = c.everyOtherWeek
       ? (isEveryOtherWeekActive(todayStr(), c.morningGroup) ? '✅ this week' : '⏸ off week')
       : '';
+    const specialLbl = c.specialWeekKey ? specialWeekLabel(c.specialWeekKey) : '';
     const zoom = c.zoom
       ? `<a class="small-btn" style="background:#E3F2FD;color:#1565C0;text-decoration:none" href="${c.zoom}" target="_blank" rel="noopener">Zoom</a>`
       : '';
@@ -3819,7 +3846,8 @@ function renderClasses() {
       <div class="session-meta">${typeLabel}${done ? ' · done today' : ''}</div>
       <div class="session-meta">${sessionDaysLabel(c)}${c.time ? ' · ' + formatTimeCET(c.time) : ''}</div>
       ${c.location ? `<div class="session-meta">${c.location}</div>` : ''}
-      ${everyOther ? `<div class="session-meta">${everyOther}</div>` : ''}
+      ${specialLbl ? `<div class="session-meta">Only this week: ${specialLbl}</div>` : ''}
+      ${everyOther && !specialLbl ? `<div class="session-meta">${everyOther}</div>` : ''}
       <div class="session-actions">
         ${zoom ? zoom.replace('href=', 'onclick="event.stopPropagation()" href=') : ''}
         <button class="small-btn" onclick="event.stopPropagation(); openClassModal('${c.id}')">Edit</button>
@@ -4039,6 +4067,7 @@ function openClassModal(editId = null) {
   const zoom = c ? (c.zoom || '') : '';
   const notes = c ? (c.notes || '') : (sessionType === 'morning' ? '3 hours' : '');
   const everyOther = c ? !!c.everyOtherWeek : false;
+  const specialWeekKey = c ? (c.specialWeekKey || '') : '';
 
   // Mon–Fri only (1=Mon … 5=Fri) — multi-select
   const weekdays = [
@@ -4055,8 +4084,14 @@ function openClassModal(editId = null) {
     </label>`
   ).join('');
 
+  const swOpts = assignableSpecialWeeks().map(w => {
+    const k = specialWeekKeyOf(w);
+    return `<option value="${k}" ${specialWeekKey === k ? 'selected' : ''}>${w.label}</option>`;
+  }).join('');
+
   const showMorningGroup = sessionType === 'morning' ? '' : 'display:none';
   const durationHint = sessionType === 'morning' ? '⏱ Duration: 3 hours (auto)' : '';
+  const showEveryOther = (sessionType === 'morning' && !specialWeekKey) ? '' : 'display:none';
 
   openModal(`
     <h3>${c ? 'Edit Session' : 'Add Session'} 🎨</h3>
@@ -4077,6 +4112,12 @@ function openClassModal(editId = null) {
     </div>
     <label>Days (Mon–Fri) — select any</label>
     <div id="class-days" style="display:flex;flex-wrap:wrap;gap:6px;margin:8px 0 4px">${dayChecks}</div>
+    <label>When does this run?</label>
+    <select id="class-special-week" onchange="onSpecialWeekChange()">
+      <option value="" ${!specialWeekKey ? 'selected' : ''}>Regular year (hidden on special weeks)</option>
+      ${swOpts}
+    </select>
+    <p style="font-size:0.85rem;color:var(--muted);margin:6px 0 8px">Pick a special week to make a one-off timetable (e.g. residential: Kiki Mon/Fri, Sonia Tue–Thu).</p>
     <label>Start time</label>
     <input type="time" id="class-time" value="${time}">
     <p id="duration-hint" style="font-size:0.85rem;color:var(--muted);margin-top:4px">${durationHint}</p>
@@ -4084,7 +4125,7 @@ function openClassModal(editId = null) {
     <input type="text" id="class-location" value="${location}" placeholder="e.g. Facilitator name">
     <label>Zoom / Meeting Link</label>
     <input type="url" id="class-zoom" value="${zoom}" placeholder="https://zoom.us/j/...">
-    <div id="every-other-wrap" style="${showMorningGroup}">
+    <div id="every-other-wrap" style="${showEveryOther}">
       <label style="display:flex;align-items:center;gap:8px;font-weight:600">
         <input type="checkbox" id="class-every-other" ${everyOther ? 'checked' : ''} style="width:auto">
         Every other week (1 facilitator) — A-weeks vs B-weeks alternate
@@ -4106,7 +4147,8 @@ function onSessionTypeChange() {
   const groupEl = document.getElementById('class-morning-group');
   if (groupWrap) groupWrap.style.display = type === 'morning' ? '' : 'none';
   const everyWrap = document.getElementById('every-other-wrap');
-  if (everyWrap) everyWrap.style.display = type === 'morning' ? '' : 'none';
+  const swEl = document.getElementById('class-special-week');
+  if (everyWrap) everyWrap.style.display = (type === 'morning' && !(swEl && swEl.value)) ? '' : 'none';
   if (type === 'morning') {
     if (!timeEl.value || timeEl.value === '15:00') timeEl.value = '09:00';
     if (hint) hint.textContent = '⏱ Duration: 3 hours (auto)';
@@ -4137,6 +4179,15 @@ function onMorningGroupChange() {
   }
 }
 
+function onSpecialWeekChange() {
+  const el = document.getElementById('class-special-week');
+  const everyWrap = document.getElementById('every-other-wrap');
+  const everyEl = document.getElementById('class-every-other');
+  const isSpecial = el && el.value;
+  if (everyWrap) everyWrap.style.display = isSpecial ? 'none' : (document.getElementById('class-type').value === 'morning' ? '' : 'none');
+  if (isSpecial && everyEl) everyEl.checked = false;
+}
+
 function saveClass(editId) {
   const title = document.getElementById('class-title').value.trim();
   if (!title) {
@@ -4156,9 +4207,11 @@ function saveClass(editId) {
   const notes = document.getElementById('class-notes').value.trim();
   const sessionType = document.getElementById('class-type').value;
   const everyOtherEl = document.getElementById('class-every-other');
-  const everyOtherWeek = (sessionType === 'morning' && everyOtherEl) ? everyOtherEl.checked : false;
   const morningGroupEl = document.getElementById('class-morning-group');
   const morningGroup = (sessionType === 'morning' && morningGroupEl) ? morningGroupEl.value : null;
+  const specialWeekEl = document.getElementById('class-special-week');
+  const specialWeekKey = specialWeekEl ? (specialWeekEl.value || '') : '';
+  const everyOtherWeek = (!specialWeekKey && sessionType === 'morning' && everyOtherEl) ? everyOtherEl.checked : false;
 
   // Auto put 3 hours for morning sessions
   let finalNotes = notes;
@@ -4179,6 +4232,7 @@ function saveClass(editId) {
       c.sessionType = sessionType;
       c.morningGroup = morningGroup;
       c.everyOtherWeek = everyOtherWeek;
+      c.specialWeekKey = specialWeekKey || null;
     }
   } else {
     state.classes.push({
@@ -4192,7 +4246,8 @@ function saveClass(editId) {
       notes: finalNotes,
       sessionType,
       morningGroup,
-      everyOtherWeek
+      everyOtherWeek,
+      specialWeekKey: specialWeekKey || null
     });
   }
   save();
