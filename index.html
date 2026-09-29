@@ -1651,8 +1651,9 @@ body {
   <div id="toast" class="toast hidden"></div>
 
   <script>
+
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-28a';
+const APP_VERSION = '2026-09-29b';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1781,6 +1782,19 @@ function getSpecialWeekByKey(key) {
 function specialWeekLabel(key) {
   const sw = getSpecialWeekByKey(key);
   return sw ? sw.label : '';
+}
+
+function pruneExpiredSpecialWeekSessions() {
+  if (!state.classes || !state.classes.length) return;
+  const t = todayStr();
+  const before = state.classes.length;
+  state.classes = state.classes.filter(c => {
+    if (!c.specialWeekKey) return true;
+    const sw = getSpecialWeekByKey(c.specialWeekKey);
+    if (!sw) return false;
+    return t <= sw.end;
+  });
+  if (state.classes.length !== before) save();
 }
 
 
@@ -4053,7 +4067,7 @@ function openClassModal(editId = null) {
   const c = editId ? state.classes.find(x => x.id === editId) : null;
   const sessionType = c ? (c.sessionType || 'afternoon') : 'afternoon';
   const morningGroup = c ? (c.morningGroup || 'A') : 'A';
-  const title = c ? c.title : (sessionType === 'morning' ? (morningGroup === 'B' ? 'Morning · Facilitator B' : 'Morning · Facilitator A') : '');
+  const title = c ? c.title : '';
   // days can be single number (legacy) or array
   let selectedDays = [];
   if (c) {
@@ -4063,7 +4077,7 @@ function openClassModal(editId = null) {
   if (selectedDays.length === 0) selectedDays = [1]; // default Monday
 
   const time = c ? c.time : (sessionType === 'morning' ? '09:00' : '15:00');
-  const location = c ? (c.location || '') : (sessionType === 'morning' ? (morningGroup === 'B' ? 'Facilitator B' : 'Facilitator A') : '');
+  const location = c ? (c.location || '') : '';
   const zoom = c ? (c.zoom || '') : '';
   const notes = c ? (c.notes || '') : (sessionType === 'morning' ? '3 hours' : '');
   const everyOther = c ? !!c.everyOtherWeek : false;
@@ -4096,7 +4110,7 @@ function openClassModal(editId = null) {
   openModal(`
     <h3>${c ? 'Edit Session' : 'Add Session'} 🎨</h3>
     <label>Session name</label>
-    <input type="text" id="class-title" value="${title}" placeholder="e.g. Creative Writing or Morning Block">
+    <input type="text" id="class-title" value="${title}" placeholder="Session name">
     <label>Type</label>
     <select id="class-type" onchange="onSessionTypeChange()">
       <option value="morning" ${sessionType === 'morning' ? 'selected' : ''}>🌅 Morning Session</option>
@@ -4106,8 +4120,8 @@ function openClassModal(editId = null) {
     <div id="morning-group-wrap" style="${showMorningGroup}">
       <label>Morning group</label>
       <select id="class-morning-group" onchange="onMorningGroupChange()">
-        <option value="A" ${morningGroup === 'A' ? 'selected' : ''}>Week A · Facilitator A</option>
-        <option value="B" ${morningGroup === 'B' ? 'selected' : ''}>Week B · Facilitator B</option>
+        <option value="A" ${morningGroup === 'A' ? 'selected' : ''}>Week A</option>
+        <option value="B" ${morningGroup === 'B' ? 'selected' : ''}>Week B</option>
       </select>
     </div>
     <label>Days (Mon–Fri) — select any</label>
@@ -4117,12 +4131,12 @@ function openClassModal(editId = null) {
       <option value="" ${!specialWeekKey ? 'selected' : ''}>Regular year (hidden on special weeks)</option>
       ${swOpts}
     </select>
-    <p style="font-size:0.85rem;color:var(--muted);margin:6px 0 8px">Pick a special week to make a one-off timetable (e.g. residential: Kiki Mon/Fri, Sonia Tue–Thu).</p>
+    <p style="font-size:0.85rem;color:var(--muted);margin:6px 0 8px">Pick a special week for a one-off timetable.</p>
     <label>Start time</label>
     <input type="time" id="class-time" value="${time}">
     <p id="duration-hint" style="font-size:0.85rem;color:var(--muted);margin-top:4px">${durationHint}</p>
     <label>Facilitator name</label>
-    <input type="text" id="class-location" value="${location}" placeholder="e.g. Facilitator name">
+    <input type="text" id="class-location" value="${location}">
     <label>Zoom / Meeting Link</label>
     <input type="url" id="class-zoom" value="${zoom}" placeholder="https://zoom.us/j/...">
     <div id="every-other-wrap" style="${showEveryOther}">
@@ -4143,8 +4157,6 @@ function onSessionTypeChange() {
   const hint = document.getElementById('duration-hint');
   const notesEl = document.getElementById('class-notes');
   const groupWrap = document.getElementById('morning-group-wrap');
-  const locEl = document.getElementById('class-location');
-  const groupEl = document.getElementById('class-morning-group');
   if (groupWrap) groupWrap.style.display = type === 'morning' ? '' : 'none';
   const everyWrap = document.getElementById('every-other-wrap');
   const swEl = document.getElementById('class-special-week');
@@ -4155,28 +4167,12 @@ function onSessionTypeChange() {
     if (notesEl && !notesEl.value.includes('3 hours')) {
       notesEl.value = (notesEl.value ? notesEl.value + ' · ' : '') + '3 hours';
     }
-    // Week A = Facilitator A, Week B = Facilitator B
-    if (locEl && groupEl) {
-      const g = groupEl.value;
-      if (!locEl.value || locEl.value === 'Facilitator A' || locEl.value === 'Facilitator B') {
-        locEl.value = g === 'B' ? 'Facilitator B' : 'Facilitator A';
-      }
-    }
   } else {
     if (hint) hint.textContent = '';
   }
 }
 
 function onMorningGroupChange() {
-  const groupEl = document.getElementById('class-morning-group');
-  const locEl = document.getElementById('class-location');
-  const titleEl = document.getElementById('class-title');
-  if (!groupEl || !locEl) return;
-  const g = groupEl.value;
-  locEl.value = g === 'B' ? 'Facilitator B' : 'Facilitator A';
-  if (titleEl && (!titleEl.value || titleEl.value.startsWith('Morning'))) {
-    titleEl.value = g === 'B' ? 'Morning · Facilitator B' : 'Morning · Facilitator A';
-  }
 }
 
 function onSpecialWeekChange() {
@@ -4307,6 +4303,7 @@ function saveNote() {
 // ---------- Init ----------
 function renderAll() {
   prunePastNotes();
+  pruneExpiredSpecialWeekSessions();
   renderHeader();
   renderToday();
   renderWeek();
