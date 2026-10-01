@@ -1617,7 +1617,8 @@ body {
       <!-- HABITS -->
       <section id="tab-habits" class="tab">
         <h2 class="section-title">My Daily Habits 🔥</h2>
-        <div id="habits-list" class="card-list"></div>
+        <p class="hint">Tap a habit to mark it done · Edit on this tab</p>
+        <div id="habits-list" class="habit-grid"></div>
         <button class="btn add-btn" onclick="openHabitModal()">+ Add Custom Habit</button>
       </section>
 
@@ -1653,7 +1654,7 @@ body {
   <script>
 
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-09-29b';
+const APP_VERSION = '2026-10-01a';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -3616,25 +3617,24 @@ function renderTodayHabits() {
 
 function renderHabits() {
   const list = document.getElementById('habits-list');
+  if (!list) return;
   if (state.habits.length === 0) {
-    list.innerHTML = `<div class="empty"><div class="emoji">🔥</div>Add your first habit!</div>`;
+    list.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="emoji">🔥</div>Add your first habit!</div>`;
     return;
   }
 
+  const t = todayStr();
   list.innerHTML = state.habits.map(h => {
     const streak = calcStreak(h);
-    const t = todayStr();
     const done = h.history && h.history[t];
+    const safeName = String(h.name || '').replace(/</g,'<');
     return `
-      <div class="card">
-        <div class="card-header">
-          <div class="checkbox ${done ? 'checked' : ''}" onclick="toggleHabit('${h.id}')">${done ? '✓' : ''}</div>
-          <div>
-            <div class="card-title">${h.emoji || ''} ${h.name}</div>
-            <div class="card-meta">🔥 Streak: ${streak} days</div>
-          </div>
-        </div>
-        <div class="card-actions">
+      <div class="habit-card ${done ? 'done-today' : ''}" onclick="toggleHabit('${h.id}')">
+        <div class="habit-emoji">${h.emoji || '✅'}</div>
+        <div class="habit-name">${safeName}</div>
+        <div class="habit-streak">${done ? 'Done!' : 'Tap me'} · 🔥 ${streak}</div>
+        <div class="bc-actions" onclick="event.stopPropagation()">
+          <button class="small-btn" onclick="openHabitModal('${h.id}')">Edit</button>
           <button class="small-btn danger" onclick="deleteHabit('${h.id}')">Delete</button>
         </div>
       </div>
@@ -4019,22 +4019,25 @@ function editTask(id) {
   openTaskModal(id);
 }
 
-function openHabitModal() {
+function openHabitModal(editId = null) {
+  const h = editId ? state.habits.find(x => x.id === editId) : null;
+  const name = h ? String(h.name || '').replace(/"/g,'"') : '';
+  const emoji = h ? (h.emoji || '') : '';
   const quickEmojis = ['🛏️','🦷','📚','💧','🏃','🧘','🍎','🧹','🎒','🎵','🎨','✍️','🔢','😴','🌟','❤️','🌈','⚡','🏆','🎮'];
   const emojiBtns = quickEmojis.map(e =>
     `<button type="button" class="emoji-pick" onclick="pickHabitEmoji('${e}')">${e}</button>`
   ).join('');
   openModal(`
-    <h3>New Custom Habit 🔥</h3>
+    <h3>${h ? 'Edit Habit' : 'New Custom Habit'} 🔥</h3>
     <label>Habit name</label>
-    <input type="text" id="habit-name" placeholder="e.g. Make my bed">
+    <input type="text" id="habit-name" value="${name}" placeholder="Habit name">
     <label>Emoji</label>
     <div style="display:flex;gap:8px;align-items:center;margin-bottom:8px">
-      <input type="text" id="habit-emoji" placeholder="Tap below or type" maxlength="4" style="flex:1;margin:0">
+      <input type="text" id="habit-emoji" value="${emoji}" placeholder="Tap below or type" maxlength="4" style="flex:1;margin:0">
     </div>
     <p style="font-size:0.85rem;color:var(--muted);margin-bottom:6px">Pick an emoji:</p>
     <div class="emoji-keyboard">${emojiBtns}</div>
-    <button class="btn primary" onclick="saveHabit()">Add Habit</button>
+    <button class="btn primary" onclick="saveHabit('${editId || ''}')">${h ? 'Save Changes' : 'Add Habit'}</button>
   `);
 }
 
@@ -4043,24 +4046,32 @@ function pickHabitEmoji(emoji) {
   if (el) el.value = emoji;
 }
 
-function saveHabit() {
+function saveHabit(editId) {
   const name = document.getElementById('habit-name').value.trim();
   if (!name) {
     toast('Please give your habit a name');
     return;
   }
   const emoji = document.getElementById('habit-emoji').value.trim() || '✅';
-  state.habits.push({
-    id: uid(),
-    name,
-    emoji,
-    history: {}
-  });
+  if (editId) {
+    const h = state.habits.find(x => x.id === editId);
+    if (h) {
+      h.name = name;
+      h.emoji = emoji;
+    }
+  } else {
+    state.habits.push({
+      id: uid(),
+      name,
+      emoji,
+      history: {}
+    });
+  }
   save();
   closeModal();
   renderHabits();
   renderTodayHabits();
-  toast('Habit added! 🔥');
+  toast(editId ? 'Habit updated!' : 'Habit added! 🔥');
 }
 
 function openClassModal(editId = null) {
