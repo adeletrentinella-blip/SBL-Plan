@@ -1654,7 +1654,7 @@ body {
   <script>
 
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-10-01a';
+const APP_VERSION = '2026-10-06a';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -3215,15 +3215,22 @@ function inquiryTileHTML(i) {
   </div>`;
 }
 
+function escTxt(s) {
+  return String(s || '').replace(/</g,'<');
+}
+
 function bookReviewCardHTML(b) {
   const r = b.review || {};
+  const stars = r.rating ? '⭐'.repeat(Number(r.rating) || 0) : '';
   return `<div class="card" style="border-left:4px solid #42A5F5">
-    <div class="card-title">📖 ${b.title.replace(/</g,'&lt;')}</div>
-    <div class="card-meta">Finished ${r.writtenAt ? formatDMY(r.writtenAt) : ''}${r.rating ? ' · ⭐ ' + r.rating + '/5' : ''}</div>
-    ${r.liked ? `<div class="card-meta"><strong>Liked:</strong> ${r.liked.replace(/</g,'&lt;')}</div>` : ''}
-    ${r.learned ? `<div class="card-meta"><strong>Learned:</strong> ${r.learned.replace(/</g,'&lt;')}</div>` : ''}
-    ${r.recommend ? `<div class="card-meta"><strong>Recommend?</strong> ${r.recommend.replace(/</g,'&lt;')}</div>` : ''}
-    ${r.more ? `<div class="card-meta">${r.more.replace(/</g,'&lt;')}</div>` : ''}
+    <div class="card-title">📖 ${escTxt(b.title)}</div>
+    ${r.author || b.author ? `<div class="card-meta"><strong>Author:</strong> ${escTxt(r.author || b.author)}</div>` : ''}
+    <div class="card-meta">${r.writtenAt ? formatDMY(r.writtenAt) : ''}${stars ? ' · ' + stars : ''}${r.reviewer ? ' · ' + escTxt(r.reviewer) : ''}</div>
+    ${r.summary ? `<div class="card-meta"><strong>Summary:</strong> ${escTxt(r.summary)}</div>` : ''}
+    ${r.character ? `<div class="card-meta"><strong>Favourite character:</strong> ${escTxt(r.character)}</div>` : ''}
+    ${r.setting ? `<div class="card-meta"><strong>Takes place:</strong> ${escTxt(r.setting)}</div>` : ''}
+    ${r.bestPart ? `<div class="card-meta"><strong>Best part:</strong> ${escTxt(r.bestPart)}</div>` : ''}
+    ${r.recommend ? `<div class="card-meta"><strong>Recommend to a friend?</strong> ${escTxt(r.recommend)}</div>` : ''}
   </div>`;
 }
 
@@ -3244,7 +3251,9 @@ function openReadingModal() {
     <h3>📖 Add reading book</h3>
     <p style="color:var(--muted);font-size:0.9rem;margin-bottom:10px">Stays until you finish it. Then check it off and write a review.</p>
     <label>Book title</label>
-    <input type="text" id="reading-title" placeholder="e.g. The Hobbit">
+    <input type="text" id="reading-title" placeholder="Title">
+    <label>Author</label>
+    <input type="text" id="reading-author" placeholder="Author">
     <label>Link (optional)</label>
     <input type="url" id="reading-link" placeholder="https://...">
     <button class="btn primary" onclick="saveReadingBook()">Add book</button>
@@ -3254,11 +3263,13 @@ function openReadingModal() {
 function saveReadingBook() {
   const title = document.getElementById('reading-title').value.trim();
   if (!title) { toast('Enter the book title'); return; }
+  const author = document.getElementById('reading-author').value.trim() || '';
   const link = document.getElementById('reading-link').value.trim() || null;
   if (!state.books) state.books = [];
   state.books.push({
     id: uid(),
     title,
+    author,
     link,
     until: nextFridayISO(new Date()),
     status: 'active',
@@ -3317,25 +3328,39 @@ function markBookDone(id) {
 function openBookReviewModal(id) {
   const b = state.books.find(x => x.id === id);
   if (!b) return;
+  const user = state.users[state.currentUser] || {};
+  const reviewer = (user.displayName || '').replace(/"/g,'"');
+  const authorVal = (b.author || '').replace(/"/g,'"');
   openModal(`
     <h3>📖 Book review</h3>
-    <p style="font-weight:700;margin-bottom:10px">${b.title.replace(/</g,'&lt;')}</p>
-    <label>Rating (1–5 stars)</label>
+    <label>Title</label>
+    <input type="text" id="br-title" value="${String(b.title||'').replace(/"/g,'"')}">
+    <label>Author</label>
+    <input type="text" id="br-author" value="${authorVal}">
+    <label>Rating</label>
     <select id="br-rating">
-      <option value="5">⭐⭐⭐⭐⭐ 5</option>
-      <option value="4">⭐⭐⭐⭐ 4</option>
-      <option value="3" selected>⭐⭐⭐ 3</option>
-      <option value="2">⭐⭐ 2</option>
-      <option value="1">⭐ 1</option>
+      <option value="1">⭐</option>
+      <option value="2">⭐⭐</option>
+      <option value="3" selected>⭐⭐⭐</option>
+      <option value="4">⭐⭐⭐⭐</option>
+      <option value="5">⭐⭐⭐⭐⭐</option>
     </select>
-    <label>What did you like?</label>
-    <textarea id="br-liked" placeholder="Characters, story, facts..."></textarea>
-    <label>What did you learn?</label>
-    <textarea id="br-learned" placeholder="Something new..."></textarea>
-    <label>Would you recommend it? Why?</label>
-    <textarea id="br-recommend" placeholder="Yes/No and why"></textarea>
-    <label>Anything else? (optional)</label>
-    <textarea id="br-more" placeholder="..."></textarea>
+    <label>Quick summary</label>
+    <textarea id="br-summary" placeholder="What is the story about?"></textarea>
+    <label>Who is your favourite character and why?</label>
+    <textarea id="br-character" placeholder="Name and why you like them"></textarea>
+    <label>Where does the book take place?</label>
+    <textarea id="br-setting" placeholder="The setting / world"></textarea>
+    <label>What was the best part in the book and why?</label>
+    <textarea id="br-best" placeholder="Your favourite moment"></textarea>
+    <label>Would you recommend this to a friend?</label>
+    <select id="br-recommend">
+      <option value="Yes">Yes</option>
+      <option value="No">No</option>
+    </select>
+    <label>Your name</label>
+    <input type="text" id="br-name" value="${reviewer}">
+    <p style="font-size:0.85rem;color:var(--muted);margin:8px 0">Date: ${formatDMY(todayStr())}</p>
     <button class="btn primary" onclick="saveBookReview('${id}')">Save review ✓</button>
   `);
 }
@@ -3343,12 +3368,19 @@ function openBookReviewModal(id) {
 function saveBookReview(id) {
   const b = state.books.find(x => x.id === id);
   if (!b) return;
+  const newTitle = (document.getElementById('br-title') || {}).value;
+  if (newTitle && newTitle.trim()) b.title = newTitle.trim();
+  const newAuthor = ((document.getElementById('br-author') || {}).value || '').trim();
+  if (newAuthor) b.author = newAuthor;
   b.review = {
+    author: newAuthor || b.author || '',
     rating: document.getElementById('br-rating').value,
-    liked: document.getElementById('br-liked').value.trim(),
-    learned: document.getElementById('br-learned').value.trim(),
-    recommend: document.getElementById('br-recommend').value.trim(),
-    more: document.getElementById('br-more').value.trim(),
+    summary: document.getElementById('br-summary').value.trim(),
+    character: document.getElementById('br-character').value.trim(),
+    setting: document.getElementById('br-setting').value.trim(),
+    bestPart: document.getElementById('br-best').value.trim(),
+    recommend: document.getElementById('br-recommend').value,
+    reviewer: document.getElementById('br-name').value.trim(),
     writtenAt: todayStr()
   };
   b.status = 'done';
