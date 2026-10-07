@@ -1525,7 +1525,7 @@ body {
         <button class="btn add-btn" onclick="openTaskModal()">+ Add Action Step</button>
 
         <h2 class="section-title">Today's Sessions 🎨</h2>
-        <p class="hint" style="margin-bottom:8px">Tap a session to check it off for today</p>
+        <p class="hint" style="margin-bottom:8px">Tap a session to check it off for today · <span id="today-ab-label"></span></p>
         <div id="today-sessions" class="session-grid"></div>
 
         <h2 class="section-title">Today's Habits 🔥</h2>
@@ -1625,7 +1625,7 @@ body {
       <!-- AFTERNOON / MORNING SESSIONS -->
       <section id="tab-classes" class="tab">
         <h2 class="section-title">Sessions 🎨</h2>
-        <p class="hint">Morning (A/B), Afternoon & Mentoring · Zoom links ready</p>
+        <p class="hint">Morning A/B skips special weeks · <span id="classes-ab-label"></span></p>
         <div id="classes-list" class="session-grid"></div>
         <button class="btn add-btn" onclick="openClassModal()">+ Add Session</button>
       </section>
@@ -1654,7 +1654,7 @@ body {
   <script>
 
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-10-06a';
+const APP_VERSION = '2026-10-07a';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1707,29 +1707,65 @@ function initFirebaseSafe() {
 }
 const DAY_NAMES = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
 
-// ISO week number (1–53)
-function getISOWeek(d) {
-  const date = new Date(Date.UTC(d.getFullYear(), d.getMonth(), d.getDate()));
-  const dayNum = date.getUTCDay() || 7;
-  date.setUTCDate(date.getUTCDate() + 4 - dayNum);
-  const yearStart = new Date(Date.UTC(date.getUTCFullYear(), 0, 1));
-  return Math.ceil((((date - yearStart) / 86400000) + 1) / 7);
+// First Monday of the school year — A/B counting starts here
+const SCHOOL_YEAR_START = '2026-09-07';
+
+function mondayOf(date) {
+  const d = date instanceof Date ? new Date(date.getTime()) : new Date(String(date) + (String(date).includes('T') ? '' : 'T12:00:00'));
+  d.setHours(12, 0, 0, 0);
+  const day = d.getDay();
+  const offset = day === 0 ? -6 : 1 - day;
+  d.setDate(d.getDate() + offset);
+  return d;
 }
 
-// true if this every-other-week session is active on the given date
-// Rule: odd ISO weeks = active (week 1, 3, 5…)
-// Odd ISO weeks = Week A; even ISO weeks = Week B
+function isRotationPausedWeek(monday) {
+  let blockDays = 0;
+  let holidayDays = 0;
+  for (let i = 0; i < 5; i++) {
+    const d = new Date(monday.getTime());
+    d.setDate(monday.getDate() + i);
+    const key = localDateKey(d);
+    const evs = getSpecialEvents(key);
+    if (evs.some(e => e.type === 'residential' || e.type === 'bootcamp' || e.type === 'hackathon')) blockDays++;
+    if (evs.some(e => e.type === 'holiday')) holidayDays++;
+  }
+  // Skip residentials / bootcamps / hackathons; skip holiday weeks (3+ days off)
+  return blockDays > 0 || holidayDays >= 3;
+}
+
+function schoolWeekIndex(date) {
+  const start = mondayOf(SCHOOL_YEAR_START);
+  const week = mondayOf(date);
+  if (localDateKey(week) < localDateKey(start)) return 0;
+  let idx = 0;
+  const cur = new Date(start.getTime());
+  while (localDateKey(cur) < localDateKey(week)) {
+    if (!isRotationPausedWeek(cur)) idx++;
+    cur.setDate(cur.getDate() + 7);
+  }
+  return idx;
+}
+
+// Week A / B skip special weeks so rotation continues around them
+// e.g. A, residential, B, A, B
 function isWeekA(date) {
-  const d = date instanceof Date ? date : new Date(date + 'T12:00:00');
-  return getISOWeek(d) % 2 === 1;
+  return schoolWeekIndex(date) % 2 === 0;
 }
 
 function isEveryOtherWeekActive(date, morningGroup) {
   const weekA = isWeekA(date);
   const group = (morningGroup || 'A').toUpperCase();
-  // Morning A runs on A-weeks; Morning B on B-weeks
   if (group === 'B') return !weekA;
   return weekA;
+}
+
+function currentABLabel(date) {
+  const d = date || todayStr();
+  if (isNoSessionSpecialDay(typeof d === 'string' ? d : localDateKey(d))) {
+    return 'Special week (A/B paused)';
+  }
+  return isWeekA(d) ? 'Week A' : 'Week B';
 }
 
 function sessionOnDay(c, weekday, dateStr) {
@@ -3491,6 +3527,8 @@ function renderWeeklyFocus() {
 function renderToday() {
   const t = todayStr();
   document.getElementById('today-date').textContent = formatDate(t);
+  const abToday = document.getElementById('today-ab-label');
+  if (abToday) abToday.textContent = currentABLabel(t);
 
   const list = document.getElementById('today-tasks');
   const tasks = getTodayTasks();
@@ -3869,6 +3907,8 @@ function viewDay(dateStr) {
 
 // ---------- Sessions (Morning 3hr + Afternoon) ----------
 function renderClasses() {
+  const ab = document.getElementById('classes-ab-label');
+  if (ab) ab.textContent = currentABLabel();
   const list = document.getElementById('classes-list');
   if (!state.classes.length) {
     list.innerHTML = `<div class="empty" style="grid-column:1/-1"><div class="emoji">🎨</div>No sessions yet.<br>Add a morning, afternoon or mentoring session!</div>`;
