@@ -6,7 +6,7 @@
   <title>SBL Plan – Your Fun Planner</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Chewy&family=Edu+QLD+Hand:wght@400..700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
   <meta name="description" content="SBL Plan – student planner for School Beyond Limitations. Privacy-friendly.">
   <style>
@@ -27,22 +27,78 @@
   --font-size-base: 1rem;
 }
 
-/* Dyslexia-friendly mode */
+body, button, input, textarea, select {
+  font-family: var(--font-main);
+}
+
+body.font-nunito {
+  --font-main: 'Nunito', system-ui, sans-serif;
+  --line-height: 1.45;
+  letter-spacing: 0;
+}
+body.font-chewy {
+  --font-main: 'Chewy', system-ui, sans-serif;
+  font-weight: 400;
+  font-style: normal;
+  --line-height: 1.5;
+  letter-spacing: 0.01em;
+}
+body.font-eduqld {
+  --font-main: 'Edu QLD Hand', cursive, system-ui;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+  --line-height: 1.55;
+}
+body.font-opendyslexic,
 body.mode-dyslexia {
   --font-main: 'OpenDyslexic', 'Comic Sans MS', system-ui, sans-serif;
   --line-height: 1.8;
   --font-size-base: 1.1rem;
   letter-spacing: 0.04em;
 }
+body.font-chewy .card-title,
+body.font-chewy .section-title,
+body.font-eduqld .card-title,
+body.font-eduqld .section-title,
+body.font-opendyslexic .card-title,
+body.font-opendyslexic .section-title,
 body.mode-dyslexia .card-title,
 body.mode-dyslexia .section-title,
-body.mode-dyslexia input,
-body.mode-dyslexia textarea,
-body.mode-dyslexia button,
-body.mode-dyslexia .day-items {
+body.font-chewy input,
+body.font-eduqld input,
+body.font-opendyslexic input,
+body.font-chewy textarea,
+body.font-eduqld textarea,
+body.font-opendyslexic textarea,
+body.font-chewy button,
+body.font-eduqld button,
+body.font-opendyslexic button {
   font-family: var(--font-main) !important;
   line-height: var(--line-height);
 }
+.font-choice {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin: 8px 0 16px;
+}
+.font-choice button {
+  text-align: left;
+  padding: 14px 16px;
+  border: 3px solid #eee;
+  border-radius: 16px;
+  background: #fff;
+  font-size: 1.15rem;
+}
+.font-choice button.on {
+  border-color: var(--purple);
+  background: #F3E8FF;
+}
+.font-preview-nunito { font-family: 'Nunito', system-ui, sans-serif; font-weight: 800; }
+.font-preview-chewy { font-family: 'Chewy', system-ui; font-weight: 400; font-style: normal; }
+.font-preview-eduqld { font-family: 'Edu QLD Hand', cursive; font-optical-sizing: auto; font-weight: 500; font-style: normal; }
+.font-preview-opendyslexic { font-family: 'OpenDyslexic', 'Comic Sans MS', system-ui, sans-serif; }
 
 /* ADHD focus mode – reduce distraction, one clear column */
 body.mode-adhd .bottom-nav .nav-btn:not(.active) {
@@ -1463,7 +1519,7 @@ body {
       <div class="a11y-bar">
         <img id="header-logo" class="header-logo" alt="SBL" title="School Beyond Limitations">
         <button type="button" class="a11y-chip" id="chip-adhd" onclick="toggleAdhdMode()" title="Focus mode">Focus</button>
-        <button type="button" class="a11y-chip" id="chip-dyslexia" onclick="toggleDyslexiaMode()" title="Friendly fonts">Fonts</button>
+        <button type="button" class="a11y-chip" id="chip-dyslexia" onclick="openFontModal()" title="Choose font">Fonts</button>
         <button class="icon-btn" onclick="openTimezoneModal()" title="Change timezone">🌍</button>
         <button class="icon-btn" onclick="openSettingsModal()" title="Settings">⚙️</button>
       </div>
@@ -1654,7 +1710,7 @@ body {
   <script>
 
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-10-07a';
+const APP_VERSION = '2026-10-07c';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1898,6 +1954,7 @@ let state = {
   timezone: 'CET',
   adhdMode: false,
   dyslexiaMode: false,
+  fontFamily: 'nunito',
   privacyAccepted: false
 };
 
@@ -2398,6 +2455,7 @@ function load() {
       if (!state.habits) state.habits = [];
       if (!state.notes) state.notes = [];
       if (!state.classes) state.classes = [];
+      if (!state.fontFamily) state.fontFamily = state.dyslexiaMode ? 'opendyslexic' : 'nunito';
     } catch (e) {
       console.warn('Could not load data', e);
     }
@@ -2572,20 +2630,52 @@ function toggleAdhdMode() {
 }
 
 function toggleDyslexiaMode() {
-  state.dyslexiaMode = !state.dyslexiaMode;
+  openFontModal();
+}
+
+function openFontModal() {
+  const cur = state.fontFamily || (state.dyslexiaMode ? 'opendyslexic' : 'nunito');
+  openModal(`
+    <h3>Choose a font</h3>
+    <div class="font-choice">
+      <button type="button" class="${cur==='nunito'?'on':''}" onclick="setFontFamily('nunito')">
+        <span class="font-preview-nunito">Clear — Nunito</span>
+      </button>
+      <button type="button" class="${cur==='chewy'?'on':''}" onclick="setFontFamily('chewy')">
+        <span class="font-preview-chewy">Chewy</span>
+      </button>
+      <button type="button" class="${cur==='eduqld'?'on':''}" onclick="setFontFamily('eduqld')">
+        <span class="font-preview-eduqld">QLD Hand</span>
+      </button>
+      <button type="button" class="${cur==='opendyslexic'?'on':''}" onclick="setFontFamily('opendyslexic')">
+        <span class="font-preview-opendyslexic">Easy read</span>
+      </button>
+    </div>
+    <button class="btn primary" onclick="closeModal()">Done</button>
+  `);
+}
+
+function setFontFamily(name) {
+  state.fontFamily = name;
+  state.dyslexiaMode = (name === 'opendyslexic');
   applyA11yModes();
   save();
   if (firebaseReady && auth.currentUser) cloudSaveUserData();
-  toast(state.dyslexiaMode ? 'Friendly fonts on' : 'Standard fonts');
+  const labels = { nunito: 'Clear font', chewy: 'Chewy', eduqld: 'QLD Hand', opendyslexic: 'Easy read' };
+  toast(labels[name] || 'Font set');
+  openFontModal();
 }
 
 function applyA11yModes() {
   document.body.classList.toggle('mode-adhd', !!state.adhdMode);
-  document.body.classList.toggle('mode-dyslexia', !!state.dyslexiaMode);
+  const font = state.fontFamily || (state.dyslexiaMode ? 'opendyslexic' : 'nunito');
+  document.body.classList.remove('font-nunito', 'font-chewy', 'font-eduqld', 'font-opendyslexic', 'mode-dyslexia');
+  document.body.classList.add('font-' + font);
+  if (font === 'opendyslexic') document.body.classList.add('mode-dyslexia');
   const ca = document.getElementById('chip-adhd');
   const cd = document.getElementById('chip-dyslexia');
   if (ca) ca.classList.toggle('on', !!state.adhdMode);
-  if (cd) cd.classList.toggle('on', !!state.dyslexiaMode);
+  if (cd) cd.classList.toggle('on', font !== 'nunito');
   const fb = document.getElementById('focus-banner');
   if (fb) fb.classList.toggle('hidden', !state.adhdMode);
 }
@@ -2612,7 +2702,7 @@ function openSettingsModal() {
     <h3>Settings ⚙️</h3>
     <div class="settings-panel" style="text-align:left">
       <button class="btn add-btn" style="margin-top:8px" onclick="toggleAdhdMode(); closeModal();">🎯 Focus mode: ${state.adhdMode ? 'ON' : 'OFF'}</button>
-      <button class="btn add-btn" style="margin-top:8px;background:#A78BFA" onclick="toggleDyslexiaMode(); closeModal();">📖 Fonts: ${state.dyslexiaMode ? 'ON' : 'OFF'}</button>
+      <button class="btn add-btn" style="margin-top:8px;background:#A78BFA" onclick="closeModal(); openFontModal();">Aa Font: ${state.fontFamily === 'chewy' ? 'Chewy' : state.fontFamily === 'eduqld' ? 'QLD Hand' : (state.fontFamily === 'opendyslexic' || state.dyslexiaMode ? 'Easy read' : 'Clear')}</button>
       <button class="btn add-btn" style="margin-top:8px;background:#636E72" onclick="closeModal(); openTimezoneModal();">🌍 Timezone</button>
       <button class="btn add-btn" style="margin-top:8px;background:#0984E3" onclick="exportMyData()">⬇️ Export my data</button>
       <button class="btn add-btn" style="margin-top:8px;background:#E17055" onclick="closeModal(); openPrivacyModal();">🔒 Privacy notice</button>
@@ -2711,6 +2801,7 @@ async function cloudSaveUserData() {
     timezone: state.timezone,
     adhdMode: state.adhdMode,
     dyslexiaMode: state.dyslexiaMode,
+    fontFamily: state.fontFamily || 'nunito',
     calVersion: state.calVersion,
     updatedAt: new Date().toISOString()
   };
@@ -2744,6 +2835,8 @@ async function cloudLoadUserData() {
     if (data.timezone) state.timezone = data.timezone;
     if (typeof data.adhdMode === 'boolean') state.adhdMode = data.adhdMode;
     if (typeof data.dyslexiaMode === 'boolean') state.dyslexiaMode = data.dyslexiaMode;
+    if (data.fontFamily) state.fontFamily = data.fontFamily;
+    else if (state.dyslexiaMode) state.fontFamily = 'opendyslexic';
     if (data.books) state.books = data.books;
     if (data.inquiries) state.inquiries = data.inquiries;
     if (data.readingBook !== undefined) state.readingBook = data.readingBook;
