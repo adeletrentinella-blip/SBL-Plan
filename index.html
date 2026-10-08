@@ -749,6 +749,23 @@ body {
   flex-direction: column;
   gap: 12px;
 }
+/* Action steps on Today: stack in a responsive horizontal grid */
+#today-tasks.card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+#today-tasks .card {
+  height: 100%;
+  min-width: 0;
+}
+@media (min-width: 900px) {
+  #today-tasks.card-list {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+}
 .card {
   background: var(--card);
   border-radius: var(--radius);
@@ -1710,7 +1727,7 @@ body {
   <script>
 
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-10-07c';
+const APP_VERSION = '2026-10-07e';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1991,14 +2008,16 @@ function toggleSessionDone(id, dateStr) {
   const t = dateStr || todayStr();
   if (!c.history) c.history = {};
   if (c.history[t]) {
-    toast("Already checked off — can't undo 🔒");
-    return;
+    if (!confirm('Uncheck this session for today?')) return;
+    delete c.history[t];
+    addPoints(-4);
+    toast('Session unchecked');
+  } else {
+    c.history[t] = true;
+    addPoints(4);
+    showConfetti();
+    toast('+4 stars for session! 🎨');
   }
-  if (!confirm('Mark this session done for today?\n\nYou cannot undo this.')) return;
-  c.history[t] = true;
-  addPoints(4);
-  showConfetti();
-  toast('+4 stars for session! 🎨');
   save();
   renderToday();
   renderClasses();
@@ -2061,14 +2080,16 @@ function toggleGoal(id) {
   const g = state.goals.find(x => x.id === id);
   if (!g) return;
   if (g.done) {
-    toast("Goal already done — can't undo 🔒");
-    return;
+    if (!confirm('Uncheck this goal?')) return;
+    g.done = false;
+    addPoints(-10);
+    toast('Goal unchecked');
+  } else {
+    g.done = true;
+    addPoints(10);
+    showConfetti();
+    toast('+10 stars — goal reached! 🏆');
   }
-  if (!confirm('Mark this goal as reached?\n\nYou cannot undo this.')) return;
-  g.done = true;
-  addPoints(10);
-  showConfetti();
-  toast('+10 stars — goal reached! 🏆');
   save();
   renderGoals();
 }
@@ -2095,7 +2116,12 @@ const DAILY_QUESTIONS = [
   'What challenged your brain today?',
   'Who or what inspired you today?',
   'What do you want to remember from today?',
-  'How will you rest or recharge tonight?'
+  'How will you rest or recharge tonight?',
+  'What was a moment of curiosity today?',
+  'Did you finish something you started? How did that feel?',
+  'What made today different from yesterday?',
+  'If today were a colour or weather, what would it be and why?',
+  'What is one hope you have for tomorrow?'
 ];
 
 const WEEKLY_QUESTIONS = [
@@ -2155,7 +2181,7 @@ function renderReflection() {
   if (dayEl) {
     const val = dayEntry ? dayEntry.text : '';
     dayEl.innerHTML = `
-      <p style="font-weight:700;margin-bottom:4px">Today · ${formatShort(today)}</p>
+      <p style="font-weight:700;margin-bottom:4px">Today · ${formatShort(today)} · question ${(dailyQuestionIndex(today) + 1)} of ${DAILY_QUESTIONS.length}</p>
       <p style="color:var(--primary);font-weight:800;margin:8px 0 6px;line-height:1.35">❓ ${dq}</p>
       <textarea id="reflection-daily" placeholder="Write your answer…">${val.replace(/</g,'&lt;')}</textarea>
       <button class="btn add-btn" style="margin-top:10px" onclick="saveReflection('daily')">Save daily reflection</button>
@@ -2164,7 +2190,7 @@ function renderReflection() {
   }
   if (weekEl) {
     const val = weekEntry ? weekEntry.text : '';
-    if (isFriday || val) {
+    if (isFriday) {
       weekEl.innerHTML = `
         <p style="font-weight:700;margin-bottom:4px">This week · ${formatDMY(today)}${isFriday ? ' · Friday check-in' : ''}</p>
         <p style="color:#00897B;font-weight:800;margin:8px 0 6px;line-height:1.35">❓ ${wq}</p>
@@ -2175,7 +2201,7 @@ function renderReflection() {
     } else {
       weekEl.innerHTML = `
         <p style="font-weight:700;margin-bottom:6px">Weekly reflection</p>
-        <p style="color:var(--muted);line-height:1.45">Weekly questions open on <strong>Fridays</strong>. Come back then for this week’s question!</p>
+        <p style="color:var(--muted);line-height:1.45">Weekly questions open on <strong>Fridays only</strong> (10 questions, one per Friday).</p>
         <p style="margin-top:10px;font-size:0.9rem;color:var(--muted)">Preview: <em>${wq}</em></p>
         <button class="btn add-btn" style="margin-top:10px;background:#636E72" onclick="openPastReflections('weekly')">📜 Past weekly reflections</button>
       `;
@@ -2264,6 +2290,10 @@ function saveReflection(which) {
     const q = DAILY_QUESTIONS[dailyQuestionIndex(todayStr())];
     state.reflections[dailyKey()] = { text: textVal, writtenAt, writtenTime, question: q, type: 'daily' };
   } else {
+    if (now.getDay() !== 5) {
+      toast('Weekly reflection is only on Fridays');
+      return;
+    }
     const ta = document.getElementById('reflection-weekly');
     if (!ta) return;
     const textVal = ta.value.trim();
@@ -2353,8 +2383,10 @@ const TIMEZONE_OPTIONS = {
   LV: { label: 'Latvia (+1h)', offset: 1 },
   LT: { label: 'Lithuania (+1h)', offset: 1 },
   RO: { label: 'Romania (+1h)', offset: 1 },
-  // Georgia
-  GE: { label: 'Georgia (+2 summer / +3 winter)', offset: 3 }
+  // Georgia (UTC+4 year-round, no DST)
+  GE: { label: 'Georgia (+2 summer / +3 winter)', offset: 3 },
+  // Saudi Arabia (UTC+3 year-round — no daylight saving time)
+  SA: { label: 'Saudi Arabia (+1 summer / +2 winter · no DST)', offset: 2 }
 };
 
 function isEuropeanSummerTime(date) {
@@ -2378,6 +2410,9 @@ function getTzOffset() {
   // Georgia is UTC+4 year-round. School CET = UTC+1, CEST = UTC+2
   // → +3 in winter, +2 in summer relative to school clock
   if (tz === 'GE') return isEuropeanSummerTime(new Date()) ? 2 : 3;
+  // Saudi Arabia is UTC+3 year-round (no DST). School CET/CEST = UTC+1 / UTC+2
+  // → +2 in winter, +1 in summer relative to school clock
+  if (tz === 'SA') return isEuropeanSummerTime(new Date()) ? 1 : 2;
   return (TIMEZONE_OPTIONS[tz] || TIMEZONE_OPTIONS.CET).offset;
 }
 
@@ -3705,14 +3740,16 @@ function toggleTask(id) {
   const task = state.tasks.find(t => t.id === id);
   if (!task) return;
   if (task.completed) {
-    toast("Already done — can't undo 🔒");
-    return;
+    if (!confirm('Uncheck this action step?')) return;
+    task.completed = false;
+    addPoints(-5);
+    toast('Action step unchecked');
+  } else {
+    task.completed = true;
+    addPoints(5);
+    showConfetti();
+    toast('+5 stars! Action done ⭐');
   }
-  if (!confirm('Mark as done?\n\nYou cannot undo this.')) return;
-  task.completed = true;
-  addPoints(5);
-  showConfetti();
-  toast('+5 stars! Action done ⭐');
   save();
   renderToday();
   renderWeek();
@@ -3722,16 +3759,22 @@ function toggleStep(taskId, stepIndex) {
   const task = state.tasks.find(t => t.id === taskId);
   if (!task || !task.steps[stepIndex]) return;
   if (task.steps[stepIndex].done) {
-    toast("Step already done — can't undo 🔒");
-    return;
-  }
-  if (!confirm('Step done?\n\nYou cannot undo this.')) return;
-  task.steps[stepIndex].done = true;
-  if (task.steps.every(s => s.done) && !task.completed) {
-    task.completed = true;
-    addPoints(5);
-    showConfetti();
-    toast('All steps done! +5 stars 🎉');
+    task.steps[stepIndex].done = false;
+    if (task.completed && task.steps.some(s => !s.done)) {
+      task.completed = false;
+      addPoints(-5);
+    }
+    toast('Step unchecked');
+  } else {
+    task.steps[stepIndex].done = true;
+    if (task.steps.every(s => s.done) && !task.completed) {
+      task.completed = true;
+      addPoints(5);
+      showConfetti();
+      toast('All steps done! +5 stars 🎉');
+    } else {
+      toast('Step done ✓');
+    }
   }
   save();
   renderToday();
@@ -3750,7 +3793,7 @@ function deleteTask(id) {
 function addPoints(n) {
   const user = state.users[state.currentUser];
   if (user) {
-    user.points = (user.points || 0) + n;
+    user.points = Math.max(0, (user.points || 0) + n);
     renderHeader();
   }
 }
@@ -3831,14 +3874,16 @@ function toggleHabit(id) {
   if (!habit.history) habit.history = {};
   const t = todayStr();
   if (habit.history[t]) {
-    toast("Already done today — can't undo 🔒");
-    return;
+    if (!confirm('Uncheck this habit for today?')) return;
+    delete habit.history[t];
+    addPoints(-3);
+    toast('Habit unchecked');
+  } else {
+    habit.history[t] = true;
+    addPoints(3);
+    showConfetti();
+    toast('+3 stars for habit! 🔥');
   }
-  if (!confirm('Done for today?\n\nYou cannot undo this.')) return;
-  habit.history[t] = true;
-  addPoints(3);
-  showConfetti();
-  toast('+3 stars for habit! 🔥');
   save();
   renderTodayHabits();
   renderHabits();
@@ -4058,14 +4103,16 @@ function toggleNoteDone(id) {
   const t = todayStr();
   if (!n.history) n.history = {};
   if (n.history[t]) {
-    toast("Already checked off — can't undo 🔒");
-    return;
+    if (!confirm('Uncheck this note for today?')) return;
+    delete n.history[t];
+    addPoints(-2);
+    toast('Note unchecked');
+  } else {
+    n.history[t] = true;
+    addPoints(2);
+    showConfetti();
+    toast('+2 stars! 📝');
   }
-  if (!confirm('Mark this note done for today?\n\nYou cannot undo this.')) return;
-  n.history[t] = true;
-  addPoints(2);
-  showConfetti();
-  toast('+2 stars! 📝');
   save();
   renderNotes();
   renderToday();
