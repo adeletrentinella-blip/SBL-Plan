@@ -14,17 +14,199 @@
   --bg: #FFF8F0;
   --card: #FFFFFF;
   --primary: #FF6B6B;
+  --primary-2: #FF8E53;
   --secondary: #4ECDC4;
   --accent: #FFE66D;
   --purple: #A78BFA;
   --text: #2D3436;
   --muted: #636E72;
   --success: #55EFC4;
+  --success-2: #00B894;
   --shadow: 0 8px 24px rgba(0,0,0,0.08);
   --radius: 20px;
   --font-main: 'Nunito', system-ui, sans-serif;
   --line-height: 1.45;
   --font-size-base: 1rem;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --input-bg: #FFFFFF;
+  --chip-bg: #FFFFFF;
+  --border-soft: #eeeeee;
+  --nav-active-bg: #FFF0F0;
+  --auth-grad: linear-gradient(135deg, #FFE66D 0%, #FF6B6B 50%, #A78BFA 100%);
+  --focus-grad: linear-gradient(135deg, #A78BFA, #4ECDC4);
+  --done-grad: linear-gradient(135deg, #55EFC4, #00B894);
+  --btn-primary-grad: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  --btn-primary-shadow: 0 6px 16px rgba(255,107,107,0.35);
+}
+
+/* ===== Themes ===== */
+body.theme-sunshine {
+  --bg: #FFF8F0;
+  --card: #FFFFFF;
+  --primary: #FF6B6B;
+  --primary-2: #FF8E53;
+  --secondary: #4ECDC4;
+  --accent: #FFE66D;
+  --purple: #A78BFA;
+  --text: #2D3436;
+  --muted: #636E72;
+  --success: #55EFC4;
+  --success-2: #00B894;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #FFF0F0;
+  --auth-grad: linear-gradient(135deg, #FFE66D 0%, #FF6B6B 50%, #A78BFA 100%);
+  --focus-grad: linear-gradient(135deg, #A78BFA, #4ECDC4);
+  --done-grad: linear-gradient(135deg, #55EFC4, #00B894);
+  --btn-primary-grad: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  --btn-primary-shadow: 0 6px 16px rgba(255,107,107,0.35);
+}
+body.theme-ocean {
+  --bg: #E8F4FC;
+  --card: #FFFFFF;
+  --primary: #0984E3;
+  --primary-2: #74B9FF;
+  --secondary: #00CEC9;
+  --accent: #81ECEC;
+  --purple: #6C5CE7;
+  --text: #0C2461;
+  --muted: #576574;
+  --success: #55EFC4;
+  --success-2: #00B894;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #E3F2FD;
+  --auth-grad: linear-gradient(135deg, #81ECEC 0%, #0984E3 50%, #6C5CE7 100%);
+  --focus-grad: linear-gradient(135deg, #6C5CE7, #00CEC9);
+  --done-grad: linear-gradient(135deg, #55EFC4, #00B894);
+  --btn-primary-grad: linear-gradient(135deg, #0984E3, #74B9FF);
+  --btn-primary-shadow: 0 6px 16px rgba(9,132,227,0.35);
+}
+body.theme-forest {
+  --bg: #F1F8F4;
+  --card: #FFFFFF;
+  --primary: #2D6A4F;
+  --primary-2: #52B788;
+  --secondary: #40916C;
+  --accent: #D8F3DC;
+  --purple: #95D5B2;
+  --text: #1B4332;
+  --muted: #52796F;
+  --success: #95D5B2;
+  --success-2: #2D6A4F;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #D8F3DC;
+  --auth-grad: linear-gradient(135deg, #D8F3DC 0%, #52B788 50%, #2D6A4F 100%);
+  --focus-grad: linear-gradient(135deg, #40916C, #95D5B2);
+  --done-grad: linear-gradient(135deg, #95D5B2, #2D6A4F);
+  --btn-primary-grad: linear-gradient(135deg, #2D6A4F, #52B788);
+  --btn-primary-shadow: 0 6px 16px rgba(45,106,79,0.35);
+}
+body.theme-berry {
+  --bg: #FFF0F6;
+  --card: #FFFFFF;
+  --primary: #E84393;
+  --primary-2: #FD79A8;
+  --secondary: #A29BFE;
+  --accent: #FFEAA7;
+  --purple: #6C5CE7;
+  --text: #2D3436;
+  --muted: #636E72;
+  --success: #55EFC4;
+  --success-2: #00B894;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #FCE4EC;
+  --auth-grad: linear-gradient(135deg, #FFEAA7 0%, #FD79A8 50%, #A29BFE 100%);
+  --focus-grad: linear-gradient(135deg, #A29BFE, #FD79A8);
+  --done-grad: linear-gradient(135deg, #55EFC4, #00B894);
+  --btn-primary-grad: linear-gradient(135deg, #E84393, #FD79A8);
+  --btn-primary-shadow: 0 6px 16px rgba(232,67,147,0.35);
+}
+body.theme-midnight {
+  --bg: #1A1A2E;
+  --card: #16213E;
+  --primary: #E94560;
+  --primary-2: #FF6B81;
+  --secondary: #0FBCF9;
+  --accent: #F9CA24;
+  --purple: #A55EEA;
+  --text: #F1F2F6;
+  --muted: #A4B0BE;
+  --success: #2ED573;
+  --success-2: #1E90FF;
+  --shadow: 0 8px 24px rgba(0,0,0,0.35);
+  --header-bg: #16213E;
+  --nav-bg: #16213E;
+  --input-bg: #0F3460;
+  --chip-bg: #0F3460;
+  --border-soft: #2C3A5A;
+  --nav-active-bg: #0F3460;
+  --auth-grad: linear-gradient(135deg, #0F3460 0%, #E94560 50%, #A55EEA 100%);
+  --focus-grad: linear-gradient(135deg, #A55EEA, #0FBCF9);
+  --done-grad: linear-gradient(135deg, #2ED573, #1E90FF);
+  --btn-primary-grad: linear-gradient(135deg, #E94560, #FF6B81);
+  --btn-primary-shadow: 0 6px 16px rgba(233,69,96,0.4);
+}
+body.theme-highcontrast {
+  --bg: #FFFFFF;
+  --card: #FFFFFF;
+  --primary: #000000;
+  --primary-2: #333333;
+  --secondary: #0000EE;
+  --accent: #FFFF00;
+  --purple: #7600BC;
+  --text: #000000;
+  --muted: #333333;
+  --success: #008000;
+  --success-2: #006400;
+  --shadow: 0 4px 0 rgba(0,0,0,0.25);
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #FFFF00;
+  --auth-grad: linear-gradient(135deg, #FFFF00 0%, #000000 50%, #0000EE 100%);
+  --focus-grad: linear-gradient(135deg, #000000, #0000EE);
+  --done-grad: linear-gradient(135deg, #008000, #006400);
+  --btn-primary-grad: linear-gradient(135deg, #000000, #333333);
+  --btn-primary-shadow: 0 4px 0 rgba(0,0,0,0.4);
+  --border-soft: #000000;
+}
+
+.theme-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 8px 0 16px;
+}
+.theme-choice button {
+  text-align: left;
+  padding: 12px 14px;
+  border: 3px solid var(--border-soft, #eee);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.theme-choice button.on {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 25%, transparent);
+}
+.theme-swatch {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.theme-swatch i {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(0,0,0,0.12);
 }
 
 body, button, input, textarea, select {
@@ -120,7 +302,7 @@ body.mode-adhd .content {
   max-width: 480px;
 }
 .focus-banner {
-  background: linear-gradient(135deg, #A78BFA, #4ECDC4);
+  background: var(--focus-grad);
   color: white;
   padding: 12px 16px;
   border-radius: 14px;
@@ -139,8 +321,9 @@ body.mode-adhd .content {
   font-weight: 700;
   padding: 6px 10px;
   border-radius: 20px;
-  border: 2px solid #eee;
-  background: white;
+  border: 2px solid var(--border-soft, #eee);
+  background: var(--chip-bg, white);
+  color: var(--text);
   cursor: pointer;
   font-family: inherit;
 }
@@ -220,11 +403,11 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: linear-gradient(135deg, #FFE66D 0%, #FF6B6B 50%, #A78BFA 100%);
+  background: var(--auth-grad);
   min-height: 100vh;
 }
 #auth-screen {
-  background: linear-gradient(135deg, #FFE66D 0%, #FF6B6B 50%, #A78BFA 100%);
+  background: var(--auth-grad);
   min-height: 100vh;
 }
 
@@ -409,10 +592,10 @@ body {
   transform: scale(0.97);
 }
 .btn.primary {
-  background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  background: var(--btn-primary-grad);
   color: white;
   width: 100%;
-  box-shadow: 0 6px 16px rgba(255,107,107,0.35);
+  box-shadow: var(--btn-primary-shadow);
 }
 .btn.add-btn {
   background: var(--secondary);
@@ -439,7 +622,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px 12px;
-  background: white;
+  background: var(--header-bg);
   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   position: sticky;
   top: 0;
@@ -480,7 +663,7 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  background: white;
+  background: var(--nav-bg);
   display: flex;
   justify-content: space-around;
   padding: 8px 4px 12px;
@@ -507,7 +690,7 @@ body {
 }
 .nav-btn.active {
   color: var(--primary);
-  background: #FFF0F0;
+  background: var(--nav-active-bg);
 }
 .nav-icon {
   font-size: 1.35rem;
@@ -938,9 +1121,9 @@ body {
 }
 .note-tile:active { transform: scale(0.97); }
 .note-tile.done-today {
-  background: linear-gradient(135deg, #55EFC4, #00B894);
+  background: var(--done-grad);
   color: white;
-  border-top-color: #00B894;
+  border-top-color: var(--success-2);
 }
 .note-tile.done-today .note-meta { color: rgba(255,255,255,0.9); }
 .note-tile .note-icon { font-size: 1.6rem; }
@@ -973,7 +1156,7 @@ body {
   }
 }
 .session-tile.done-today {
-  background: linear-gradient(135deg, #55EFC4, #00B894);
+  background: var(--done-grad);
   color: white;
 }
 .session-tile.done-today .session-meta { color: rgba(255,255,255,0.9); }
@@ -1055,7 +1238,7 @@ body {
   transform: scale(0.96);
 }
 .habit-card.done-today {
-  background: linear-gradient(135deg, #55EFC4, #00B894);
+  background: var(--done-grad);
   color: white;
 }
 .habit-emoji {
@@ -1315,7 +1498,8 @@ body {
   pointer-events: none !important;
 }
 .modal {
-  background: white;
+  background: var(--card);
+  color: var(--text);
   border-radius: 24px 24px 16px 16px;
   padding: 24px 20px 32px;
   width: 100%;
@@ -1413,6 +1597,50 @@ body {
     transform: translateX(-50%);
     border-radius: 20px 20px 0 0;
   }
+}
+
+
+body.theme-midnight .card,
+body.theme-midnight .habit-card,
+body.theme-midnight .session-tile,
+body.theme-midnight .note-tile,
+body.theme-midnight .day-row,
+body.theme-midnight .month-grid,
+body.theme-midnight .auth-card,
+body.theme-midnight .reflection-box,
+body.theme-midnight .goal-card {
+  background: var(--card);
+  color: var(--text);
+}
+body.theme-midnight input,
+body.theme-midnight textarea,
+body.theme-midnight select,
+body.theme-midnight .modal input,
+body.theme-midnight .modal textarea,
+body.theme-midnight .modal select {
+  background: var(--input-bg);
+  color: var(--text);
+  border-color: var(--border-soft);
+}
+body.theme-midnight .small-btn {
+  background: #0F3460;
+  color: var(--text);
+}
+body.theme-midnight .small-btn.danger {
+  background: #5C1A1A;
+  color: #FF8A8A;
+}
+body.theme-midnight .toast {
+  background: #F1F2F6;
+  color: #1A1A2E;
+}
+body.theme-highcontrast .card,
+body.theme-highcontrast .habit-card,
+body.theme-highcontrast .session-tile {
+  border: 2px solid #000;
+}
+body.theme-highcontrast .nav-btn.active {
+  outline: 3px solid #000;
 }
 
 </style>
@@ -1727,7 +1955,7 @@ body {
   <script>
 
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-10-07e';
+const APP_VERSION = '2026-10-08b';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1972,7 +2200,9 @@ let state = {
   adhdMode: false,
   dyslexiaMode: false,
   fontFamily: 'nunito',
-  privacyAccepted: false
+  privacyAccepted: false,
+  notificationsEnabled: false,
+  theme: 'sunshine'
 };
 
 // ---------- Helpers ----------
@@ -2429,6 +2659,206 @@ function formatTimeCET(timeStr) {
   return String(h).padStart(2, '0') + ':' + m;
 }
 
+
+// ---------- Session notifications (browser) ----------
+// Works while the planner is open (or in a background tab).
+// Needs HTTPS or localhost for most browsers. True push when the app is
+// fully closed needs a push server (e.g. Firebase Cloud Messaging).
+let _sessionNotifTimers = [];
+let _sessionNotifDay = null;
+const NOTIF_LEAD_MS = 5 * 60 * 1000; // 5 minutes before
+
+function notificationsSupported() {
+  return typeof window !== 'undefined' && 'Notification' in window;
+}
+
+function notificationPermission() {
+  if (!notificationsSupported()) return 'unsupported';
+  return Notification.permission; // 'default' | 'granted' | 'denied'
+}
+
+/** School times are CET/CEST wall-clock → absolute Date in UTC */
+function schoolTimeToDate(dateStr, timeStr) {
+  if (!dateStr || !timeStr) return null;
+  const parts = String(timeStr).split(':');
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1] || '0', 10);
+  if (isNaN(h)) return null;
+  const d = parseDateInput(dateStr);
+  if (!d || isNaN(d.getTime())) return null;
+  const y = d.getFullYear();
+  const mo = d.getMonth();
+  const day = d.getDate();
+  // School offset from UTC: CEST +2 in summer, CET +1 in winter
+  const schoolUtcOffset = isEuropeanSummerTime(new Date(y, mo, day, 12, 0, 0)) ? 2 : 1;
+  return new Date(Date.UTC(y, mo, day, h - schoolUtcOffset, m, 0));
+}
+
+function clearSessionNotificationTimers() {
+  _sessionNotifTimers.forEach(id => clearTimeout(id));
+  _sessionNotifTimers = [];
+}
+
+function sessionNotifKey(sessionId, kind, dateStr) {
+  return dateStr + '|' + sessionId + '|' + kind;
+}
+
+function wasSessionNotified(key) {
+  try {
+    const raw = sessionStorage.getItem('sbl_notif_sent') || '{}';
+    const map = JSON.parse(raw);
+    return !!map[key];
+  } catch (e) { return false; }
+}
+
+function markSessionNotified(key) {
+  try {
+    const raw = sessionStorage.getItem('sbl_notif_sent') || '{}';
+    const map = JSON.parse(raw);
+    map[key] = true;
+    // prune old days
+    const t = todayStr();
+    Object.keys(map).forEach(k => { if (!k.startsWith(t)) delete map[k]; });
+    sessionStorage.setItem('sbl_notif_sent', JSON.stringify(map));
+  } catch (e) {}
+}
+
+function showSessionNotification(title, body, tag) {
+  if (!notificationsSupported() || Notification.permission !== 'granted') return;
+  try {
+    const n = new Notification(title, {
+      body: body || '',
+      tag: tag || 'sbl-session',
+      renotify: true,
+      silent: false
+    });
+    n.onclick = () => {
+      try { window.focus(); } catch (e) {}
+      n.close();
+    };
+  } catch (e) {
+    console.warn('notification failed', e);
+  }
+}
+
+function scheduleOneSessionNotif(when, title, body, tag, key) {
+  const delay = when.getTime() - Date.now();
+  if (delay <= 0 || delay > 36 * 60 * 60 * 1000) return; // past or >36h
+  if (wasSessionNotified(key)) return;
+  const id = setTimeout(() => {
+    if (!state.notificationsEnabled) return;
+    if (wasSessionNotified(key)) return;
+    markSessionNotified(key);
+    showSessionNotification(title, body, tag);
+  }, delay);
+  _sessionNotifTimers.push(id);
+}
+
+function scheduleSessionNotifications() {
+  clearSessionNotificationTimers();
+  if (!state.notificationsEnabled) return;
+  if (!notificationsSupported() || Notification.permission !== 'granted') return;
+  if (!state.currentUser) return;
+
+  const t = todayStr();
+  _sessionNotifDay = t;
+  const sessions = sessionsForDate(t).filter(c => c.time);
+  sessions.forEach(c => {
+    const start = schoolTimeToDate(t, c.time);
+    if (!start) return;
+    const localLabel = formatTimeCET(c.time);
+    const icon = c.sessionType === 'morning' ? '🌅' : (c.sessionType === 'mentoring' ? '🤝' : '🎨');
+    const name = (c.title || 'Session').trim();
+
+    // 5 minutes before
+    const lead = new Date(start.getTime() - NOTIF_LEAD_MS);
+    scheduleOneSessionNotif(
+      lead,
+      icon + ' Session in 5 min',
+      name + (localLabel ? ' · ' + localLabel : '') + (c.location ? ' · ' + c.location : ''),
+      'sbl-lead-' + c.id,
+      sessionNotifKey(c.id, 'lead', t)
+    );
+
+    // At start
+    scheduleOneSessionNotif(
+      start,
+      icon + ' Time for your session!',
+      name + (localLabel ? ' · starts now (' + localLabel + ')' : ' · starts now') + (c.location ? ' · ' + c.location : ''),
+      'sbl-start-' + c.id,
+      sessionNotifKey(c.id, 'start', t)
+    );
+  });
+}
+
+async function enableSessionNotifications() {
+  if (!notificationsSupported()) {
+    toast('Notifications not supported in this browser');
+    return false;
+  }
+  let perm = Notification.permission;
+  if (perm === 'default') {
+    try { perm = await Notification.requestPermission(); } catch (e) { perm = 'denied'; }
+  }
+  if (perm !== 'granted') {
+    state.notificationsEnabled = false;
+    save();
+    toast('Permission denied — allow notifications in browser settings');
+    return false;
+  }
+  state.notificationsEnabled = true;
+  save();
+  scheduleSessionNotifications();
+  toast('Session reminders on 🔔');
+  return true;
+}
+
+function disableSessionNotifications() {
+  state.notificationsEnabled = false;
+  clearSessionNotificationTimers();
+  save();
+  toast('Session reminders off');
+}
+
+async function toggleSessionNotifications() {
+  if (state.notificationsEnabled) {
+    disableSessionNotifications();
+  } else {
+    await enableSessionNotifications();
+  }
+  // refresh settings modal if open
+  const mc = document.getElementById('modal-content');
+  if (mc && mc.innerHTML.includes('Session reminders')) {
+    openSettingsModal();
+  }
+}
+
+let _sessionNotifInitDone = false;
+function initSessionNotifications() {
+  if (!notificationsSupported()) return;
+  if (state.notificationsEnabled && Notification.permission === 'granted') {
+    scheduleSessionNotifications();
+  } else if (state.notificationsEnabled && Notification.permission === 'denied') {
+    state.notificationsEnabled = false;
+  }
+  if (_sessionNotifInitDone) return;
+  _sessionNotifInitDone = true;
+  // Reschedule when tab becomes visible again (timers can be throttled in background)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state.notificationsEnabled) {
+      scheduleSessionNotifications();
+    }
+  });
+  // Midnight rollover — reschedule for the new day
+  const now = new Date();
+  const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 1, 0);
+  setTimeout(() => {
+    scheduleSessionNotifications();
+    setInterval(scheduleSessionNotifications, 24 * 60 * 60 * 1000);
+  }, Math.max(1000, nextMidnight - now));
+}
+
+
 function openTimezoneModal() {
   const current = state.timezone || 'CET';
   // Sort: CET first, then A–Z by label
@@ -2458,6 +2888,7 @@ function saveTimezone() {
   save();
   closeModal();
   renderAll();
+  scheduleSessionNotifications();
   toast('Timezone set to ' + (TIMEZONE_OPTIONS[state.timezone]?.label || state.timezone));
 }
 
@@ -2491,6 +2922,7 @@ function load() {
       if (!state.notes) state.notes = [];
       if (!state.classes) state.classes = [];
       if (!state.fontFamily) state.fontFamily = state.dyslexiaMode ? 'opendyslexic' : 'nunito';
+      if (!state.theme) state.theme = 'sunshine';
     } catch (e) {
       console.warn('Could not load data', e);
     }
@@ -2702,6 +3134,7 @@ function setFontFamily(name) {
 }
 
 function applyA11yModes() {
+  applyTheme();
   document.body.classList.toggle('mode-adhd', !!state.adhdMode);
   const font = state.fontFamily || (state.dyslexiaMode ? 'opendyslexic' : 'nunito');
   document.body.classList.remove('font-nunito', 'font-chewy', 'font-eduqld', 'font-opendyslexic', 'mode-dyslexia');
@@ -2720,7 +3153,8 @@ function openPrivacyModal() {
     <h3>Privacy notice (GDPR)</h3>
     <div style="text-align:left;font-size:0.9rem;line-height:1.55;color:var(--text);max-height:50vh;overflow-y:auto">
       <p><strong>Who:</strong> SBL Plan is a planner for School Beyond Limitations students (young learners, about age 6+), used with parent/guardian permission where required.</p>
-      <p><strong>What we store:</strong> display name, school email, avatar choice, tasks, habits, notes, sessions, accessibility preferences, timezone. Passwords are handled by the sign-in provider when cloud login is enabled (never stored as plain text in the cloud).</p>
+      <p><strong>What we store:</strong> display name, school email, avatar choice, tasks, habits, notes, sessions, accessibility preferences, timezone, notification preference. Passwords are handled by the sign-in provider when cloud login is enabled (never stored as plain text in the cloud).</p>
+      <p><strong>Notifications:</strong> optional session reminders use your browser’s notification permission on this device only. We do not send marketing alerts.</p>
       <p><strong>Why:</strong> to provide the planner, sync your data when cloud accounts are on, and remember accessibility settings.</p>
       <p><strong>Where:</strong> on this device (browser storage). If cloud accounts are enabled, also on the school’s configured cloud project (e.g. Firebase/Google) in the EU if you choose an EU region.</p>
       <p><strong>Your rights:</strong> access, correct, export, or delete your data. Use Settings → Export data or Delete my account.</p>
@@ -2732,13 +3166,82 @@ function openPrivacyModal() {
   `);
 }
 
+
+const THEME_OPTIONS = {
+  sunshine: { label: 'Sunshine', emoji: '☀️', colors: ['#FF6B6B', '#4ECDC4', '#FFE66D'] },
+  ocean: { label: 'Ocean', emoji: '🌊', colors: ['#0984E3', '#00CEC9', '#81ECEC'] },
+  forest: { label: 'Forest', emoji: '🌲', colors: ['#2D6A4F', '#52B788', '#D8F3DC'] },
+  berry: { label: 'Berry', emoji: '🫐', colors: ['#E84393', '#A29BFE', '#FFEAA7'] },
+  midnight: { label: 'Midnight', emoji: '🌙', colors: ['#E94560', '#0FBCF9', '#16213E'] },
+  highcontrast: { label: 'High contrast', emoji: '⬛', colors: ['#000000', '#FFFF00', '#0000EE'] }
+};
+
+function applyTheme() {
+  const name = state.theme || 'sunshine';
+  const themes = Object.keys(THEME_OPTIONS);
+  themes.forEach(t => document.body.classList.remove('theme-' + t));
+  document.body.classList.add('theme-' + (THEME_OPTIONS[name] ? name : 'sunshine'));
+  // meta theme-color for mobile browser chrome
+  let meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    document.head.appendChild(meta);
+  }
+  const bg = getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#FFF8F0';
+  meta.content = bg;
+}
+
+function openThemeModal() {
+  const cur = state.theme || 'sunshine';
+  const buttons = Object.entries(THEME_OPTIONS).map(([key, t]) => {
+    const swatches = t.colors.map(c => `<i style="background:${c}"></i>`).join('');
+    return `<button type="button" class="${cur === key ? 'on' : ''}" onclick="setTheme('${key}')">
+      <span>${t.emoji} ${t.label}</span>
+      <div class="theme-swatch">${swatches}</div>
+    </button>`;
+  }).join('');
+  openModal(`
+    <h3>Theme 🎨</h3>
+    <p style="color:var(--muted);margin-bottom:8px;font-size:0.9rem">Pick colours for the whole planner</p>
+    <div class="theme-choice">${buttons}</div>
+    <button class="btn primary" onclick="closeModal()">Done</button>
+  `);
+}
+
+function setTheme(name) {
+  if (!THEME_OPTIONS[name]) name = 'sunshine';
+  state.theme = name;
+  applyTheme();
+  save();
+  if (firebaseReady && auth && auth.currentUser) cloudSaveUserData();
+  toast((THEME_OPTIONS[name].emoji || '') + ' ' + THEME_OPTIONS[name].label + ' theme');
+  openThemeModal();
+}
+
 function openSettingsModal() {
+  const notifOk = notificationsSupported();
+  const perm = notificationPermission();
+  let notifLabel = 'Session reminders: OFF';
+  let notifColor = '#636E72';
+  if (!notifOk) {
+    notifLabel = 'Session reminders: not supported';
+  } else if (state.notificationsEnabled && perm === 'granted') {
+    notifLabel = 'Session reminders: ON 🔔';
+    notifColor = '#00B894';
+  } else if (perm === 'denied') {
+    notifLabel = 'Session reminders: blocked in browser';
+    notifColor = '#E74C3C';
+  }
   openModal(`
     <h3>Settings ⚙️</h3>
     <div class="settings-panel" style="text-align:left">
       <button class="btn add-btn" style="margin-top:8px" onclick="toggleAdhdMode(); closeModal();">🎯 Focus mode: ${state.adhdMode ? 'ON' : 'OFF'}</button>
       <button class="btn add-btn" style="margin-top:8px;background:#A78BFA" onclick="closeModal(); openFontModal();">Aa Font: ${state.fontFamily === 'chewy' ? 'Chewy' : state.fontFamily === 'eduqld' ? 'QLD Hand' : (state.fontFamily === 'opendyslexic' || state.dyslexiaMode ? 'Easy read' : 'Clear')}</button>
+      <button class="btn add-btn" style="margin-top:8px;background:var(--primary)" onclick="closeModal(); openThemeModal();">${(THEME_OPTIONS[state.theme||'sunshine']||THEME_OPTIONS.sunshine).emoji} Theme: ${(THEME_OPTIONS[state.theme||'sunshine']||THEME_OPTIONS.sunshine).label}</button>
       <button class="btn add-btn" style="margin-top:8px;background:#636E72" onclick="closeModal(); openTimezoneModal();">🌍 Timezone</button>
+      <button class="btn add-btn" style="margin-top:8px;background:${notifColor}" onclick="toggleSessionNotifications()">${notifLabel}</button>
+      <p style="font-size:0.8rem;color:var(--muted);margin:6px 0 0;line-height:1.4">Reminds you 5 minutes before and at the start of today’s sessions. Keep the planner open (or in a tab) for reliable alerts. Needs browser permission.</p>
       <button class="btn add-btn" style="margin-top:8px;background:#0984E3" onclick="exportMyData()">⬇️ Export my data</button>
       <button class="btn add-btn" style="margin-top:8px;background:#E17055" onclick="closeModal(); openPrivacyModal();">🔒 Privacy notice</button>
       <button class="btn add-btn" style="margin-top:8px;background:#E74C3C" onclick="deleteMyAccount()">🗑️ Delete my account</button>
@@ -2764,7 +3267,9 @@ function exportMyData() {
     topicInquiry: state.topicInquiry || null,
     timezone: state.timezone,
     adhdMode: state.adhdMode,
-    dyslexiaMode: state.dyslexiaMode
+    dyslexiaMode: state.dyslexiaMode,
+    notificationsEnabled: !!state.notificationsEnabled,
+    theme: state.theme || 'sunshine'
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
@@ -2837,6 +3342,8 @@ async function cloudSaveUserData() {
     adhdMode: state.adhdMode,
     dyslexiaMode: state.dyslexiaMode,
     fontFamily: state.fontFamily || 'nunito',
+    notificationsEnabled: !!state.notificationsEnabled,
+    theme: state.theme || 'sunshine',
     calVersion: state.calVersion,
     updatedAt: new Date().toISOString()
   };
@@ -2871,6 +3378,7 @@ async function cloudLoadUserData() {
     if (typeof data.adhdMode === 'boolean') state.adhdMode = data.adhdMode;
     if (typeof data.dyslexiaMode === 'boolean') state.dyslexiaMode = data.dyslexiaMode;
     if (data.fontFamily) state.fontFamily = data.fontFamily;
+    if (data.theme) state.theme = data.theme;
     else if (state.dyslexiaMode) state.fontFamily = 'opendyslexic';
     if (data.books) state.books = data.books;
     if (data.inquiries) state.inquiries = data.inquiries;
@@ -3093,6 +3601,8 @@ function enterApp() {
   ensureSchoolCalendar();
   applyA11yModes();
   renderAll();
+  initSessionNotifications();
+  scheduleSessionNotifications();
   if (firebaseReady && auth.currentUser) cloudSaveUserData();
 }
 
@@ -4088,6 +4598,7 @@ function deleteClass(id) {
   renderClasses();
   renderWeek();
   renderMonth();
+  scheduleSessionNotifications();
   toast('Session removed');
 }
 
@@ -4475,6 +4986,7 @@ function saveClass(editId) {
   renderToday();
   renderWeek();
   renderMonth();
+  scheduleSessionNotifications();
   toast(editId ? 'Session updated!' : 'Session added! 🎨');
 }
 
