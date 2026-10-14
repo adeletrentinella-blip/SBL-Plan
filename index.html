@@ -2496,8 +2496,9 @@ function sessionOnDay(c, weekday, dateStr) {
     return dateInRange(dateStr, sw.start, sw.end);
   }
 
-  // Regular sessions are hidden on holiday / residential / bootcamp / hackathon
-  if (dateStr && isNoSessionSpecialDay(dateStr)) return false;
+  // Regular sessions: hide on holiday / residential for everyone.
+  // On bootcamp / hackathon: only hide morning sessions (afternoon + mentoring still show).
+  if (dateStr && isNoSessionSpecialDay(dateStr, c.sessionType)) return false;
 
   // every-other-week: A and B alternate (never both the same week)
   if (c.everyOtherWeek) {
@@ -2507,10 +2508,19 @@ function sessionOnDay(c, weekday, dateStr) {
   return true;
 }
 
-const NO_SESSION_SPECIAL_TYPES = ['holiday', 'residential', 'bootcamp', 'hackathon'];
+// Types that suppress ALL regular sessions
+const NO_SESSION_ALL_TYPES = ['holiday', 'residential'];
+// Types that suppress only morning sessions (afternoon + mentoring still appear)
+const NO_SESSION_MORNING_TYPES = ['bootcamp', 'hackathon'];
 
-function isNoSessionSpecialDay(dateStr) {
-  return getSpecialEvents(dateStr).some(s => NO_SESSION_SPECIAL_TYPES.includes(s.type));
+function isNoSessionSpecialDay(dateStr, sessionType) {
+  const types = getSpecialEvents(dateStr).map(s => s.type);
+  if (types.some(t => NO_SESSION_ALL_TYPES.includes(t))) return true;
+  // Bootcamp / hackathon: hide morning only; afternoon & mentoring stay visible
+  if (types.some(t => NO_SESSION_MORNING_TYPES.includes(t))) {
+    return !sessionType || sessionType === 'morning';
+  }
+  return false;
 }
 
 function assignableSpecialWeeks() {
@@ -4353,10 +4363,12 @@ function openPastInquiryReviews() {
 function bookTileHTML(b) {
   return `<div class="habit-card book-card" onclick="markBookDone('${b.id}')" style="border-top:4px solid #42A5F5">
     <div class="habit-emoji bc-emoji">📖</div>
-    <div class="habit-name bc-name">${b.title.replace(/</g,'&lt;')}</div>
+    <div class="habit-name bc-name">${String(b.title || '').replace(/</g,'&lt;')}</div>
+    ${b.author ? `<div class="habit-streak bc-meta">${String(b.author).replace(/</g,'&lt;')}</div>` : ''}
     <div class="habit-streak bc-meta">Tap when finished ✓</div>
     <div class="bc-actions" onclick="event.stopPropagation()">
       ${b.link ? `<a class="small-btn" style="background:#E3F2FD;color:#1565C0;text-decoration:none" href="${b.link}" target="_blank" rel="noopener">Link</a>` : ''}
+      <button class="small-btn" onclick="openReadingModal('${b.id}')">Edit</button>
       <button class="small-btn danger" onclick="deleteBook('${b.id}')">Delete</button>
     </div>
   </div>`;
@@ -4365,11 +4377,12 @@ function bookTileHTML(b) {
 function inquiryTileHTML(i) {
   return `<div class="habit-card inquiry-card" onclick="markInquiryDone('${i.id}')" style="border-top:4px solid #AB47BC">
     <div class="habit-emoji bc-emoji">🔍</div>
-    <div class="habit-name bc-name">${i.topic.replace(/</g,'&lt;')}</div>
+    <div class="habit-name bc-name">${String(i.topic || '').replace(/</g,'&lt;')}</div>
     <div class="habit-streak bc-meta">Until Fri ${formatDMY(i.until)}</div>
     <div class="habit-streak bc-meta">Tap when finished ✓</div>
     <div class="bc-actions" onclick="event.stopPropagation()">
       ${i.link ? `<a class="small-btn" style="background:#F3E5F5;color:#6A1B9A;text-decoration:none" href="${i.link}" target="_blank" rel="noopener">Link</a>` : ''}
+      <button class="small-btn" onclick="openInquiryModal('${i.id}')">Edit</button>
       <button class="small-btn danger" onclick="deleteInquiry('${i.id}')">Delete</button>
     </div>
   </div>`;
@@ -4406,76 +4419,100 @@ function inquiryReviewCardHTML(i) {
   </div>`;
 }
 
-function openReadingModal() {
+function openReadingModal(editId = null) {
+  const b = editId ? (state.books || []).find(x => x.id === editId) : null;
+  const title = b ? String(b.title || '').replace(/"/g, '&quot;') : '';
+  const author = b ? String(b.author || '').replace(/"/g, '&quot;') : '';
+  const link = b ? String(b.link || '').replace(/"/g, '&quot;') : '';
   openModal(`
-    <h3>📖 Add reading book</h3>
-    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:10px">Stays until you finish it. Then check it off and write a review.</p>
+    <h3>📖 ${b ? 'Edit book' : 'Add reading book'}</h3>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:10px">${b ? 'Update the details below.' : 'Stays until you finish it. Then check it off and write a review.'}</p>
     <label>Book title</label>
-    <input type="text" id="reading-title" placeholder="Title">
+    <input type="text" id="reading-title" value="${title}" placeholder="Title">
     <label>Author</label>
-    <input type="text" id="reading-author" placeholder="Author">
+    <input type="text" id="reading-author" value="${author}" placeholder="Author">
     <label>Link (optional)</label>
-    <input type="url" id="reading-link" placeholder="https://...">
-    <button class="btn primary" onclick="saveReadingBook()">Add book</button>
+    <input type="url" id="reading-link" value="${link}" placeholder="https://...">
+    <button class="btn primary" onclick="saveReadingBook('${editId || ''}')">${b ? 'Save Changes' : 'Add book'}</button>
   `);
 }
 
-function saveReadingBook() {
+function saveReadingBook(editId) {
   const title = document.getElementById('reading-title').value.trim();
   if (!title) { toast('Enter the book title'); return; }
   const author = document.getElementById('reading-author').value.trim() || '';
   const link = document.getElementById('reading-link').value.trim() || null;
   if (!state.books) state.books = [];
-  state.books.push({
-    id: uid(),
-    title,
-    author,
-    link,
-    until: nextFridayISO(new Date()),
-    status: 'active',
-    review: null,
-    created: todayStr()
-  });
+  if (editId) {
+    const b = state.books.find(x => x.id === editId);
+    if (b) {
+      b.title = title;
+      b.author = author;
+      b.link = link;
+    }
+  } else {
+    state.books.push({
+      id: uid(),
+      title,
+      author,
+      link,
+      until: nextFridayISO(new Date()),
+      status: 'active',
+      review: null,
+      created: todayStr()
+    });
+  }
   save();
   closeModal();
   renderBooksTab();
   renderInquiryTab();
   renderWeeklyFocus();
-  toast('Book added 📚');
+  toast(editId ? 'Book updated 📚' : 'Book added 📚');
 }
 
-function openInquiryModal() {
+function openInquiryModal(editId = null) {
+  const i = editId ? (state.inquiries || []).find(x => x.id === editId) : null;
+  const topic = i ? String(i.topic || '').replace(/"/g, '&quot;') : '';
+  const link = i ? String(i.link || '').replace(/"/g, '&quot;') : '';
   openModal(`
-    <h3>🔍 Add topic inquiry</h3>
-    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:10px">Stays active until Friday. When you finish, check it off and write a review.</p>
+    <h3>🔍 ${i ? 'Edit inquiry' : 'Add topic inquiry'}</h3>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:10px">${i ? 'Update the details below.' : 'Stays active until Friday. When you finish, check it off and write a review.'}</p>
     <label>Topic</label>
-    <input type="text" id="inquiry-topic" placeholder="e.g. How do volcanoes work?">
+    <input type="text" id="inquiry-topic" value="${topic}" placeholder="e.g. How do volcanoes work?">
     <label>Link (optional)</label>
-    <input type="url" id="inquiry-link" placeholder="https://...">
-    <button class="btn primary" onclick="saveTopicInquiry()">Add inquiry</button>
+    <input type="url" id="inquiry-link" value="${link}" placeholder="https://...">
+    <button class="btn primary" onclick="saveTopicInquiry('${editId || ''}')">${i ? 'Save Changes' : 'Add inquiry'}</button>
   `);
 }
 
-function saveTopicInquiry() {
+function saveTopicInquiry(editId) {
   const topic = document.getElementById('inquiry-topic').value.trim();
   if (!topic) { toast('Enter a topic'); return; }
   const link = document.getElementById('inquiry-link').value.trim() || null;
   if (!state.inquiries) state.inquiries = [];
-  state.inquiries.push({
-    id: uid(),
-    topic,
-    link,
-    until: nextFridayISO(new Date()),
-    status: 'active',
-    review: null,
-    created: todayStr()
-  });
+  if (editId) {
+    const i = state.inquiries.find(x => x.id === editId);
+    if (i) {
+      i.topic = topic;
+      i.link = link;
+    }
+  } else {
+    state.inquiries.push({
+      id: uid(),
+      topic,
+      link,
+      until: nextFridayISO(new Date()),
+      status: 'active',
+      review: null,
+      created: todayStr()
+    });
+  }
   save();
   closeModal();
   renderBooksTab();
   renderInquiryTab();
   renderWeeklyFocus();
-  toast('Inquiry added 🔍');
+  toast(editId ? 'Inquiry updated 🔍' : 'Inquiry added 🔍');
 }
 
 function markBookDone(id) {
