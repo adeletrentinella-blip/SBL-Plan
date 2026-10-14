@@ -6,7 +6,7 @@
   <title>SBL Plan – Your Fun Planner</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Chewy&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Chewy&family=Edu+QLD+Hand:wght@400..700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
   <link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
   <meta name="description" content="SBL Plan – student planner for School Beyond Limitations. Privacy-friendly.">
   <style>
@@ -14,17 +14,535 @@
   --bg: #FFF8F0;
   --card: #FFFFFF;
   --primary: #FF6B6B;
+  --primary-2: #FF8E53;
   --secondary: #4ECDC4;
   --accent: #FFE66D;
   --purple: #A78BFA;
   --text: #2D3436;
   --muted: #636E72;
   --success: #55EFC4;
+  --success-2: #00B894;
   --shadow: 0 8px 24px rgba(0,0,0,0.08);
   --radius: 20px;
   --font-main: 'Nunito', system-ui, sans-serif;
   --line-height: 1.45;
   --font-size-base: 1rem;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --input-bg: #FFFFFF;
+  --chip-bg: #FFFFFF;
+  --border-soft: #eeeeee;
+  --nav-active-bg: #FFF0F0;
+  --auth-grad: linear-gradient(135deg, #FFE66D 0%, #FF6B6B 50%, #A78BFA 100%);
+  --focus-grad: linear-gradient(135deg, #A78BFA, #4ECDC4);
+  --done-grad: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  --btn-primary-grad: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  --btn-primary-shadow: 0 6px 16px rgba(255,107,107,0.35);
+}
+
+/* ===== Themes ===== */
+body.theme-sunshine {
+  --bg: #FFF8F0;
+  --card: #FFFFFF;
+  --primary: #FF6B6B;
+  --primary-2: #FF8E53;
+  --secondary: #4ECDC4;
+  --accent: #FFE66D;
+  --purple: #A78BFA;
+  --text: #2D3436;
+  --muted: #636E72;
+  --success: #FF6B6B;
+  --success-2: #FF8E53;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #FFF0F0;
+  --auth-grad: linear-gradient(135deg, #FFE66D 0%, #FF6B6B 50%, #A78BFA 100%);
+  --focus-grad: linear-gradient(135deg, #A78BFA, #4ECDC4);
+  --done-grad: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  --btn-primary-grad: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  --btn-primary-shadow: 0 6px 16px rgba(255,107,107,0.35);
+}
+body.theme-ocean {
+  --bg: #E8F4FC;
+  --card: #FFFFFF;
+  --primary: #0984E3;
+  --primary-2: #74B9FF;
+  --secondary: #00CEC9;
+  --accent: #81ECEC;
+  --purple: #6C5CE7;
+  --text: #0C2461;
+  --muted: #576574;
+  --success: #0984E3;
+  --success-2: #74B9FF;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #E3F2FD;
+  --auth-grad: linear-gradient(135deg, #81ECEC 0%, #0984E3 50%, #6C5CE7 100%);
+  --focus-grad: linear-gradient(135deg, #6C5CE7, #00CEC9);
+  --done-grad: linear-gradient(135deg, #0984E3, #00CEC9);
+  --btn-primary-grad: linear-gradient(135deg, #0984E3, #74B9FF);
+  --btn-primary-shadow: 0 6px 16px rgba(9,132,227,0.35);
+}
+body.theme-forest {
+  --bg: #F1F8F4;
+  --card: #FFFFFF;
+  --primary: #2D6A4F;
+  --primary-2: #52B788;
+  --secondary: #40916C;
+  --accent: #D8F3DC;
+  --purple: #95D5B2;
+  --text: #1B4332;
+  --muted: #52796F;
+  --success: #2D6A4F;
+  --success-2: #52B788;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #D8F3DC;
+  --auth-grad: linear-gradient(135deg, #D8F3DC 0%, #52B788 50%, #2D6A4F 100%);
+  --focus-grad: linear-gradient(135deg, #40916C, #95D5B2);
+  --done-grad: linear-gradient(135deg, #2D6A4F, #52B788);
+  --btn-primary-grad: linear-gradient(135deg, #2D6A4F, #52B788);
+  --btn-primary-shadow: 0 6px 16px rgba(45,106,79,0.35);
+}
+body.theme-berry {
+  --bg: #FFF0F6;
+  --card: #FFFFFF;
+  --primary: #E84393;
+  --primary-2: #FD79A8;
+  --secondary: #A29BFE;
+  --accent: #FFEAA7;
+  --purple: #6C5CE7;
+  --text: #2D3436;
+  --muted: #636E72;
+  --success: #E84393;
+  --success-2: #FD79A8;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #FCE4EC;
+  --auth-grad: linear-gradient(135deg, #FFEAA7 0%, #FD79A8 50%, #A29BFE 100%);
+  --focus-grad: linear-gradient(135deg, #A29BFE, #FD79A8);
+  --done-grad: linear-gradient(135deg, #E84393, #A29BFE);
+  --btn-primary-grad: linear-gradient(135deg, #E84393, #FD79A8);
+  --btn-primary-shadow: 0 6px 16px rgba(232,67,147,0.35);
+}
+body.theme-midnight {
+  --bg: #1A1A2E;
+  --card: #16213E;
+  --primary: #E94560;
+  --primary-2: #FF6B81;
+  --secondary: #0FBCF9;
+  --accent: #F9CA24;
+  --purple: #A55EEA;
+  --text: #F1F2F6;
+  --muted: #A4B0BE;
+  --success: #E94560;
+  --success-2: #FF6B81;
+  --shadow: 0 8px 24px rgba(0,0,0,0.35);
+  --header-bg: #16213E;
+  --nav-bg: #16213E;
+  --input-bg: #0F3460;
+  --chip-bg: #0F3460;
+  --border-soft: #2C3A5A;
+  --nav-active-bg: #0F3460;
+  --auth-grad: linear-gradient(135deg, #0F3460 0%, #E94560 50%, #A55EEA 100%);
+  --focus-grad: linear-gradient(135deg, #A55EEA, #0FBCF9);
+  --done-grad: linear-gradient(135deg, #E94560, #A55EEA);
+  --btn-primary-grad: linear-gradient(135deg, #E94560, #FF6B81);
+  --btn-primary-shadow: 0 6px 16px rgba(233,69,96,0.4);
+}
+body.theme-highcontrast {
+  --bg: #FFFFFF;
+  --card: #FFFFFF;
+  --primary: #000000;
+  --primary-2: #333333;
+  --secondary: #0000EE;
+  --accent: #FFFF00;
+  --purple: #7600BC;
+  --text: #000000;
+  --muted: #333333;
+  --success: #000000;
+  --success-2: #333333;
+  --shadow: 0 4px 0 rgba(0,0,0,0.25);
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #FFFF00;
+  --auth-grad: linear-gradient(135deg, #FFFF00 0%, #000000 50%, #0000EE 100%);
+  --focus-grad: linear-gradient(135deg, #000000, #0000EE);
+  --done-grad: linear-gradient(135deg, #000000, #0000EE);
+  --btn-primary-grad: linear-gradient(135deg, #000000, #333333);
+  --btn-primary-shadow: 0 4px 0 rgba(0,0,0,0.4);
+  --border-soft: #000000;
+}
+body.theme-sunset {
+  --bg: #FFF5EB;
+  --card: #FFFFFF;
+  --primary: #E17055;
+  --primary-2: #FDCB6E;
+  --secondary: #E84393;
+  --accent: #FFEAA7;
+  --purple: #FD79A8;
+  --text: #2D3436;
+  --muted: #636E72;
+  --success: #E17055;
+  --success-2: #FDCB6E;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #FFE8DE;
+  --auth-grad: linear-gradient(135deg, #FDCB6E 0%, #E17055 50%, #E84393 100%);
+  --focus-grad: linear-gradient(135deg, #E84393, #FDCB6E);
+  --done-grad: linear-gradient(135deg, #E17055, #FDCB6E);
+  --btn-primary-grad: linear-gradient(135deg, #E17055, #FDCB6E);
+  --btn-primary-shadow: 0 6px 16px rgba(225,112,85,0.35);
+}
+body.theme-candy {
+  --bg: #FFF0FB;
+  --card: #FFFFFF;
+  --primary: #FF6BCB;
+  --primary-2: #C56CF0;
+  --secondary: #18DCFF;
+  --accent: #FFF200;
+  --purple: #7D5FFF;
+  --text: #2D3436;
+  --muted: #636E72;
+  --success: #FF6BCB;
+  --success-2: #C56CF0;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #FFE0F5;
+  --auth-grad: linear-gradient(135deg, #FFF200 0%, #FF6BCB 45%, #7D5FFF 100%);
+  --focus-grad: linear-gradient(135deg, #7D5FFF, #18DCFF);
+  --done-grad: linear-gradient(135deg, #FF6BCB, #7D5FFF);
+  --btn-primary-grad: linear-gradient(135deg, #FF6BCB, #C56CF0);
+  --btn-primary-shadow: 0 6px 16px rgba(255,107,203,0.35);
+}
+body.theme-lavender {
+  --bg: #F5F0FF;
+  --card: #FFFFFF;
+  --primary: #7C4DFF;
+  --primary-2: #B388FF;
+  --secondary: #EA80FC;
+  --accent: #E1BEE7;
+  --purple: #651FFF;
+  --text: #311B92;
+  --muted: #5E35B1;
+  --success: #7C4DFF;
+  --success-2: #B388FF;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #EDE7F6;
+  --auth-grad: linear-gradient(135deg, #E1BEE7 0%, #7C4DFF 50%, #651FFF 100%);
+  --focus-grad: linear-gradient(135deg, #651FFF, #EA80FC);
+  --done-grad: linear-gradient(135deg, #7C4DFF, #EA80FC);
+  --btn-primary-grad: linear-gradient(135deg, #7C4DFF, #B388FF);
+  --btn-primary-shadow: 0 6px 16px rgba(124,77,255,0.35);
+}
+body.theme-sky {
+  --bg: #F0FBFF;
+  --card: #FFFFFF;
+  --primary: #00A8E8;
+  --primary-2: #007EA7;
+  --secondary: #80CED7;
+  --accent: #CCF0F8;
+  --purple: #5C7AEA;
+  --text: #003459;
+  --muted: #007EA7;
+  --success: #00A8E8;
+  --success-2: #007EA7;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #E0F7FA;
+  --auth-grad: linear-gradient(135deg, #CCF0F8 0%, #00A8E8 50%, #5C7AEA 100%);
+  --focus-grad: linear-gradient(135deg, #5C7AEA, #80CED7);
+  --done-grad: linear-gradient(135deg, #00A8E8, #5C7AEA);
+  --btn-primary-grad: linear-gradient(135deg, #00A8E8, #007EA7);
+  --btn-primary-shadow: 0 6px 16px rgba(0,168,232,0.35);
+}
+body.theme-ember {
+  --bg: #1C1210;
+  --card: #2A1A16;
+  --primary: #FF5722;
+  --primary-2: #FF9800;
+  --secondary: #FFC107;
+  --accent: #FFEB3B;
+  --purple: #FF7043;
+  --text: #FFF3E0;
+  --muted: #FFCCBC;
+  --success: #FF5722;
+  --success-2: #FF9800;
+  --shadow: 0 8px 24px rgba(0,0,0,0.4);
+  --header-bg: #2A1A16;
+  --nav-bg: #2A1A16;
+  --input-bg: #3E2723;
+  --chip-bg: #3E2723;
+  --border-soft: #5D4037;
+  --nav-active-bg: #3E2723;
+  --auth-grad: linear-gradient(135deg, #3E2723 0%, #FF5722 50%, #FF9800 100%);
+  --focus-grad: linear-gradient(135deg, #FF5722, #FFC107);
+  --done-grad: linear-gradient(135deg, #FF5722, #FF9800);
+  --btn-primary-grad: linear-gradient(135deg, #FF5722, #FF9800);
+  --btn-primary-shadow: 0 6px 16px rgba(255,87,34,0.4);
+}
+body.theme-mint {
+  --bg: #F0FFF8;
+  --card: #FFFFFF;
+  --primary: #00B894;
+  --primary-2: #55EFC4;
+  --secondary: #81ECEC;
+  --accent: #DFE6E9;
+  --purple: #00CEC9;
+  --text: #0B3D2E;
+  --muted: #2D6A5A;
+  --success: #00B894;
+  --success-2: #55EFC4;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #E8FFF6;
+  --auth-grad: linear-gradient(135deg, #DFE6E9 0%, #00B894 50%, #00CEC9 100%);
+  --focus-grad: linear-gradient(135deg, #00CEC9, #55EFC4);
+  --done-grad: linear-gradient(135deg, #00B894, #00CEC9);
+  --btn-primary-grad: linear-gradient(135deg, #00B894, #55EFC4);
+  --btn-primary-shadow: 0 6px 16px rgba(0,184,148,0.35);
+}
+body.theme-mono {
+  --bg: #F5F6FA;
+  --card: #FFFFFF;
+  --primary: #2F3640;
+  --primary-2: #718093;
+  --secondary: #40739E;
+  --accent: #DCDDE1;
+  --purple: #353B48;
+  --text: #1E272E;
+  --muted: #576574;
+  --success: #2F3640;
+  --success-2: #718093;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #DFE4EA;
+  --auth-grad: linear-gradient(135deg, #DCDDE1 0%, #718093 50%, #2F3640 100%);
+  --focus-grad: linear-gradient(135deg, #2F3640, #40739E);
+  --done-grad: linear-gradient(135deg, #2F3640, #718093);
+  --btn-primary-grad: linear-gradient(135deg, #2F3640, #718093);
+  --btn-primary-shadow: 0 6px 16px rgba(47,54,64,0.3);
+}
+body.theme-peach {
+  --bg: #FFF5F0;
+  --card: #FFFFFF;
+  --primary: #FF8A65;
+  --primary-2: #FFAB91;
+  --secondary: #F48FB1;
+  --accent: #FFE0B2;
+  --purple: #CE93D8;
+  --text: #4E342E;
+  --muted: #8D6E63;
+  --success: #FF8A65;
+  --success-2: #FFAB91;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #FFE8E0;
+  --auth-grad: linear-gradient(135deg, #FFE0B2 0%, #FF8A65 50%, #F48FB1 100%);
+  --focus-grad: linear-gradient(135deg, #F48FB1, #FFAB91);
+  --done-grad: linear-gradient(135deg, #FF8A65, #F48FB1);
+  --btn-primary-grad: linear-gradient(135deg, #FF8A65, #FFAB91);
+  --btn-primary-shadow: 0 6px 16px rgba(255,138,101,0.35);
+}
+body.theme-lemon {
+  --bg: #FFFEF0;
+  --card: #FFFFFF;
+  --primary: #F9A825;
+  --primary-2: #FFD54F;
+  --secondary: #AED581;
+  --accent: #FFF59D;
+  --purple: #FFB74D;
+  --text: #5D4037;
+  --muted: #8D6E63;
+  --success: #F9A825;
+  --success-2: #FFD54F;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #FFF8E1;
+  --auth-grad: linear-gradient(135deg, #FFF59D 0%, #F9A825 50%, #AED581 100%);
+  --focus-grad: linear-gradient(135deg, #AED581, #FFD54F);
+  --done-grad: linear-gradient(135deg, #F9A825, #AED581);
+  --btn-primary-grad: linear-gradient(135deg, #F9A825, #FFD54F);
+  --btn-primary-shadow: 0 6px 16px rgba(249,168,37,0.35);
+}
+body.theme-rose {
+  --bg: #FFF5F7;
+  --card: #FFFFFF;
+  --primary: #C2185B;
+  --primary-2: #F06292;
+  --secondary: #EC407A;
+  --accent: #F8BBD0;
+  --purple: #AB47BC;
+  --text: #4A148C;
+  --muted: #AD1457;
+  --success: #C2185B;
+  --success-2: #F06292;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #FCE4EC;
+  --auth-grad: linear-gradient(135deg, #F8BBD0 0%, #C2185B 50%, #AB47BC 100%);
+  --focus-grad: linear-gradient(135deg, #AB47BC, #F06292);
+  --done-grad: linear-gradient(135deg, #C2185B, #EC407A);
+  --btn-primary-grad: linear-gradient(135deg, #C2185B, #F06292);
+  --btn-primary-shadow: 0 6px 16px rgba(194,24,91,0.35);
+}
+body.theme-arctic {
+  --bg: #F0F7FA;
+  --card: #FFFFFF;
+  --primary: #546E7A;
+  --primary-2: #90A4AE;
+  --secondary: #4FC3F7;
+  --accent: #E1F5FE;
+  --purple: #78909C;
+  --text: #263238;
+  --muted: #607D8B;
+  --success: #546E7A;
+  --success-2: #4FC3F7;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #ECEFF1;
+  --auth-grad: linear-gradient(135deg, #E1F5FE 0%, #90A4AE 50%, #546E7A 100%);
+  --focus-grad: linear-gradient(135deg, #4FC3F7, #90A4AE);
+  --done-grad: linear-gradient(135deg, #546E7A, #4FC3F7);
+  --btn-primary-grad: linear-gradient(135deg, #546E7A, #90A4AE);
+  --btn-primary-shadow: 0 6px 16px rgba(84,110,122,0.35);
+}
+body.theme-grape {
+  --bg: #F3E5F5;
+  --card: #FFFFFF;
+  --primary: #6A1B9A;
+  --primary-2: #AB47BC;
+  --secondary: #7E57C2;
+  --accent: #E1BEE7;
+  --purple: #9C27B0;
+  --text: #4A148C;
+  --muted: #7B1FA2;
+  --success: #6A1B9A;
+  --success-2: #AB47BC;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #F3E5F5;
+  --auth-grad: linear-gradient(135deg, #E1BEE7 0%, #6A1B9A 50%, #7E57C2 100%);
+  --focus-grad: linear-gradient(135deg, #7E57C2, #AB47BC);
+  --done-grad: linear-gradient(135deg, #6A1B9A, #7E57C2);
+  --btn-primary-grad: linear-gradient(135deg, #6A1B9A, #AB47BC);
+  --btn-primary-shadow: 0 6px 16px rgba(106,27,154,0.35);
+}
+body.theme-sand {
+  --bg: #FAF6F1;
+  --card: #FFFFFF;
+  --primary: #A1887F;
+  --primary-2: #D7CCC8;
+  --secondary: #BCAAA4;
+  --accent: #EFEBE9;
+  --purple: #8D6E63;
+  --text: #3E2723;
+  --muted: #6D4C41;
+  --success: #A1887F;
+  --success-2: #8D6E63;
+  --header-bg: #FFFFFF;
+  --nav-bg: #FFFFFF;
+  --nav-active-bg: #EFEBE9;
+  --auth-grad: linear-gradient(135deg, #EFEBE9 0%, #A1887F 50%, #8D6E63 100%);
+  --focus-grad: linear-gradient(135deg, #8D6E63, #D7CCC8);
+  --done-grad: linear-gradient(135deg, #A1887F, #8D6E63);
+  --btn-primary-grad: linear-gradient(135deg, #A1887F, #8D6E63);
+  --btn-primary-shadow: 0 6px 16px rgba(141,110,99,0.3);
+}
+body.theme-aurora {
+  --bg: #0B132B;
+  --card: #1C2541;
+  --primary: #5BC0BE;
+  --primary-2: #6FFFE9;
+  --secondary: #3A506B;
+  --accent: #FF6B9D;
+  --purple: #9B5DE5;
+  --text: #E8F1F2;
+  --muted: #A0B9C0;
+  --success: #5BC0BE;
+  --success-2: #6FFFE9;
+  --shadow: 0 8px 24px rgba(0,0,0,0.4);
+  --header-bg: #1C2541;
+  --nav-bg: #1C2541;
+  --input-bg: #3A506B;
+  --chip-bg: #3A506B;
+  --border-soft: #3A506B;
+  --nav-active-bg: #3A506B;
+  --auth-grad: linear-gradient(135deg, #3A506B 0%, #5BC0BE 40%, #9B5DE5 100%);
+  --focus-grad: linear-gradient(135deg, #9B5DE5, #5BC0BE);
+  --done-grad: linear-gradient(135deg, #5BC0BE, #9B5DE5);
+  --btn-primary-grad: linear-gradient(135deg, #5BC0BE, #6FFFE9);
+  --btn-primary-shadow: 0 6px 16px rgba(91,192,190,0.4);
+}
+body.theme-coffee {
+  --bg: #2C1810;
+  --card: #3E2723;
+  --primary: #D4A373;
+  --primary-2: #E6CCB2;
+  --secondary: #A98467;
+  --accent: #FAEDCD;
+  --purple: #BC6C25;
+  --text: #FAEDCD;
+  --muted: #D4A373;
+  --success: #D4A373;
+  --success-2: #E6CCB2;
+  --shadow: 0 8px 24px rgba(0,0,0,0.4);
+  --header-bg: #3E2723;
+  --nav-bg: #3E2723;
+  --input-bg: #4E342E;
+  --chip-bg: #4E342E;
+  --border-soft: #5D4037;
+  --nav-active-bg: #4E342E;
+  --auth-grad: linear-gradient(135deg, #4E342E 0%, #D4A373 50%, #BC6C25 100%);
+  --focus-grad: linear-gradient(135deg, #BC6C25, #D4A373);
+  --done-grad: linear-gradient(135deg, #D4A373, #BC6C25);
+  --btn-primary-grad: linear-gradient(135deg, #D4A373, #BC6C25);
+  --btn-primary-shadow: 0 6px 16px rgba(212,163,115,0.35);
+}
+
+
+
+.theme-choice {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  margin: 8px 0 16px;
+  max-height: 55vh;
+  overflow-y: auto;
+}
+@media (min-width: 500px) {
+  .theme-choice {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
+}
+.theme-choice button {
+  text-align: left;
+  padding: 12px 14px;
+  border: 3px solid var(--border-soft, #eee);
+  border-radius: 16px;
+  background: var(--card);
+  color: var(--text);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+  font-family: inherit;
+}
+.theme-choice button.on {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 25%, transparent);
+}
+.theme-swatch {
+  display: flex;
+  gap: 4px;
+  margin-top: 6px;
+}
+.theme-swatch i {
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  display: inline-block;
+  border: 1px solid rgba(0,0,0,0.12);
 }
 
 body, button, input, textarea, select {
@@ -43,6 +561,13 @@ body.font-chewy {
   --line-height: 1.5;
   letter-spacing: 0.01em;
 }
+body.font-eduqld {
+  --font-main: 'Edu QLD Hand', cursive, system-ui;
+  font-optical-sizing: auto;
+  font-weight: 500;
+  font-style: normal;
+  --line-height: 1.55;
+}
 body.font-opendyslexic,
 body.mode-dyslexia {
   --font-main: 'OpenDyslexic', 'Comic Sans MS', system-ui, sans-serif;
@@ -52,15 +577,20 @@ body.mode-dyslexia {
 }
 body.font-chewy .card-title,
 body.font-chewy .section-title,
+body.font-eduqld .card-title,
+body.font-eduqld .section-title,
 body.font-opendyslexic .card-title,
 body.font-opendyslexic .section-title,
 body.mode-dyslexia .card-title,
 body.mode-dyslexia .section-title,
 body.font-chewy input,
+body.font-eduqld input,
 body.font-opendyslexic input,
 body.font-chewy textarea,
+body.font-eduqld textarea,
 body.font-opendyslexic textarea,
 body.font-chewy button,
+body.font-eduqld button,
 body.font-opendyslexic button {
   font-family: var(--font-main) !important;
   line-height: var(--line-height);
@@ -85,6 +615,7 @@ body.font-opendyslexic button {
 }
 .font-preview-nunito { font-family: 'Nunito', system-ui, sans-serif; font-weight: 800; }
 .font-preview-chewy { font-family: 'Chewy', system-ui; font-weight: 400; font-style: normal; }
+.font-preview-eduqld { font-family: 'Edu QLD Hand', cursive; font-optical-sizing: auto; font-weight: 500; font-style: normal; }
 .font-preview-opendyslexic { font-family: 'OpenDyslexic', 'Comic Sans MS', system-ui, sans-serif; }
 
 /* ADHD focus mode – reduce distraction, one clear column */
@@ -107,7 +638,7 @@ body.mode-adhd .content {
   max-width: 480px;
 }
 .focus-banner {
-  background: linear-gradient(135deg, #A78BFA, #4ECDC4);
+  background: var(--focus-grad);
   color: white;
   padding: 12px 16px;
   border-radius: 14px;
@@ -126,15 +657,24 @@ body.mode-adhd .content {
   font-weight: 700;
   padding: 6px 10px;
   border-radius: 20px;
-  border: 2px solid #eee;
-  background: white;
+  border: 2px solid var(--border-soft, #eee);
+  background: var(--chip-bg, white);
+  color: var(--text);
   cursor: pointer;
   font-family: inherit;
+  white-space: nowrap;
+}
+/* chip-theme polish */
+@media (min-width: 900px) {
+  .a11y-chip {
+    font-size: 0.8rem;
+    padding: 8px 12px;
+  }
 }
 .a11y-chip.on {
-  border-color: var(--secondary);
-  background: #E8FFF9;
-  color: #0D7377;
+  border-color: var(--primary);
+  background: color-mix(in srgb, var(--primary) 14%, var(--chip-bg, white));
+  color: var(--primary);
 }
 .consent-box {
   text-align: left;
@@ -207,11 +747,11 @@ body {
   align-items: center;
   justify-content: center;
   padding: 20px;
-  background: linear-gradient(135deg, #FFE66D 0%, #FF6B6B 50%, #A78BFA 100%);
+  background: var(--auth-grad);
   min-height: 100vh;
 }
 #auth-screen {
-  background: linear-gradient(135deg, #FFE66D 0%, #FF6B6B 50%, #A78BFA 100%);
+  background: var(--auth-grad);
   min-height: 100vh;
 }
 
@@ -396,10 +936,10 @@ body {
   transform: scale(0.97);
 }
 .btn.primary {
-  background: linear-gradient(135deg, #FF6B6B, #FF8E53);
+  background: var(--btn-primary-grad);
   color: white;
   width: 100%;
-  box-shadow: 0 6px 16px rgba(255,107,107,0.35);
+  box-shadow: var(--btn-primary-shadow);
 }
 .btn.add-btn {
   background: var(--secondary);
@@ -426,7 +966,7 @@ body {
   align-items: center;
   justify-content: space-between;
   padding: 16px 20px 12px;
-  background: white;
+  background: var(--header-bg);
   box-shadow: 0 2px 12px rgba(0,0,0,0.04);
   position: sticky;
   top: 0;
@@ -467,7 +1007,7 @@ body {
   bottom: 0;
   left: 0;
   right: 0;
-  background: white;
+  background: var(--nav-bg);
   display: flex;
   justify-content: space-around;
   padding: 8px 4px 12px;
@@ -494,7 +1034,7 @@ body {
 }
 .nav-btn.active {
   color: var(--primary);
-  background: #FFF0F0;
+  background: var(--nav-active-bg);
 }
 .nav-icon {
   font-size: 1.35rem;
@@ -736,6 +1276,23 @@ body {
   flex-direction: column;
   gap: 12px;
 }
+/* Action steps on Today: stack in a responsive horizontal grid */
+#today-tasks.card-list {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+  gap: 12px;
+  align-items: start;
+}
+#today-tasks .card {
+  height: 100%;
+  min-width: 0;
+}
+@media (min-width: 900px) {
+  #today-tasks.card-list {
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 16px;
+  }
+}
 .card {
   background: var(--card);
   border-radius: var(--radius);
@@ -744,7 +1301,8 @@ body {
   position: relative;
 }
 .card.completed {
-  opacity: 0.7;
+  opacity: 0.85;
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--primary) 35%, transparent);
 }
 .card-header {
   display: flex;
@@ -754,7 +1312,7 @@ body {
 .checkbox {
   width: 26px;
   height: 26px;
-  border: 3px solid var(--secondary);
+  border: 3px solid var(--primary);
   border-radius: 8px;
   flex-shrink: 0;
   cursor: pointer;
@@ -765,7 +1323,8 @@ body {
   transition: background 0.15s;
 }
 .checkbox.checked {
-  background: var(--secondary);
+  background: var(--primary);
+  border-color: var(--primary);
   color: white;
 }
 .card-title {
@@ -818,7 +1377,7 @@ body {
 .step .mini-check {
   width: 20px;
   height: 20px;
-  border: 2px solid #ccc;
+  border: 2px solid var(--primary);
   border-radius: 6px;
   cursor: pointer;
   display: flex;
@@ -827,8 +1386,8 @@ body {
   font-size: 0.75rem;
 }
 .step .mini-check.checked {
-  background: var(--success);
-  border-color: var(--success);
+  background: var(--primary);
+  border-color: var(--primary);
   color: white;
 }
 .step.done span {
@@ -908,9 +1467,9 @@ body {
 }
 .note-tile:active { transform: scale(0.97); }
 .note-tile.done-today {
-  background: linear-gradient(135deg, #55EFC4, #00B894);
+  background: var(--done-grad);
   color: white;
-  border-top-color: #00B894;
+  border-top-color: var(--success-2);
 }
 .note-tile.done-today .note-meta { color: rgba(255,255,255,0.9); }
 .note-tile .note-icon { font-size: 1.6rem; }
@@ -943,7 +1502,7 @@ body {
   }
 }
 .session-tile.done-today {
-  background: linear-gradient(135deg, #55EFC4, #00B894);
+  background: var(--done-grad);
   color: white;
 }
 .session-tile.done-today .session-meta { color: rgba(255,255,255,0.9); }
@@ -1025,7 +1584,7 @@ body {
   transform: scale(0.96);
 }
 .habit-card.done-today {
-  background: linear-gradient(135deg, #55EFC4, #00B894);
+  background: var(--done-grad);
   color: white;
 }
 .habit-emoji {
@@ -1285,7 +1844,8 @@ body {
   pointer-events: none !important;
 }
 .modal {
-  background: white;
+  background: var(--card);
+  color: var(--text);
   border-radius: 24px 24px 16px 16px;
   padding: 24px 20px 32px;
   width: 100%;
@@ -1383,6 +1943,112 @@ body {
     transform: translateX(-50%);
     border-radius: 20px 20px 0 0;
   }
+}
+
+
+body.theme-midnight .card,
+body.theme-ember .card,
+body.theme-aurora .card,
+body.theme-coffee .card,
+body.theme-midnight .habit-card,
+body.theme-ember .habit-card,
+body.theme-midnight .session-tile,
+body.theme-ember .session-tile,
+body.theme-midnight .note-tile,
+body.theme-ember .note-tile,
+body.theme-midnight .day-row,
+body.theme-ember .day-row,
+body.theme-midnight .month-grid,
+body.theme-ember .month-grid,
+body.theme-midnight .auth-card,
+body.theme-ember .auth-card,
+body.theme-midnight .reflection-box,
+body.theme-ember .reflection-box,
+body.theme-midnight .goal-card,
+body.theme-ember .goal-card {
+  background: var(--card);
+  color: var(--text);
+}
+body.theme-midnight input,
+body.theme-ember input,
+body.theme-aurora input,
+body.theme-coffee input,
+body.theme-midnight textarea,
+body.theme-ember textarea,
+body.theme-aurora textarea,
+body.theme-coffee textarea,
+body.theme-midnight select,
+body.theme-ember select,
+body.theme-aurora select,
+body.theme-coffee select,
+body.theme-midnight .modal input,
+body.theme-ember .modal input,
+body.theme-aurora .modal input,
+body.theme-coffee .modal input,
+body.theme-midnight .modal textarea,
+body.theme-ember .modal textarea,
+body.theme-aurora .modal textarea,
+body.theme-coffee .modal textarea,
+body.theme-midnight .modal select,
+body.theme-ember .modal select,
+body.theme-aurora .modal select,
+body.theme-coffee .modal select {
+  background: var(--input-bg);
+  color: var(--text);
+  border-color: var(--border-soft);
+}
+body.theme-midnight .small-btn {
+  background: #0F3460;
+  color: var(--text);
+}
+body.theme-ember .small-btn {
+  background: #3E2723;
+  color: var(--text);
+}
+body.theme-midnight .small-btn.danger {
+  background: #5C1A1A;
+  color: #FF8A8A;
+}
+body.theme-ember .small-btn.danger {
+  background: #5C1A1A;
+  color: #FF8A8A;
+}
+body.theme-midnight .toast {
+  background: #F1F2F6;
+  color: #1A1A2E;
+}
+body.theme-ember .toast {
+  background: #FFF3E0;
+  color: #1C1210;
+}
+body.theme-aurora .small-btn {
+  background: #3A506B;
+  color: var(--text);
+}
+body.theme-coffee .small-btn {
+  background: #4E342E;
+  color: var(--text);
+}
+body.theme-aurora .small-btn.danger,
+body.theme-coffee .small-btn.danger {
+  background: #5C1A1A;
+  color: #FF8A8A;
+}
+body.theme-aurora .toast {
+  background: #E8F1F2;
+  color: #0B132B;
+}
+body.theme-coffee .toast {
+  background: #FAEDCD;
+  color: #2C1810;
+}
+body.theme-highcontrast .card,
+body.theme-highcontrast .habit-card,
+body.theme-highcontrast .session-tile {
+  border: 2px solid #000;
+}
+body.theme-highcontrast .nav-btn.active {
+  outline: 3px solid #000;
 }
 
 </style>
@@ -1507,6 +2173,7 @@ body {
         <img id="header-logo" class="header-logo" alt="SBL" title="School Beyond Limitations">
         <button type="button" class="a11y-chip" id="chip-adhd" onclick="toggleAdhdMode()" title="Focus mode">Focus</button>
         <button type="button" class="a11y-chip" id="chip-dyslexia" onclick="openFontModal()" title="Choose font">Fonts</button>
+        <button type="button" class="a11y-chip" id="chip-theme" onclick="openThemeModal()" title="Change theme">🎨 Theme</button>
         <button class="icon-btn" onclick="openTimezoneModal()" title="Change timezone">🌍</button>
         <button class="icon-btn" onclick="openSettingsModal()" title="Settings">⚙️</button>
       </div>
@@ -1697,7 +2364,7 @@ body {
   <script>
 
 // ========== SBL Plan App ==========
-const APP_VERSION = '2026-10-13a';
+const APP_VERSION = '2026-10-08e';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
 /* Firebase optional — leave empty for this-device accounts */
@@ -1942,7 +2609,9 @@ let state = {
   adhdMode: false,
   dyslexiaMode: false,
   fontFamily: 'nunito',
-  privacyAccepted: false
+  privacyAccepted: false,
+  notificationsEnabled: false,
+  theme: 'sunshine'
 };
 
 // ---------- Helpers ----------
@@ -1958,6 +2627,22 @@ function localDateKey(d) {
 
 function todayStr() {
   return localDateKey(new Date());
+}
+
+
+function getISOWeek(d) {
+  // ISO week number (Mon-based), 1–53
+  const date = d instanceof Date ? new Date(d.getTime()) : new Date(d);
+  if (isNaN(date.getTime())) return 1;
+  date.setHours(12, 0, 0, 0);
+  // Thursday in current week decides the year
+  const day = (date.getDay() + 6) % 7; // Mon=0 … Sun=6
+  date.setDate(date.getDate() - day + 3);
+  const firstThursday = new Date(date.getFullYear(), 0, 4);
+  const ftDay = (firstThursday.getDay() + 6) % 7;
+  firstThursday.setDate(firstThursday.getDate() - ftDay + 3);
+  const week = 1 + Math.round((date.getTime() - firstThursday.getTime()) / 604800000);
+  return week;
 }
 
 function weekKey(d) {
@@ -1978,14 +2663,16 @@ function toggleSessionDone(id, dateStr) {
   const t = dateStr || todayStr();
   if (!c.history) c.history = {};
   if (c.history[t]) {
-    toast("Already checked off — can't undo 🔒");
-    return;
+    if (!confirm('Uncheck this session for today?')) return;
+    delete c.history[t];
+    addPoints(-4);
+    toast('Session unchecked');
+  } else {
+    c.history[t] = true;
+    addPoints(4);
+    showConfetti();
+    toast('+4 stars for session! 🎨');
   }
-  if (!confirm('Mark this session done for today?\n\nYou cannot undo this.')) return;
-  c.history[t] = true;
-  addPoints(4);
-  showConfetti();
-  toast('+4 stars for session! 🎨');
   save();
   renderToday();
   renderClasses();
@@ -2011,64 +2698,53 @@ function renderGoals() {
           <div class="goal-text card-title">${g.text}</div>
           ${g.byWhen ? `<div class="card-meta">By ${formatShort(g.byWhen)}</div>` : ''}
         </div>
-        <button class="small-btn" onclick="openGoalModal('${g.term || 'short'}', '${g.id}')">Edit</button>
         <button class="small-btn danger" onclick="deleteGoal('${g.id}')">Delete</button>
       </div>
     `).join('');
   });
 }
 
-function openGoalModal(term, editId = null) {
+function openGoalModal(term) {
   const t = term || 'short';
   const labels = { short: 'Short-term', medium: 'Medium-term', long: 'Long-term' };
-  const g = editId ? (state.goals || []).find(x => x.id === editId) : null;
-  const textVal = g ? String(g.text || '').replace(/"/g, '&quot;') : '';
-  const byWhen = g && g.byWhen ? inputDateValue(g.byWhen) : '';
   openModal(`
-    <h3>${g ? 'Edit' : (labels[t] || 'New')} Goal 🎯</h3>
-    <input type="hidden" id="goal-term" value="${g ? (g.term || t) : t}">
+    <h3>${labels[t] || 'New'} Goal 🎯</h3>
+    <input type="hidden" id="goal-term" value="${t}">
     <label>What do you want to achieve?</label>
-    <input type="text" id="goal-text" value="${textVal}" placeholder="Write your goal">
+    <input type="text" id="goal-text" placeholder="Write your goal">
     <label>By when? (optional)</label>
-    <input type="text" id="goal-by" value="${byWhen}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
-    <button class="btn primary" onclick="saveGoal('${editId || ''}')">${g ? 'Save changes' : 'Save Goal'}</button>
+    <input type="text" id="goal-by" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
+    <button class="btn primary" onclick="saveGoal()">Save Goal</button>
   `);
 }
 
-function saveGoal(editId) {
+function saveGoal() {
   const textVal = document.getElementById('goal-text').value.trim();
   if (!textVal) { toast('Write your goal'); return; }
   const byWhen = parseUserDate(document.getElementById('goal-by').value);
   const term = (document.getElementById('goal-term') || {}).value || 'short';
   if (!state.goals) state.goals = [];
-  if (editId) {
-    const g = state.goals.find(x => x.id === editId);
-    if (g) {
-      g.text = textVal;
-      g.byWhen = byWhen;
-      g.term = term;
-    }
-  } else {
-    state.goals.push({ id: uid(), text: textVal, byWhen, term, done: false, created: todayStr() });
-  }
+  state.goals.push({ id: uid(), text: textVal, byWhen, term, done: false, created: todayStr() });
   save();
   closeModal();
   renderGoals();
-  toast(editId ? 'Goal updated! 🎯' : 'Goal saved! 🎯');
+  toast('Goal saved! 🎯');
 }
 
 function toggleGoal(id) {
   const g = state.goals.find(x => x.id === id);
   if (!g) return;
   if (g.done) {
-    toast("Goal already done — can't undo 🔒");
-    return;
+    if (!confirm('Uncheck this goal?')) return;
+    g.done = false;
+    addPoints(-10);
+    toast('Goal unchecked');
+  } else {
+    g.done = true;
+    addPoints(10);
+    showConfetti();
+    toast('+10 stars — goal reached! 🏆');
   }
-  if (!confirm('Mark this goal as reached?\n\nYou cannot undo this.')) return;
-  g.done = true;
-  addPoints(10);
-  showConfetti();
-  toast('+10 stars — goal reached! 🏆');
   save();
   renderGoals();
 }
@@ -2095,7 +2771,12 @@ const DAILY_QUESTIONS = [
   'What challenged your brain today?',
   'Who or what inspired you today?',
   'What do you want to remember from today?',
-  'How will you rest or recharge tonight?'
+  'How will you rest or recharge tonight?',
+  'What was a moment of curiosity today?',
+  'Did you finish something you started? How did that feel?',
+  'What made today different from yesterday?',
+  'If today were a colour or weather, what would it be and why?',
+  'What is one hope you have for tomorrow?'
 ];
 
 const WEEKLY_QUESTIONS = [
@@ -2142,41 +2823,63 @@ function renderReflection() {
   if (!state.reflections) state.reflections = {};
   const dayEl = document.getElementById('daily-reflection');
   const weekEl = document.getElementById('weekly-reflection');
+  if (!dayEl && !weekEl) return;
+
   const today = todayStr();
-  const dk = dailyKey(today);
-  const wk = weekKey(new Date());
-  const dq = DAILY_QUESTIONS[dailyQuestionIndex(today)];
-  const wq = WEEKLY_QUESTIONS[weeklyQuestionIndex(new Date())];
+  let dk = 'day-' + today;
+  let wk = '';
+  try { dk = dailyKey(today); } catch (e) { console.warn(e); }
+  try { wk = weekKey(new Date()); } catch (e) { console.warn(e); wk = today.slice(0, 4) + '-W00'; }
+
+  let dq = 'How was your day?';
+  let wq = 'How was your week?';
+  try { dq = DAILY_QUESTIONS[dailyQuestionIndex(today)] || dq; } catch (e) {}
+  try { wq = WEEKLY_QUESTIONS[weeklyQuestionIndex(new Date())] || wq; } catch (e) {}
   const isFriday = new Date().getDay() === 5;
 
   const dayEntry = normalizeReflection(state.reflections[dk], dk);
-  const weekEntry = normalizeReflection(state.reflections[wk], wk);
+  const weekEntry = wk ? normalizeReflection(state.reflections[wk], wk) : null;
+
+  function esc(s) {
+    return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  }
 
   if (dayEl) {
     const val = dayEntry ? dayEntry.text : '';
+    const qNum = (() => { try { return dailyQuestionIndex(today) + 1; } catch (e) { return 1; } })();
     dayEl.innerHTML = `
-      <p style="font-weight:700;margin-bottom:4px">Today · ${formatShort(today)}</p>
-      <p style="color:var(--primary);font-weight:800;margin:8px 0 6px;line-height:1.35">❓ ${dq}</p>
-      <textarea id="reflection-daily" placeholder="Write your answer…">${val.replace(/</g,'&lt;')}</textarea>
+      <p style="font-weight:700;margin-bottom:4px">Today · ${esc(formatShort(today))} · question ${qNum} of ${DAILY_QUESTIONS.length}</p>
+      <p style="color:var(--primary);font-weight:800;margin:8px 0 6px;line-height:1.35">❓ ${esc(dq)}</p>
+      <textarea id="reflection-daily" placeholder="Write your answer…">${esc(val)}</textarea>
       <button class="btn add-btn" style="margin-top:10px" onclick="saveReflection('daily')">Save daily reflection</button>
       <button class="btn add-btn" style="margin-top:8px;background:#636E72" onclick="openPastReflections('daily')">📜 Past daily reflections</button>
     `;
   }
   if (weekEl) {
     const val = weekEntry ? weekEntry.text : '';
-    if (isFriday || val) {
+    if (isFriday) {
       weekEl.innerHTML = `
-        <p style="font-weight:700;margin-bottom:4px">This week · ${formatDMY(today)}${isFriday ? ' · Friday check-in' : ''}</p>
-        <p style="color:#00897B;font-weight:800;margin:8px 0 6px;line-height:1.35">❓ ${wq}</p>
-        <textarea id="reflection-weekly" placeholder="Write your answer…">${val.replace(/</g,'&lt;')}</textarea>
+        <p style="font-weight:700;margin-bottom:4px">This week · ${esc(formatDMY(today))} · Friday check-in</p>
+        <p style="color:var(--secondary);font-weight:800;margin:8px 0 6px;line-height:1.35">❓ ${esc(wq)}</p>
+        <textarea id="reflection-weekly" placeholder="Write your answer…">${esc(val)}</textarea>
         <button class="btn add-btn" style="margin-top:10px" onclick="saveReflection('weekly')">Save weekly reflection</button>
         <button class="btn add-btn" style="margin-top:8px;background:#636E72" onclick="openPastReflections('weekly')">📜 Past weekly reflections</button>
       `;
     } else {
+      let savedBlock = '';
+      if (weekEntry) {
+        savedBlock = `
+          <div style="margin:10px 0;padding:12px;background:color-mix(in srgb, var(--secondary) 12%, var(--card));border-radius:12px;text-align:left">
+            <p style="font-size:0.85rem;color:var(--muted);margin-bottom:4px">Saved this week</p>
+            <p style="font-weight:700;margin-bottom:6px">❓ ${esc(weekEntry.question || wq)}</p>
+            <p style="line-height:1.45">${esc(weekEntry.text)}</p>
+          </div>`;
+      }
       weekEl.innerHTML = `
         <p style="font-weight:700;margin-bottom:6px">Weekly reflection</p>
-        <p style="color:var(--muted);line-height:1.45">Weekly questions open on <strong>Fridays</strong>. Come back then for this week’s question!</p>
-        <p style="margin-top:10px;font-size:0.9rem;color:var(--muted)">Preview: <em>${wq}</em></p>
+        <p style="color:var(--muted);line-height:1.45">Weekly questions open on <strong>Fridays only</strong> (10 questions, one per Friday).</p>
+        <p style="margin-top:10px;font-size:0.9rem;color:var(--muted)">This Friday’s question: <em>${esc(wq)}</em></p>
+        ${savedBlock}
         <button class="btn add-btn" style="margin-top:10px;background:#636E72" onclick="openPastReflections('weekly')">📜 Past weekly reflections</button>
       `;
     }
@@ -2258,17 +2961,23 @@ function saveReflection(which) {
   const writtenTime = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
   if (which === 'daily') {
     const ta = document.getElementById('reflection-daily');
-    if (!ta) return;
+    if (!ta) { toast('Reflection box not ready — try again'); return; }
     const textVal = ta.value.trim();
     if (!textVal) { toast('Write something first'); return; }
-    const q = DAILY_QUESTIONS[dailyQuestionIndex(todayStr())];
+    let q = 'How was your day?';
+    try { q = DAILY_QUESTIONS[dailyQuestionIndex(todayStr())] || q; } catch (e) {}
     state.reflections[dailyKey()] = { text: textVal, writtenAt, writtenTime, question: q, type: 'daily' };
   } else {
+    if (now.getDay() !== 5) {
+      toast('Weekly reflection is only on Fridays');
+      return;
+    }
     const ta = document.getElementById('reflection-weekly');
-    if (!ta) return;
+    if (!ta) { toast('Reflection box not ready — try again'); return; }
     const textVal = ta.value.trim();
     if (!textVal) { toast('Write something first'); return; }
-    const q = WEEKLY_QUESTIONS[weeklyQuestionIndex(new Date())];
+    let q = 'How was your week?';
+    try { q = WEEKLY_QUESTIONS[weeklyQuestionIndex(new Date())] || q; } catch (e) {}
     state.reflections[weekKey(new Date())] = { text: textVal, writtenAt, writtenTime, question: q, type: 'weekly' };
   }
   save();
@@ -2353,8 +3062,10 @@ const TIMEZONE_OPTIONS = {
   LV: { label: 'Latvia (+1h)', offset: 1 },
   LT: { label: 'Lithuania (+1h)', offset: 1 },
   RO: { label: 'Romania (+1h)', offset: 1 },
-  // Georgia
-  GE: { label: 'Georgia (+2 summer / +3 winter)', offset: 3 }
+  // Georgia (UTC+4 year-round, no DST)
+  GE: { label: 'Georgia (+2 summer / +3 winter)', offset: 3 },
+  // Saudi Arabia (UTC+3 year-round — no daylight saving time)
+  SA: { label: 'Saudi Arabia (+1 summer / +2 winter · no DST)', offset: 2 }
 };
 
 function isEuropeanSummerTime(date) {
@@ -2378,6 +3089,9 @@ function getTzOffset() {
   // Georgia is UTC+4 year-round. School CET = UTC+1, CEST = UTC+2
   // → +3 in winter, +2 in summer relative to school clock
   if (tz === 'GE') return isEuropeanSummerTime(new Date()) ? 2 : 3;
+  // Saudi Arabia is UTC+3 year-round (no DST). School CET/CEST = UTC+1 / UTC+2
+  // → +2 in winter, +1 in summer relative to school clock
+  if (tz === 'SA') return isEuropeanSummerTime(new Date()) ? 1 : 2;
   return (TIMEZONE_OPTIONS[tz] || TIMEZONE_OPTIONS.CET).offset;
 }
 
@@ -2393,6 +3107,206 @@ function formatTimeCET(timeStr) {
   if (h >= 24) h -= 24;
   return String(h).padStart(2, '0') + ':' + m;
 }
+
+
+// ---------- Session notifications (browser) ----------
+// Works while the planner is open (or in a background tab).
+// Needs HTTPS or localhost for most browsers. True push when the app is
+// fully closed needs a push server (e.g. Firebase Cloud Messaging).
+let _sessionNotifTimers = [];
+let _sessionNotifDay = null;
+const NOTIF_LEAD_MS = 5 * 60 * 1000; // 5 minutes before
+
+function notificationsSupported() {
+  return typeof window !== 'undefined' && 'Notification' in window;
+}
+
+function notificationPermission() {
+  if (!notificationsSupported()) return 'unsupported';
+  return Notification.permission; // 'default' | 'granted' | 'denied'
+}
+
+/** School times are CET/CEST wall-clock → absolute Date in UTC */
+function schoolTimeToDate(dateStr, timeStr) {
+  if (!dateStr || !timeStr) return null;
+  const parts = String(timeStr).split(':');
+  const h = parseInt(parts[0], 10);
+  const m = parseInt(parts[1] || '0', 10);
+  if (isNaN(h)) return null;
+  const d = parseDateInput(dateStr);
+  if (!d || isNaN(d.getTime())) return null;
+  const y = d.getFullYear();
+  const mo = d.getMonth();
+  const day = d.getDate();
+  // School offset from UTC: CEST +2 in summer, CET +1 in winter
+  const schoolUtcOffset = isEuropeanSummerTime(new Date(y, mo, day, 12, 0, 0)) ? 2 : 1;
+  return new Date(Date.UTC(y, mo, day, h - schoolUtcOffset, m, 0));
+}
+
+function clearSessionNotificationTimers() {
+  _sessionNotifTimers.forEach(id => clearTimeout(id));
+  _sessionNotifTimers = [];
+}
+
+function sessionNotifKey(sessionId, kind, dateStr) {
+  return dateStr + '|' + sessionId + '|' + kind;
+}
+
+function wasSessionNotified(key) {
+  try {
+    const raw = sessionStorage.getItem('sbl_notif_sent') || '{}';
+    const map = JSON.parse(raw);
+    return !!map[key];
+  } catch (e) { return false; }
+}
+
+function markSessionNotified(key) {
+  try {
+    const raw = sessionStorage.getItem('sbl_notif_sent') || '{}';
+    const map = JSON.parse(raw);
+    map[key] = true;
+    // prune old days
+    const t = todayStr();
+    Object.keys(map).forEach(k => { if (!k.startsWith(t)) delete map[k]; });
+    sessionStorage.setItem('sbl_notif_sent', JSON.stringify(map));
+  } catch (e) {}
+}
+
+function showSessionNotification(title, body, tag) {
+  if (!notificationsSupported() || Notification.permission !== 'granted') return;
+  try {
+    const n = new Notification(title, {
+      body: body || '',
+      tag: tag || 'sbl-session',
+      renotify: true,
+      silent: false
+    });
+    n.onclick = () => {
+      try { window.focus(); } catch (e) {}
+      n.close();
+    };
+  } catch (e) {
+    console.warn('notification failed', e);
+  }
+}
+
+function scheduleOneSessionNotif(when, title, body, tag, key) {
+  const delay = when.getTime() - Date.now();
+  if (delay <= 0 || delay > 36 * 60 * 60 * 1000) return; // past or >36h
+  if (wasSessionNotified(key)) return;
+  const id = setTimeout(() => {
+    if (!state.notificationsEnabled) return;
+    if (wasSessionNotified(key)) return;
+    markSessionNotified(key);
+    showSessionNotification(title, body, tag);
+  }, delay);
+  _sessionNotifTimers.push(id);
+}
+
+function scheduleSessionNotifications() {
+  clearSessionNotificationTimers();
+  if (!state.notificationsEnabled) return;
+  if (!notificationsSupported() || Notification.permission !== 'granted') return;
+  if (!state.currentUser) return;
+
+  const t = todayStr();
+  _sessionNotifDay = t;
+  const sessions = sessionsForDate(t).filter(c => c.time);
+  sessions.forEach(c => {
+    const start = schoolTimeToDate(t, c.time);
+    if (!start) return;
+    const localLabel = formatTimeCET(c.time);
+    const icon = c.sessionType === 'morning' ? '🌅' : (c.sessionType === 'mentoring' ? '🤝' : '🎨');
+    const name = (c.title || 'Session').trim();
+
+    // 5 minutes before
+    const lead = new Date(start.getTime() - NOTIF_LEAD_MS);
+    scheduleOneSessionNotif(
+      lead,
+      icon + ' Session in 5 min',
+      name + (localLabel ? ' · ' + localLabel : '') + (c.location ? ' · ' + c.location : ''),
+      'sbl-lead-' + c.id,
+      sessionNotifKey(c.id, 'lead', t)
+    );
+
+    // At start
+    scheduleOneSessionNotif(
+      start,
+      icon + ' Time for your session!',
+      name + (localLabel ? ' · starts now (' + localLabel + ')' : ' · starts now') + (c.location ? ' · ' + c.location : ''),
+      'sbl-start-' + c.id,
+      sessionNotifKey(c.id, 'start', t)
+    );
+  });
+}
+
+async function enableSessionNotifications() {
+  if (!notificationsSupported()) {
+    toast('Notifications not supported in this browser');
+    return false;
+  }
+  let perm = Notification.permission;
+  if (perm === 'default') {
+    try { perm = await Notification.requestPermission(); } catch (e) { perm = 'denied'; }
+  }
+  if (perm !== 'granted') {
+    state.notificationsEnabled = false;
+    save();
+    toast('Permission denied — allow notifications in browser settings');
+    return false;
+  }
+  state.notificationsEnabled = true;
+  save();
+  scheduleSessionNotifications();
+  toast('Session reminders on 🔔');
+  return true;
+}
+
+function disableSessionNotifications() {
+  state.notificationsEnabled = false;
+  clearSessionNotificationTimers();
+  save();
+  toast('Session reminders off');
+}
+
+async function toggleSessionNotifications() {
+  if (state.notificationsEnabled) {
+    disableSessionNotifications();
+  } else {
+    await enableSessionNotifications();
+  }
+  // refresh settings modal if open
+  const mc = document.getElementById('modal-content');
+  if (mc && mc.innerHTML.includes('Session reminders')) {
+    openSettingsModal();
+  }
+}
+
+let _sessionNotifInitDone = false;
+function initSessionNotifications() {
+  if (!notificationsSupported()) return;
+  if (state.notificationsEnabled && Notification.permission === 'granted') {
+    scheduleSessionNotifications();
+  } else if (state.notificationsEnabled && Notification.permission === 'denied') {
+    state.notificationsEnabled = false;
+  }
+  if (_sessionNotifInitDone) return;
+  _sessionNotifInitDone = true;
+  // Reschedule when tab becomes visible again (timers can be throttled in background)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible' && state.notificationsEnabled) {
+      scheduleSessionNotifications();
+    }
+  });
+  // Midnight rollover — reschedule for the new day
+  const now = new Date();
+  const nextMidnight = new Date(now.getFullYear(), now.getMonth(), now.getDate() + 1, 0, 1, 0);
+  setTimeout(() => {
+    scheduleSessionNotifications();
+    setInterval(scheduleSessionNotifications, 24 * 60 * 60 * 1000);
+  }, Math.max(1000, nextMidnight - now));
+}
+
 
 function openTimezoneModal() {
   const current = state.timezone || 'CET';
@@ -2423,6 +3337,7 @@ function saveTimezone() {
   save();
   closeModal();
   renderAll();
+  scheduleSessionNotifications();
   toast('Timezone set to ' + (TIMEZONE_OPTIONS[state.timezone]?.label || state.timezone));
 }
 
@@ -2456,6 +3371,7 @@ function load() {
       if (!state.notes) state.notes = [];
       if (!state.classes) state.classes = [];
       if (!state.fontFamily) state.fontFamily = state.dyslexiaMode ? 'opendyslexic' : 'nunito';
+      if (!state.theme) state.theme = 'sunshine';
     } catch (e) {
       console.warn('Could not load data', e);
     }
@@ -2644,6 +3560,9 @@ function openFontModal() {
       <button type="button" class="${cur==='chewy'?'on':''}" onclick="setFontFamily('chewy')">
         <span class="font-preview-chewy">Chewy</span>
       </button>
+      <button type="button" class="${cur==='eduqld'?'on':''}" onclick="setFontFamily('eduqld')">
+        <span class="font-preview-eduqld">QLD Hand</span>
+      </button>
       <button type="button" class="${cur==='opendyslexic'?'on':''}" onclick="setFontFamily('opendyslexic')">
         <span class="font-preview-opendyslexic">Easy read</span>
       </button>
@@ -2658,21 +3577,30 @@ function setFontFamily(name) {
   applyA11yModes();
   save();
   if (firebaseReady && auth.currentUser) cloudSaveUserData();
-  const labels = { nunito: 'Clear font', chewy: 'Chewy', opendyslexic: 'Easy read' };
+  const labels = { nunito: 'Clear font', chewy: 'Chewy', eduqld: 'QLD Hand', opendyslexic: 'Easy read' };
   toast(labels[name] || 'Font set');
   openFontModal();
 }
 
 function applyA11yModes() {
+  applyTheme();
   document.body.classList.toggle('mode-adhd', !!state.adhdMode);
   const font = state.fontFamily || (state.dyslexiaMode ? 'opendyslexic' : 'nunito');
-  document.body.classList.remove('font-nunito', 'font-chewy', 'font-opendyslexic', 'mode-dyslexia');
+  document.body.classList.remove('font-nunito', 'font-chewy', 'font-eduqld', 'font-opendyslexic', 'mode-dyslexia');
   document.body.classList.add('font-' + font);
   if (font === 'opendyslexic') document.body.classList.add('mode-dyslexia');
   const ca = document.getElementById('chip-adhd');
   const cd = document.getElementById('chip-dyslexia');
+  const ct = document.getElementById('chip-theme');
   if (ca) ca.classList.toggle('on', !!state.adhdMode);
   if (cd) cd.classList.toggle('on', font !== 'nunito');
+  if (ct) {
+    const tname = state.theme || 'sunshine';
+    const tmeta = (typeof THEME_OPTIONS !== 'undefined' && THEME_OPTIONS[tname]) ? THEME_OPTIONS[tname] : { emoji: '🎨', label: 'Theme' };
+    ct.textContent = (tmeta.emoji || '🎨') + ' Theme';
+    ct.title = 'Theme: ' + (tmeta.label || tname);
+    ct.classList.toggle('on', tname !== 'sunshine');
+  }
   const fb = document.getElementById('focus-banner');
   if (fb) fb.classList.toggle('hidden', !state.adhdMode);
 }
@@ -2682,7 +3610,8 @@ function openPrivacyModal() {
     <h3>Privacy notice (GDPR)</h3>
     <div style="text-align:left;font-size:0.9rem;line-height:1.55;color:var(--text);max-height:50vh;overflow-y:auto">
       <p><strong>Who:</strong> SBL Plan is a planner for School Beyond Limitations students (young learners, about age 6+), used with parent/guardian permission where required.</p>
-      <p><strong>What we store:</strong> display name, school email, avatar choice, tasks, habits, notes, sessions, accessibility preferences, timezone. Passwords are handled by the sign-in provider when cloud login is enabled (never stored as plain text in the cloud).</p>
+      <p><strong>What we store:</strong> display name, school email, avatar choice, tasks, habits, notes, sessions, accessibility preferences, timezone, notification preference. Passwords are handled by the sign-in provider when cloud login is enabled (never stored as plain text in the cloud).</p>
+      <p><strong>Notifications:</strong> optional session reminders use your browser’s notification permission on this device only. We do not send marketing alerts.</p>
       <p><strong>Why:</strong> to provide the planner, sync your data when cloud accounts are on, and remember accessibility settings.</p>
       <p><strong>Where:</strong> on this device (browser storage). If cloud accounts are enabled, also on the school’s configured cloud project (e.g. Firebase/Google) in the EU if you choose an EU region.</p>
       <p><strong>Your rights:</strong> access, correct, export, or delete your data. Use Settings → Export data or Delete my account.</p>
@@ -2694,13 +3623,98 @@ function openPrivacyModal() {
   `);
 }
 
+
+const THEME_OPTIONS = {
+  sunshine: { label: 'Sunshine', emoji: '☀️', colors: ['#FF6B6B', '#4ECDC4', '#FFE66D'] },
+  ocean: { label: 'Ocean', emoji: '🌊', colors: ['#0984E3', '#00CEC9', '#81ECEC'] },
+  forest: { label: 'Forest', emoji: '🌲', colors: ['#2D6A4F', '#52B788', '#D8F3DC'] },
+  berry: { label: 'Berry', emoji: '🫐', colors: ['#E84393', '#A29BFE', '#FFEAA7'] },
+  sunset: { label: 'Sunset', emoji: '🌅', colors: ['#E17055', '#FDCB6E', '#E84393'] },
+  candy: { label: 'Candy', emoji: '🍬', colors: ['#FF6BCB', '#7D5FFF', '#18DCFF'] },
+  lavender: { label: 'Lavender', emoji: '💜', colors: ['#7C4DFF', '#EA80FC', '#E1BEE7'] },
+  sky: { label: 'Sky', emoji: '☁️', colors: ['#00A8E8', '#80CED7', '#5C7AEA'] },
+  mint: { label: 'Mint', emoji: '🍃', colors: ['#00B894', '#55EFC4', '#00CEC9'] },
+  peach: { label: 'Peach', emoji: '🍑', colors: ['#FF8A65', '#F48FB1', '#FFE0B2'] },
+  lemon: { label: 'Lemon', emoji: '🍋', colors: ['#F9A825', '#FFD54F', '#AED581'] },
+  rose: { label: 'Rose', emoji: '🌹', colors: ['#C2185B', '#F06292', '#AB47BC'] },
+  arctic: { label: 'Arctic', emoji: '❄️', colors: ['#546E7A', '#4FC3F7', '#90A4AE'] },
+  grape: { label: 'Grape', emoji: '🍇', colors: ['#6A1B9A', '#AB47BC', '#7E57C2'] },
+  sand: { label: 'Sand', emoji: '🏜️', colors: ['#A1887F', '#8D6E63', '#D7CCC8'] },
+  mono: { label: 'Mono', emoji: '◻️', colors: ['#2F3640', '#718093', '#DCDDE1'] },
+  midnight: { label: 'Midnight', emoji: '🌙', colors: ['#E94560', '#0FBCF9', '#16213E'] },
+  ember: { label: 'Ember', emoji: '🔥', colors: ['#FF5722', '#FF9800', '#2A1A16'] },
+  aurora: { label: 'Aurora', emoji: '🌌', colors: ['#5BC0BE', '#9B5DE5', '#1C2541'] },
+  coffee: { label: 'Coffee', emoji: '☕', colors: ['#D4A373', '#BC6C25', '#3E2723'] },
+  highcontrast: { label: 'High contrast', emoji: '⬛', colors: ['#000000', '#FFFF00', '#0000EE'] }
+};
+
+function applyTheme() {
+  const name = state.theme || 'sunshine';
+  const themes = Object.keys(THEME_OPTIONS);
+  themes.forEach(t => document.body.classList.remove('theme-' + t));
+  document.body.classList.add('theme-' + (THEME_OPTIONS[name] ? name : 'sunshine'));
+  // meta theme-color for mobile browser chrome
+  let meta = document.querySelector('meta[name="theme-color"]');
+  if (!meta) {
+    meta = document.createElement('meta');
+    meta.name = 'theme-color';
+    document.head.appendChild(meta);
+  }
+  const bg = getComputedStyle(document.body).getPropertyValue('--bg').trim() || '#FFF8F0';
+  meta.content = bg;
+}
+
+function openThemeModal() {
+  const cur = state.theme || 'sunshine';
+  const buttons = Object.entries(THEME_OPTIONS).map(([key, t]) => {
+    const swatches = t.colors.map(c => `<i style="background:${c}"></i>`).join('');
+    return `<button type="button" class="${cur === key ? 'on' : ''}" onclick="setTheme('${key}')">
+      <span>${t.emoji} ${t.label}</span>
+      <div class="theme-swatch">${swatches}</div>
+    </button>`;
+  }).join('');
+  openModal(`
+    <h3>Theme 🎨</h3>
+    <p style="color:var(--muted);margin-bottom:8px;font-size:0.9rem">Pick colours for the whole planner</p>
+    <div class="theme-choice">${buttons}</div>
+    <button class="btn primary" onclick="closeModal()">Done</button>
+  `);
+}
+
+function setTheme(name) {
+  if (!THEME_OPTIONS[name]) name = 'sunshine';
+  state.theme = name;
+  applyTheme();
+  applyA11yModes();
+  save();
+  if (firebaseReady && auth && auth.currentUser) cloudSaveUserData();
+  toast((THEME_OPTIONS[name].emoji || '') + ' ' + THEME_OPTIONS[name].label + ' theme');
+  openThemeModal();
+}
+
 function openSettingsModal() {
+  const notifOk = notificationsSupported();
+  const perm = notificationPermission();
+  let notifLabel = 'Session reminders: OFF';
+  let notifColor = '#636E72';
+  if (!notifOk) {
+    notifLabel = 'Session reminders: not supported';
+  } else if (state.notificationsEnabled && perm === 'granted') {
+    notifLabel = 'Session reminders: ON 🔔';
+    notifColor = '#00B894';
+  } else if (perm === 'denied') {
+    notifLabel = 'Session reminders: blocked in browser';
+    notifColor = '#E74C3C';
+  }
   openModal(`
     <h3>Settings ⚙️</h3>
     <div class="settings-panel" style="text-align:left">
       <button class="btn add-btn" style="margin-top:8px" onclick="toggleAdhdMode(); closeModal();">🎯 Focus mode: ${state.adhdMode ? 'ON' : 'OFF'}</button>
-      <button class="btn add-btn" style="margin-top:8px;background:#A78BFA" onclick="closeModal(); openFontModal();">Aa Font: ${state.fontFamily === 'chewy' ? 'Chewy' : (state.fontFamily === 'opendyslexic' || state.dyslexiaMode ? 'Easy read' : 'Clear')}</button>
+      <button class="btn add-btn" style="margin-top:8px;background:#A78BFA" onclick="closeModal(); openFontModal();">Aa Font: ${state.fontFamily === 'chewy' ? 'Chewy' : state.fontFamily === 'eduqld' ? 'QLD Hand' : (state.fontFamily === 'opendyslexic' || state.dyslexiaMode ? 'Easy read' : 'Clear')}</button>
+      <button class="btn add-btn" style="margin-top:8px;background:var(--primary)" onclick="closeModal(); openThemeModal();">${(THEME_OPTIONS[state.theme||'sunshine']||THEME_OPTIONS.sunshine).emoji} Theme: ${(THEME_OPTIONS[state.theme||'sunshine']||THEME_OPTIONS.sunshine).label}</button>
       <button class="btn add-btn" style="margin-top:8px;background:#636E72" onclick="closeModal(); openTimezoneModal();">🌍 Timezone</button>
+      <button class="btn add-btn" style="margin-top:8px;background:${notifColor}" onclick="toggleSessionNotifications()">${notifLabel}</button>
+      <p style="font-size:0.8rem;color:var(--muted);margin:6px 0 0;line-height:1.4">Reminds you 5 minutes before and at the start of today’s sessions. Keep the planner open (or in a tab) for reliable alerts. Needs browser permission.</p>
       <button class="btn add-btn" style="margin-top:8px;background:#0984E3" onclick="exportMyData()">⬇️ Export my data</button>
       <button class="btn add-btn" style="margin-top:8px;background:#E17055" onclick="closeModal(); openPrivacyModal();">🔒 Privacy notice</button>
       <button class="btn add-btn" style="margin-top:8px;background:#E74C3C" onclick="deleteMyAccount()">🗑️ Delete my account</button>
@@ -2726,7 +3740,9 @@ function exportMyData() {
     topicInquiry: state.topicInquiry || null,
     timezone: state.timezone,
     adhdMode: state.adhdMode,
-    dyslexiaMode: state.dyslexiaMode
+    dyslexiaMode: state.dyslexiaMode,
+    notificationsEnabled: !!state.notificationsEnabled,
+    theme: state.theme || 'sunshine'
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
@@ -2799,6 +3815,8 @@ async function cloudSaveUserData() {
     adhdMode: state.adhdMode,
     dyslexiaMode: state.dyslexiaMode,
     fontFamily: state.fontFamily || 'nunito',
+    notificationsEnabled: !!state.notificationsEnabled,
+    theme: state.theme || 'sunshine',
     calVersion: state.calVersion,
     updatedAt: new Date().toISOString()
   };
@@ -2833,6 +3851,7 @@ async function cloudLoadUserData() {
     if (typeof data.adhdMode === 'boolean') state.adhdMode = data.adhdMode;
     if (typeof data.dyslexiaMode === 'boolean') state.dyslexiaMode = data.dyslexiaMode;
     if (data.fontFamily) state.fontFamily = data.fontFamily;
+    if (data.theme) state.theme = data.theme;
     else if (state.dyslexiaMode) state.fontFamily = 'opendyslexic';
     if (data.books) state.books = data.books;
     if (data.inquiries) state.inquiries = data.inquiries;
@@ -2956,11 +3975,10 @@ function login() {
 }
 
 function ensureSchoolCalendar() {
-  const CAL_VERSION = 10;
+  const CAL_VERSION = 9;
   if (state.calVersion === CAL_VERSION) return;
 
   // Canonical school calendar notes (all with full dates, no duplicates)
-  // These appear under Remember / calendar — NOT as Action Steps
   const importantNotes = [
     { text: '🏠 Residential 1 · 27 Sep – 2 Oct 2026', reminder: '2026-09-27' },
     { text: '🚫 No school · 5 Oct 2026 (day after Residential 1)', reminder: '2026-10-05' },
@@ -2999,13 +4017,46 @@ function ensureSchoolCalendar() {
     });
   });
 
-  // Remove any old school calendar items that were previously injected as Action Steps.
-  // Action Steps must ONLY be ones the user has typed in themselves.
+  const keyEvents = [
+    { title: '🏠 Residential 1 · 27 Sep – 2 Oct 2026', date: '2026-09-27', notes: '27 Sep – 2 Oct 2026' },
+    { title: '🚫 No school · 5 Oct 2026', date: '2026-10-05', notes: 'Day after Residential 1' },
+    { title: '🔥 Bootcamp / Focus Week · 12–16 Oct 2026', date: '2026-10-12', notes: '12–16 Oct 2026' },
+    { title: '🎉 Community Celebration · Fri 16 Oct 2026', date: '2026-10-16', notes: 'Friday' },
+    { title: '🍂 Autumn Holiday · 26–30 Oct 2026', date: '2026-10-26', notes: '26–30 Oct 2026' },
+    { title: '🎄 Winter Holiday · 21 Dec 2026 – 8 Jan 2027', date: '2026-12-21', notes: '21 Dec 2026 – 8 Jan 2027' },
+    { title: '🏠 Residential 2 · 31 Jan – 5 Feb 2027', date: '2027-01-31', notes: '31 Jan – 5 Feb 2027' },
+    { title: '🎭 Carnival Holiday · 8–12 Feb 2027', date: '2027-02-08', notes: '8–12 Feb 2027' },
+    { title: '🔥 Bootcamp / Focus Week · 1–5 Mar 2027', date: '2027-03-01', notes: '1–5 Mar 2027' },
+    { title: '📚 World Book Day · 4 Mar 2027', date: '2027-03-04', notes: '4 Mar 2027' },
+    { title: '🎉 Community Celebration · Fri 5 Mar 2027', date: '2027-03-05', notes: 'Friday' },
+    { title: '🐣 Easter Holiday · 22–30 Mar 2027', date: '2027-03-22', notes: '22–30 Mar 2027' },
+    { title: '✝️ Ascension Weekend · 7–9 May 2027', date: '2027-05-07', notes: '7–9 May 2027 (no school)' },
+    { title: '✝️ Pentecost · 17 May 2027', date: '2027-05-17', notes: 'No school' },
+    { title: '💡 Hackathon · 7–11 Jun 2027', date: '2027-06-07', notes: '7–11 Jun 2027' },
+    { title: '🎉 Community Celebration · Fri 11 Jun 2027', date: '2027-06-11', notes: 'Friday' },
+    { title: '🏠 Residential 3 · 24–29 Jun 2027', date: '2027-06-24', notes: '24–29 Jun 2027' },
+    { title: '🏁 Last day of school · 29 Jun 2027', date: '2027-06-29', notes: '29 Jun 2027' },
+    { title: '☀️ Summer Holiday · 30 Jun – 27 Aug 2027', date: '2027-06-30', notes: '30 Jun – 27 Aug 2027' }
+  ];
+
+  // Remove old school tasks (by emoji prefix or known short titles)
   state.tasks = (state.tasks || []).filter(t => {
     const title = (t.title || '').trim();
     if (schoolEmoji.test(title)) return false;
     if (/^(Residential|Bootcamp|Hackathon|Community Celebration|Autumn Holiday|Winter Holiday|Carnival|Easter|Ascension|Pentecost|Summer Holiday|Dragon|No school|Last day|World Book)/i.test(title)) return false;
     return true;
+  });
+
+  keyEvents.forEach(e => {
+    state.tasks.push({
+      id: uid(),
+      title: e.title,
+      date: e.date,
+      notes: e.notes,
+      steps: [],
+      completed: false,
+      created: todayStr()
+    });
   });
 
   state.calVersion = CAL_VERSION;
@@ -3023,6 +4074,8 @@ function enterApp() {
   ensureSchoolCalendar();
   applyA11yModes();
   renderAll();
+  initSessionNotifications();
+  scheduleSessionNotifications();
   if (firebaseReady && auth.currentUser) cloudSaveUserData();
 }
 
@@ -3291,7 +4344,6 @@ function bookTileHTML(b) {
     <div class="habit-streak bc-meta">Tap when finished ✓</div>
     <div class="bc-actions" onclick="event.stopPropagation()">
       ${b.link ? `<a class="small-btn" style="background:#E3F2FD;color:#1565C0;text-decoration:none" href="${b.link}" target="_blank" rel="noopener">Link</a>` : ''}
-      <button class="small-btn" onclick="openReadingModal('${b.id}')">Edit</button>
       <button class="small-btn danger" onclick="deleteBook('${b.id}')">Delete</button>
     </div>
   </div>`;
@@ -3305,14 +4357,13 @@ function inquiryTileHTML(i) {
     <div class="habit-streak bc-meta">Tap when finished ✓</div>
     <div class="bc-actions" onclick="event.stopPropagation()">
       ${i.link ? `<a class="small-btn" style="background:#F3E5F5;color:#6A1B9A;text-decoration:none" href="${i.link}" target="_blank" rel="noopener">Link</a>` : ''}
-      <button class="small-btn" onclick="openInquiryModal('${i.id}')">Edit</button>
       <button class="small-btn danger" onclick="deleteInquiry('${i.id}')">Delete</button>
     </div>
   </div>`;
 }
 
 function escTxt(s) {
-  return String(s || '').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+  return String(s || '').replace(/</g,'<');
 }
 
 function bookReviewCardHTML(b) {
@@ -3342,100 +4393,76 @@ function inquiryReviewCardHTML(i) {
   </div>`;
 }
 
-function openReadingModal(editId = null) {
-  const b = editId ? (state.books || []).find(x => x.id === editId) : null;
-  const title = b ? String(b.title || '').replace(/"/g, '&quot;') : '';
-  const author = b ? String(b.author || '').replace(/"/g, '&quot;') : '';
-  const link = b ? String(b.link || '').replace(/"/g, '&quot;') : '';
+function openReadingModal() {
   openModal(`
-    <h3>📖 ${b ? 'Edit book' : 'Add reading book'}</h3>
+    <h3>📖 Add reading book</h3>
     <p style="color:var(--muted);font-size:0.9rem;margin-bottom:10px">Stays until you finish it. Then check it off and write a review.</p>
     <label>Book title</label>
-    <input type="text" id="reading-title" value="${title}" placeholder="Title">
+    <input type="text" id="reading-title" placeholder="Title">
     <label>Author</label>
-    <input type="text" id="reading-author" value="${author}" placeholder="Author">
+    <input type="text" id="reading-author" placeholder="Author">
     <label>Link (optional)</label>
-    <input type="url" id="reading-link" value="${link}" placeholder="https://...">
-    <button class="btn primary" onclick="saveReadingBook('${editId || ''}')">${b ? 'Save changes' : 'Add book'}</button>
+    <input type="url" id="reading-link" placeholder="https://...">
+    <button class="btn primary" onclick="saveReadingBook()">Add book</button>
   `);
 }
 
-function saveReadingBook(editId) {
+function saveReadingBook() {
   const title = document.getElementById('reading-title').value.trim();
   if (!title) { toast('Enter the book title'); return; }
   const author = document.getElementById('reading-author').value.trim() || '';
   const link = document.getElementById('reading-link').value.trim() || null;
   if (!state.books) state.books = [];
-  if (editId) {
-    const b = state.books.find(x => x.id === editId);
-    if (b) {
-      b.title = title;
-      b.author = author;
-      b.link = link;
-    }
-  } else {
-    state.books.push({
-      id: uid(),
-      title,
-      author,
-      link,
-      until: nextFridayISO(new Date()),
-      status: 'active',
-      review: null,
-      created: todayStr()
-    });
-  }
+  state.books.push({
+    id: uid(),
+    title,
+    author,
+    link,
+    until: nextFridayISO(new Date()),
+    status: 'active',
+    review: null,
+    created: todayStr()
+  });
   save();
   closeModal();
   renderBooksTab();
   renderInquiryTab();
   renderWeeklyFocus();
-  toast(editId ? 'Book updated 📚' : 'Book added 📚');
+  toast('Book added 📚');
 }
 
-function openInquiryModal(editId = null) {
-  const i = editId ? (state.inquiries || []).find(x => x.id === editId) : null;
-  const topic = i ? String(i.topic || '').replace(/"/g, '&quot;') : '';
-  const link = i ? String(i.link || '').replace(/"/g, '&quot;') : '';
+function openInquiryModal() {
   openModal(`
-    <h3>🔍 ${i ? 'Edit inquiry' : 'Add topic inquiry'}</h3>
+    <h3>🔍 Add topic inquiry</h3>
     <p style="color:var(--muted);font-size:0.9rem;margin-bottom:10px">Stays active until Friday. When you finish, check it off and write a review.</p>
     <label>Topic</label>
-    <input type="text" id="inquiry-topic" value="${topic}" placeholder="e.g. How do volcanoes work?">
+    <input type="text" id="inquiry-topic" placeholder="e.g. How do volcanoes work?">
     <label>Link (optional)</label>
-    <input type="url" id="inquiry-link" value="${link}" placeholder="https://...">
-    <button class="btn primary" onclick="saveTopicInquiry('${editId || ''}')">${i ? 'Save changes' : 'Add inquiry'}</button>
+    <input type="url" id="inquiry-link" placeholder="https://...">
+    <button class="btn primary" onclick="saveTopicInquiry()">Add inquiry</button>
   `);
 }
 
-function saveTopicInquiry(editId) {
+function saveTopicInquiry() {
   const topic = document.getElementById('inquiry-topic').value.trim();
   if (!topic) { toast('Enter a topic'); return; }
   const link = document.getElementById('inquiry-link').value.trim() || null;
   if (!state.inquiries) state.inquiries = [];
-  if (editId) {
-    const i = state.inquiries.find(x => x.id === editId);
-    if (i) {
-      i.topic = topic;
-      i.link = link;
-    }
-  } else {
-    state.inquiries.push({
-      id: uid(),
-      topic,
-      link,
-      until: nextFridayISO(new Date()),
-      status: 'active',
-      review: null,
-      created: todayStr()
-    });
-  }
+  state.inquiries.push({
+    id: uid(),
+    topic,
+    link,
+    until: nextFridayISO(new Date()),
+    status: 'active',
+    review: null,
+    created: todayStr()
+  });
   save();
   closeModal();
   renderBooksTab();
   renderInquiryTab();
   renderWeeklyFocus();
-  toast(editId ? 'Inquiry updated 🔍' : 'Inquiry added 🔍');
+  toast('Inquiry added 🔍');
 }
 
 function markBookDone(id) {
@@ -3696,14 +4723,16 @@ function toggleTask(id) {
   const task = state.tasks.find(t => t.id === id);
   if (!task) return;
   if (task.completed) {
-    toast("Already done — can't undo 🔒");
-    return;
+    if (!confirm('Uncheck this action step?')) return;
+    task.completed = false;
+    addPoints(-5);
+    toast('Action step unchecked');
+  } else {
+    task.completed = true;
+    addPoints(5);
+    showConfetti();
+    toast('+5 stars! Action done ⭐');
   }
-  if (!confirm('Mark as done?\n\nYou cannot undo this.')) return;
-  task.completed = true;
-  addPoints(5);
-  showConfetti();
-  toast('+5 stars! Action done ⭐');
   save();
   renderToday();
   renderWeek();
@@ -3713,16 +4742,22 @@ function toggleStep(taskId, stepIndex) {
   const task = state.tasks.find(t => t.id === taskId);
   if (!task || !task.steps[stepIndex]) return;
   if (task.steps[stepIndex].done) {
-    toast("Step already done — can't undo 🔒");
-    return;
-  }
-  if (!confirm('Step done?\n\nYou cannot undo this.')) return;
-  task.steps[stepIndex].done = true;
-  if (task.steps.every(s => s.done) && !task.completed) {
-    task.completed = true;
-    addPoints(5);
-    showConfetti();
-    toast('All steps done! +5 stars 🎉');
+    task.steps[stepIndex].done = false;
+    if (task.completed && task.steps.some(s => !s.done)) {
+      task.completed = false;
+      addPoints(-5);
+    }
+    toast('Step unchecked');
+  } else {
+    task.steps[stepIndex].done = true;
+    if (task.steps.every(s => s.done) && !task.completed) {
+      task.completed = true;
+      addPoints(5);
+      showConfetti();
+      toast('All steps done! +5 stars 🎉');
+    } else {
+      toast('Step done ✓');
+    }
   }
   save();
   renderToday();
@@ -3741,7 +4776,7 @@ function deleteTask(id) {
 function addPoints(n) {
   const user = state.users[state.currentUser];
   if (user) {
-    user.points = (user.points || 0) + n;
+    user.points = Math.max(0, (user.points || 0) + n);
     renderHeader();
   }
 }
@@ -3822,14 +4857,16 @@ function toggleHabit(id) {
   if (!habit.history) habit.history = {};
   const t = todayStr();
   if (habit.history[t]) {
-    toast("Already done today — can't undo 🔒");
-    return;
+    if (!confirm('Uncheck this habit for today?')) return;
+    delete habit.history[t];
+    addPoints(-3);
+    toast('Habit unchecked');
+  } else {
+    habit.history[t] = true;
+    addPoints(3);
+    showConfetti();
+    toast('+3 stars for habit! 🔥');
   }
-  if (!confirm('Done for today?\n\nYou cannot undo this.')) return;
-  habit.history[t] = true;
-  addPoints(3);
-  showConfetti();
-  toast('+3 stars for habit! 🔥');
   save();
   renderTodayHabits();
   renderHabits();
@@ -4034,6 +5071,7 @@ function deleteClass(id) {
   renderClasses();
   renderWeek();
   renderMonth();
+  scheduleSessionNotifications();
   toast('Session removed');
 }
 
@@ -4049,14 +5087,16 @@ function toggleNoteDone(id) {
   const t = todayStr();
   if (!n.history) n.history = {};
   if (n.history[t]) {
-    toast("Already checked off — can't undo 🔒");
-    return;
+    if (!confirm('Uncheck this note for today?')) return;
+    delete n.history[t];
+    addPoints(-2);
+    toast('Note unchecked');
+  } else {
+    n.history[t] = true;
+    addPoints(2);
+    showConfetti();
+    toast('+2 stars! 📝');
   }
-  if (!confirm('Mark this note done for today?\n\nYou cannot undo this.')) return;
-  n.history[t] = true;
-  addPoints(2);
-  showConfetti();
-  toast('+2 stars! 📝');
   save();
   renderNotes();
   renderToday();
@@ -4075,7 +5115,6 @@ function noteTileHTML(n) {
     <div class="note-meta">${done ? 'Done today!' : 'Tap to check off'}</div>
     <div class="note-actions">
       ${zoom}
-      <button class="small-btn" onclick="event.stopPropagation(); openNoteModal('${n.id}')">Edit</button>
       <button class="small-btn danger" onclick="event.stopPropagation(); deleteNote('${n.id}')">Delete</button>
     </div>
   </div>`;
@@ -4420,30 +5459,26 @@ function saveClass(editId) {
   renderToday();
   renderWeek();
   renderMonth();
+  scheduleSessionNotifications();
   toast(editId ? 'Session updated!' : 'Session added! 🎨');
 }
 
-function openNoteModal(editId = null) {
-  const n = editId ? (state.notes || []).find(x => x.id === editId) : null;
-  const textVal = n ? String(n.text || '').replace(/</g, '&lt;') : '';
-  const reminder = n && n.reminder ? inputDateValue(n.reminder) : inputDateValue(todayStr());
-  const time = n ? (n.time || '') : '';
-  const zoom = n ? String(n.zoom || '').replace(/"/g, '&quot;') : '';
+function openNoteModal() {
   openModal(`
-    <h3>${n ? 'Edit Note' : 'Add a Note'} 📝</h3>
+    <h3>Add a Note 📝</h3>
     <label>What should we remember?</label>
-    <textarea id="note-text" placeholder="Don't forget...">${textVal}</textarea>
+    <textarea id="note-text" placeholder="Don't forget..."></textarea>
     <label>Date (required) · dd/mm/yyyy</label>
-    <input type="text" id="note-reminder" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off" value="${reminder}">
+    <input type="text" id="note-reminder" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off" value="${inputDateValue(todayStr())}">
     <label>Time (optional)</label>
-    <input type="time" id="note-time" value="${time}">
+    <input type="time" id="note-time">
     <label>Zoom / link (optional)</label>
-    <input type="url" id="note-zoom" value="${zoom}" placeholder="https://...">
-    <button class="btn primary" onclick="saveNote('${editId || ''}')">${n ? 'Save changes' : 'Save Note'}</button>
+    <input type="url" id="note-zoom" placeholder="https://...">
+    <button class="btn primary" onclick="saveNote()">Save Note</button>
   `);
 }
 
-function saveNote(editId) {
+function saveNote() {
   const textVal = document.getElementById('note-text').value.trim();
   if (!textVal) {
     toast('Please write something');
@@ -4456,31 +5491,21 @@ function saveNote(editId) {
   }
   const time = document.getElementById('note-time').value || null;
   const zoom = document.getElementById('note-zoom').value.trim() || null;
-  if (editId) {
-    const n = state.notes.find(x => x.id === editId);
-    if (n) {
-      n.text = textVal;
-      n.reminder = reminder;
-      n.time = time;
-      n.zoom = zoom;
-    }
-  } else {
-    state.notes.push({
-      id: uid(),
-      text: textVal,
-      reminder,
-      time,
-      zoom,
-      created: todayStr()
-    });
-  }
+  state.notes.push({
+    id: uid(),
+    text: textVal,
+    reminder,
+    time,
+    zoom,
+    created: todayStr()
+  });
   save();
   closeModal();
   renderNotes();
   renderToday();
   renderWeek();
   renderMonth();
-  toast(editId ? 'Note updated! 📝' : 'Saved! 📝');
+  toast('Saved! 📝');
 }
 
 // ---------- Init ----------
