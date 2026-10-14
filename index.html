@@ -2695,40 +2695,53 @@ function renderGoals() {
       <div class="goal-card ${g.done ? 'done' : ''}">
         <div class="checkbox ${g.done ? 'checked' : ''}" onclick="toggleGoal('${g.id}')">${g.done ? '✓' : ''}</div>
         <div style="flex:1">
-          <div class="goal-text card-title">${g.text}</div>
+          <div class="goal-text card-title">${String(g.text || '').replace(/</g,'&lt;')}</div>
           ${g.byWhen ? `<div class="card-meta">By ${formatShort(g.byWhen)}</div>` : ''}
         </div>
+        <button class="small-btn" onclick="openGoalModal('${g.term || 'short'}', '${g.id}')">Edit</button>
         <button class="small-btn danger" onclick="deleteGoal('${g.id}')">Delete</button>
       </div>
     `).join('');
   });
 }
 
-function openGoalModal(term) {
-  const t = term || 'short';
+function openGoalModal(term, editId = null) {
+  const g = editId ? (state.goals || []).find(x => x.id === editId) : null;
+  const t = (g && g.term) || term || 'short';
   const labels = { short: 'Short-term', medium: 'Medium-term', long: 'Long-term' };
+  const text = g ? String(g.text || '').replace(/"/g, '&quot;') : '';
+  const byVal = g && g.byWhen ? inputDateValue(g.byWhen) : '';
   openModal(`
-    <h3>${labels[t] || 'New'} Goal 🎯</h3>
+    <h3>${g ? 'Edit' : (labels[t] || 'New')} Goal 🎯</h3>
     <input type="hidden" id="goal-term" value="${t}">
     <label>What do you want to achieve?</label>
-    <input type="text" id="goal-text" placeholder="Write your goal">
+    <input type="text" id="goal-text" value="${text}" placeholder="Write your goal">
     <label>By when? (optional)</label>
-    <input type="text" id="goal-by" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
-    <button class="btn primary" onclick="saveGoal()">Save Goal</button>
+    <input type="text" id="goal-by" value="${byVal}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
+    <button class="btn primary" onclick="saveGoal('${editId || ''}')">${g ? 'Save Changes' : 'Save Goal'}</button>
   `);
 }
 
-function saveGoal() {
+function saveGoal(editId) {
   const textVal = document.getElementById('goal-text').value.trim();
   if (!textVal) { toast('Write your goal'); return; }
   const byWhen = parseUserDate(document.getElementById('goal-by').value);
   const term = (document.getElementById('goal-term') || {}).value || 'short';
   if (!state.goals) state.goals = [];
-  state.goals.push({ id: uid(), text: textVal, byWhen, term, done: false, created: todayStr() });
+  if (editId) {
+    const g = state.goals.find(x => x.id === editId);
+    if (g) {
+      g.text = textVal;
+      g.byWhen = byWhen;
+      g.term = term;
+    }
+  } else {
+    state.goals.push({ id: uid(), text: textVal, byWhen, term, done: false, created: todayStr() });
+  }
   save();
   closeModal();
   renderGoals();
-  toast('Goal saved! 🎯');
+  toast(editId ? 'Goal updated! 🎯' : 'Goal saved! 🎯');
 }
 
 function toggleGoal(id) {
@@ -5109,12 +5122,13 @@ function noteTileHTML(n) {
     : '';
   return `<div class="note-tile ${done ? 'done-today' : ''}" onclick="toggleNoteDone('${n.id}')">
     <div class="note-icon">${done ? '✅' : '📝'}</div>
-    <div class="note-name">${n.text}</div>
+    <div class="note-name">${String(n.text || '').replace(/</g,'&lt;')}</div>
     ${n.reminder ? `<div class="note-meta">📅 ${formatShort(n.reminder)}</div>` : ''}
     ${n.time ? `<div class="note-meta">🕐 ${formatTimeCET(n.time)}</div>` : ''}
     <div class="note-meta">${done ? 'Done today!' : 'Tap to check off'}</div>
     <div class="note-actions">
       ${zoom}
+      <button class="small-btn" onclick="event.stopPropagation(); openNoteModal('${n.id}')">Edit</button>
       <button class="small-btn danger" onclick="event.stopPropagation(); deleteNote('${n.id}')">Delete</button>
     </div>
   </div>`;
@@ -5463,22 +5477,27 @@ function saveClass(editId) {
   toast(editId ? 'Session updated!' : 'Session added! 🎨');
 }
 
-function openNoteModal() {
+function openNoteModal(editId = null) {
+  const n = editId ? (state.notes || []).find(x => x.id === editId) : null;
+  const text = n ? String(n.text || '').replace(/</g, '&lt;') : '';
+  const reminder = n && n.reminder ? inputDateValue(n.reminder) : inputDateValue(todayStr());
+  const time = n && n.time ? n.time : '';
+  const zoom = n ? String(n.zoom || '').replace(/"/g, '&quot;') : '';
   openModal(`
-    <h3>Add a Note 📝</h3>
+    <h3>${n ? 'Edit Note' : 'Add a Note'} 📝</h3>
     <label>What should we remember?</label>
-    <textarea id="note-text" placeholder="Don't forget..."></textarea>
+    <textarea id="note-text" placeholder="Don't forget...">${text}</textarea>
     <label>Date (required) · dd/mm/yyyy</label>
-    <input type="text" id="note-reminder" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off" value="${inputDateValue(todayStr())}">
+    <input type="text" id="note-reminder" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off" value="${reminder}">
     <label>Time (optional)</label>
-    <input type="time" id="note-time">
+    <input type="time" id="note-time" value="${time}">
     <label>Zoom / link (optional)</label>
-    <input type="url" id="note-zoom" placeholder="https://...">
-    <button class="btn primary" onclick="saveNote()">Save Note</button>
+    <input type="url" id="note-zoom" value="${zoom}" placeholder="https://...">
+    <button class="btn primary" onclick="saveNote('${editId || ''}')">${n ? 'Save Changes' : 'Save Note'}</button>
   `);
 }
 
-function saveNote() {
+function saveNote(editId) {
   const textVal = document.getElementById('note-text').value.trim();
   if (!textVal) {
     toast('Please write something');
@@ -5491,21 +5510,31 @@ function saveNote() {
   }
   const time = document.getElementById('note-time').value || null;
   const zoom = document.getElementById('note-zoom').value.trim() || null;
-  state.notes.push({
-    id: uid(),
-    text: textVal,
-    reminder,
-    time,
-    zoom,
-    created: todayStr()
-  });
+  if (editId) {
+    const n = state.notes.find(x => x.id === editId);
+    if (n) {
+      n.text = textVal;
+      n.reminder = reminder;
+      n.time = time;
+      n.zoom = zoom;
+    }
+  } else {
+    state.notes.push({
+      id: uid(),
+      text: textVal,
+      reminder,
+      time,
+      zoom,
+      created: todayStr()
+    });
+  }
   save();
   closeModal();
   renderNotes();
   renderToday();
   renderWeek();
   renderMonth();
-  toast('Saved! 📝');
+  toast(editId ? 'Note updated! 📝' : 'Saved! 📝');
 }
 
 // ---------- Init ----------
