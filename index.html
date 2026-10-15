@@ -2367,14 +2367,15 @@ body.theme-highcontrast .nav-btn.active {
 const APP_VERSION = '2026-10-08e';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
-/* Firebase optional — leave empty for this-device accounts */
+/* Firebase — cloud accounts + sync across devices */
 const FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyCISQ-4ZLwcbkXLWUr_yYL5W7_p6vI3O4E",
+  authDomain: "sbl-plan.firebaseapp.com",
+  projectId: "sbl-plan",
+  storageBucket: "sbl-plan.firebasestorage.app",
+  messagingSenderId: "881565695334",
+  appId: "1:881565695334:web:c5f82dd7b42db877ab9ca7",
+  measurementId: "G-0PS3MSB8K5"
 };
 
 let firebaseReady = false;
@@ -2497,7 +2498,7 @@ function sessionOnDay(c, weekday, dateStr) {
   }
 
   // Regular sessions: hide on holiday / residential for everyone.
-  // On bootcamp / hackathon: only hide morning sessions (afternoon + mentoring still show).
+  // On bootcamp / hackathon: only hide morning (afternoon + mentoring still show).
   if (dateStr && isNoSessionSpecialDay(dateStr, c.sessionType)) return false;
 
   // every-other-week: A and B alternate (never both the same week)
@@ -2508,15 +2509,12 @@ function sessionOnDay(c, weekday, dateStr) {
   return true;
 }
 
-// Types that suppress ALL regular sessions
 const NO_SESSION_ALL_TYPES = ['holiday', 'residential'];
-// Types that suppress only morning sessions (afternoon + mentoring still appear)
 const NO_SESSION_MORNING_TYPES = ['bootcamp', 'hackathon'];
 
 function isNoSessionSpecialDay(dateStr, sessionType) {
   const types = getSpecialEvents(dateStr).map(s => s.type);
   if (types.some(t => NO_SESSION_ALL_TYPES.includes(t))) return true;
-  // Bootcamp / hackathon: hide morning only; afternoon & mentoring stay visible
   if (types.some(t => NO_SESSION_MORNING_TYPES.includes(t))) {
     return !sessionType || sessionType === 'morning';
   }
@@ -2740,11 +2738,7 @@ function saveGoal(editId) {
   if (!state.goals) state.goals = [];
   if (editId) {
     const g = state.goals.find(x => x.id === editId);
-    if (g) {
-      g.text = textVal;
-      g.byWhen = byWhen;
-      g.term = term;
-    }
+    if (g) { g.text = textVal; g.byWhen = byWhen; g.term = term; }
   } else {
     state.goals.push({ id: uid(), text: textVal, byWhen, term, done: false, created: todayStr() });
   }
@@ -4445,21 +4439,11 @@ function saveReadingBook(editId) {
   if (!state.books) state.books = [];
   if (editId) {
     const b = state.books.find(x => x.id === editId);
-    if (b) {
-      b.title = title;
-      b.author = author;
-      b.link = link;
-    }
+    if (b) { b.title = title; b.author = author; b.link = link; }
   } else {
     state.books.push({
-      id: uid(),
-      title,
-      author,
-      link,
-      until: nextFridayISO(new Date()),
-      status: 'active',
-      review: null,
-      created: todayStr()
+      id: uid(), title, author, link,
+      until: nextFridayISO(new Date()), status: 'active', review: null, created: todayStr()
     });
   }
   save();
@@ -4492,19 +4476,11 @@ function saveTopicInquiry(editId) {
   if (!state.inquiries) state.inquiries = [];
   if (editId) {
     const i = state.inquiries.find(x => x.id === editId);
-    if (i) {
-      i.topic = topic;
-      i.link = link;
-    }
+    if (i) { i.topic = topic; i.link = link; }
   } else {
     state.inquiries.push({
-      id: uid(),
-      topic,
-      link,
-      until: nextFridayISO(new Date()),
-      status: 'active',
-      review: null,
-      created: todayStr()
+      id: uid(), topic, link,
+      until: nextFridayISO(new Date()), status: 'active', review: null, created: todayStr()
     });
   }
   save();
@@ -5549,20 +5525,10 @@ function saveNote(editId) {
   const zoom = document.getElementById('note-zoom').value.trim() || null;
   if (editId) {
     const n = state.notes.find(x => x.id === editId);
-    if (n) {
-      n.text = textVal;
-      n.reminder = reminder;
-      n.time = time;
-      n.zoom = zoom;
-    }
+    if (n) { n.text = textVal; n.reminder = reminder; n.time = time; n.zoom = zoom; }
   } else {
     state.notes.push({
-      id: uid(),
-      text: textVal,
-      reminder,
-      time,
-      zoom,
-      created: todayStr()
+      id: uid(), text: textVal, reminder, time, zoom, created: todayStr()
     });
   }
   save();
