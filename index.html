@@ -2367,15 +2367,14 @@ body.theme-highcontrast .nav-btn.active {
 const APP_VERSION = '2026-10-08e';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
-/* Firebase — cloud accounts + sync across devices */
+/* Firebase optional — leave empty for this-device accounts */
 const FIREBASE_CONFIG = {
-  apiKey: "AIzaSyCISQ-4ZLwcbkXLWUr_yYL5W7_p6vI3O4E",
-  authDomain: "sbl-plan.firebaseapp.com",
-  projectId: "sbl-plan",
-  storageBucket: "sbl-plan.firebasestorage.app",
-  messagingSenderId: "881565695334",
-  appId: "1:881565695334:web:c5f82dd7b42db877ab9ca7",
-  measurementId: "G-0PS3MSB8K5"
+  apiKey: "",
+  authDomain: "",
+  projectId: "",
+  storageBucket: "",
+  messagingSenderId: "",
+  appId: ""
 };
 
 let firebaseReady = false;
@@ -2497,9 +2496,8 @@ function sessionOnDay(c, weekday, dateStr) {
     return dateInRange(dateStr, sw.start, sw.end);
   }
 
-  // Regular sessions: hide on holiday / residential for everyone.
-  // On bootcamp / hackathon: only hide morning (afternoon + mentoring still show).
-  if (dateStr && isNoSessionSpecialDay(dateStr, c.sessionType)) return false;
+  // Regular sessions are hidden on holiday / residential / bootcamp / hackathon
+  if (dateStr && isNoSessionSpecialDay(dateStr)) return false;
 
   // every-other-week: A and B alternate (never both the same week)
   if (c.everyOtherWeek) {
@@ -2509,16 +2507,10 @@ function sessionOnDay(c, weekday, dateStr) {
   return true;
 }
 
-const NO_SESSION_ALL_TYPES = ['holiday', 'residential'];
-const NO_SESSION_MORNING_TYPES = ['bootcamp', 'hackathon'];
+const NO_SESSION_SPECIAL_TYPES = ['holiday', 'residential', 'bootcamp', 'hackathon'];
 
-function isNoSessionSpecialDay(dateStr, sessionType) {
-  const types = getSpecialEvents(dateStr).map(s => s.type);
-  if (types.some(t => NO_SESSION_ALL_TYPES.includes(t))) return true;
-  if (types.some(t => NO_SESSION_MORNING_TYPES.includes(t))) {
-    return !sessionType || sessionType === 'morning';
-  }
-  return false;
+function isNoSessionSpecialDay(dateStr) {
+  return getSpecialEvents(dateStr).some(s => NO_SESSION_SPECIAL_TYPES.includes(s.type));
 }
 
 function assignableSpecialWeeks() {
@@ -2699,17 +2691,28 @@ function renderGoals() {
       list.innerHTML = `<div class="empty" style="padding:10px;font-size:0.9rem">No ${term}-term goals yet</div>`;
       return;
     }
-    list.innerHTML = items.map(g => `
+    list.innerHTML = items.map(g => {
+      const howLines = (g.how || '').trim().split('\n').map(s => s.trim()).filter(Boolean);
+      const howHtml = howLines.length
+        ? `<div class="card-meta" style="margin-top:6px"><strong>How:</strong></div>
+           <ul style="margin:4px 0 0 18px;padding:0;color:var(--muted);font-size:0.88rem;line-height:1.4">
+             ${howLines.map(s => `<li>${String(s).replace(/</g,'&lt;')}</li>`).join('')}
+           </ul>`
+        : '';
+      return `
       <div class="goal-card ${g.done ? 'done' : ''}">
         <div class="checkbox ${g.done ? 'checked' : ''}" onclick="toggleGoal('${g.id}')">${g.done ? '✓' : ''}</div>
         <div style="flex:1">
           <div class="goal-text card-title">${String(g.text || '').replace(/</g,'&lt;')}</div>
           ${g.byWhen ? `<div class="card-meta">By ${formatShort(g.byWhen)}</div>` : ''}
+          ${howHtml}
         </div>
-        <button class="small-btn" onclick="openGoalModal('${g.term || 'short'}', '${g.id}')">Edit</button>
-        <button class="small-btn danger" onclick="deleteGoal('${g.id}')">Delete</button>
-      </div>
-    `).join('');
+        <div style="display:flex;flex-direction:column;gap:6px">
+          <button class="small-btn" onclick="openGoalModal('${g.term || 'short'}', '${g.id}')">Edit</button>
+          <button class="small-btn danger" onclick="deleteGoal('${g.id}')">Delete</button>
+        </div>
+      </div>`;
+    }).join('');
   });
 }
 
@@ -2718,12 +2721,15 @@ function openGoalModal(term, editId = null) {
   const t = (g && g.term) || term || 'short';
   const labels = { short: 'Short-term', medium: 'Medium-term', long: 'Long-term' };
   const text = g ? String(g.text || '').replace(/"/g, '&quot;') : '';
+  const how = g ? String(g.how || '').replace(/</g, '&lt;') : '';
   const byVal = g && g.byWhen ? inputDateValue(g.byWhen) : '';
   openModal(`
     <h3>${g ? 'Edit' : (labels[t] || 'New')} Goal 🎯</h3>
     <input type="hidden" id="goal-term" value="${t}">
     <label>What do you want to achieve?</label>
-    <input type="text" id="goal-text" value="${text}" placeholder="Write your goal">
+    <input type="text" id="goal-text" value="${text}" placeholder="e.g. Finish my science project">
+    <label>What can I do to accomplish this?</label>
+    <textarea id="goal-how" placeholder="One idea per line&#10;e.g. Break it into small steps&#10;Ask my mentor for help&#10;Work on it 20 min each day">${how}</textarea>
     <label>By when? (optional)</label>
     <input type="text" id="goal-by" value="${byVal}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
     <button class="btn primary" onclick="saveGoal('${editId || ''}')">${g ? 'Save Changes' : 'Save Goal'}</button>
@@ -2733,14 +2739,30 @@ function openGoalModal(term, editId = null) {
 function saveGoal(editId) {
   const textVal = document.getElementById('goal-text').value.trim();
   if (!textVal) { toast('Write your goal'); return; }
+  const how = (document.getElementById('goal-how') || {}).value
+    ? document.getElementById('goal-how').value.trim()
+    : '';
   const byWhen = parseUserDate(document.getElementById('goal-by').value);
   const term = (document.getElementById('goal-term') || {}).value || 'short';
   if (!state.goals) state.goals = [];
   if (editId) {
     const g = state.goals.find(x => x.id === editId);
-    if (g) { g.text = textVal; g.byWhen = byWhen; g.term = term; }
+    if (g) {
+      g.text = textVal;
+      g.how = how;
+      g.byWhen = byWhen;
+      g.term = term;
+    }
   } else {
-    state.goals.push({ id: uid(), text: textVal, byWhen, term, done: false, created: todayStr() });
+    state.goals.push({
+      id: uid(),
+      text: textVal,
+      how,
+      byWhen,
+      term,
+      done: false,
+      created: todayStr()
+    });
   }
   save();
   closeModal();
@@ -4357,12 +4379,10 @@ function openPastInquiryReviews() {
 function bookTileHTML(b) {
   return `<div class="habit-card book-card" onclick="markBookDone('${b.id}')" style="border-top:4px solid #42A5F5">
     <div class="habit-emoji bc-emoji">📖</div>
-    <div class="habit-name bc-name">${String(b.title || '').replace(/</g,'&lt;')}</div>
-    ${b.author ? `<div class="habit-streak bc-meta">${String(b.author).replace(/</g,'&lt;')}</div>` : ''}
+    <div class="habit-name bc-name">${b.title.replace(/</g,'&lt;')}</div>
     <div class="habit-streak bc-meta">Tap when finished ✓</div>
     <div class="bc-actions" onclick="event.stopPropagation()">
       ${b.link ? `<a class="small-btn" style="background:#E3F2FD;color:#1565C0;text-decoration:none" href="${b.link}" target="_blank" rel="noopener">Link</a>` : ''}
-      <button class="small-btn" onclick="openReadingModal('${b.id}')">Edit</button>
       <button class="small-btn danger" onclick="deleteBook('${b.id}')">Delete</button>
     </div>
   </div>`;
@@ -4371,12 +4391,11 @@ function bookTileHTML(b) {
 function inquiryTileHTML(i) {
   return `<div class="habit-card inquiry-card" onclick="markInquiryDone('${i.id}')" style="border-top:4px solid #AB47BC">
     <div class="habit-emoji bc-emoji">🔍</div>
-    <div class="habit-name bc-name">${String(i.topic || '').replace(/</g,'&lt;')}</div>
+    <div class="habit-name bc-name">${i.topic.replace(/</g,'&lt;')}</div>
     <div class="habit-streak bc-meta">Until Fri ${formatDMY(i.until)}</div>
     <div class="habit-streak bc-meta">Tap when finished ✓</div>
     <div class="bc-actions" onclick="event.stopPropagation()">
       ${i.link ? `<a class="small-btn" style="background:#F3E5F5;color:#6A1B9A;text-decoration:none" href="${i.link}" target="_blank" rel="noopener">Link</a>` : ''}
-      <button class="small-btn" onclick="openInquiryModal('${i.id}')">Edit</button>
       <button class="small-btn danger" onclick="deleteInquiry('${i.id}')">Delete</button>
     </div>
   </div>`;
@@ -4413,82 +4432,76 @@ function inquiryReviewCardHTML(i) {
   </div>`;
 }
 
-function openReadingModal(editId = null) {
-  const b = editId ? (state.books || []).find(x => x.id === editId) : null;
-  const title = b ? String(b.title || '').replace(/"/g, '&quot;') : '';
-  const author = b ? String(b.author || '').replace(/"/g, '&quot;') : '';
-  const link = b ? String(b.link || '').replace(/"/g, '&quot;') : '';
+function openReadingModal() {
   openModal(`
-    <h3>📖 ${b ? 'Edit book' : 'Add reading book'}</h3>
-    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:10px">${b ? 'Update the details below.' : 'Stays until you finish it. Then check it off and write a review.'}</p>
+    <h3>📖 Add reading book</h3>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:10px">Stays until you finish it. Then check it off and write a review.</p>
     <label>Book title</label>
-    <input type="text" id="reading-title" value="${title}" placeholder="Title">
+    <input type="text" id="reading-title" placeholder="Title">
     <label>Author</label>
-    <input type="text" id="reading-author" value="${author}" placeholder="Author">
+    <input type="text" id="reading-author" placeholder="Author">
     <label>Link (optional)</label>
-    <input type="url" id="reading-link" value="${link}" placeholder="https://...">
-    <button class="btn primary" onclick="saveReadingBook('${editId || ''}')">${b ? 'Save Changes' : 'Add book'}</button>
+    <input type="url" id="reading-link" placeholder="https://...">
+    <button class="btn primary" onclick="saveReadingBook()">Add book</button>
   `);
 }
 
-function saveReadingBook(editId) {
+function saveReadingBook() {
   const title = document.getElementById('reading-title').value.trim();
   if (!title) { toast('Enter the book title'); return; }
   const author = document.getElementById('reading-author').value.trim() || '';
   const link = document.getElementById('reading-link').value.trim() || null;
   if (!state.books) state.books = [];
-  if (editId) {
-    const b = state.books.find(x => x.id === editId);
-    if (b) { b.title = title; b.author = author; b.link = link; }
-  } else {
-    state.books.push({
-      id: uid(), title, author, link,
-      until: nextFridayISO(new Date()), status: 'active', review: null, created: todayStr()
-    });
-  }
+  state.books.push({
+    id: uid(),
+    title,
+    author,
+    link,
+    until: nextFridayISO(new Date()),
+    status: 'active',
+    review: null,
+    created: todayStr()
+  });
   save();
   closeModal();
   renderBooksTab();
   renderInquiryTab();
   renderWeeklyFocus();
-  toast(editId ? 'Book updated 📚' : 'Book added 📚');
+  toast('Book added 📚');
 }
 
-function openInquiryModal(editId = null) {
-  const i = editId ? (state.inquiries || []).find(x => x.id === editId) : null;
-  const topic = i ? String(i.topic || '').replace(/"/g, '&quot;') : '';
-  const link = i ? String(i.link || '').replace(/"/g, '&quot;') : '';
+function openInquiryModal() {
   openModal(`
-    <h3>🔍 ${i ? 'Edit inquiry' : 'Add topic inquiry'}</h3>
-    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:10px">${i ? 'Update the details below.' : 'Stays active until Friday. When you finish, check it off and write a review.'}</p>
+    <h3>🔍 Add topic inquiry</h3>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:10px">Stays active until Friday. When you finish, check it off and write a review.</p>
     <label>Topic</label>
-    <input type="text" id="inquiry-topic" value="${topic}" placeholder="e.g. How do volcanoes work?">
+    <input type="text" id="inquiry-topic" placeholder="e.g. How do volcanoes work?">
     <label>Link (optional)</label>
-    <input type="url" id="inquiry-link" value="${link}" placeholder="https://...">
-    <button class="btn primary" onclick="saveTopicInquiry('${editId || ''}')">${i ? 'Save Changes' : 'Add inquiry'}</button>
+    <input type="url" id="inquiry-link" placeholder="https://...">
+    <button class="btn primary" onclick="saveTopicInquiry()">Add inquiry</button>
   `);
 }
 
-function saveTopicInquiry(editId) {
+function saveTopicInquiry() {
   const topic = document.getElementById('inquiry-topic').value.trim();
   if (!topic) { toast('Enter a topic'); return; }
   const link = document.getElementById('inquiry-link').value.trim() || null;
   if (!state.inquiries) state.inquiries = [];
-  if (editId) {
-    const i = state.inquiries.find(x => x.id === editId);
-    if (i) { i.topic = topic; i.link = link; }
-  } else {
-    state.inquiries.push({
-      id: uid(), topic, link,
-      until: nextFridayISO(new Date()), status: 'active', review: null, created: todayStr()
-    });
-  }
+  state.inquiries.push({
+    id: uid(),
+    topic,
+    link,
+    until: nextFridayISO(new Date()),
+    status: 'active',
+    review: null,
+    created: todayStr()
+  });
   save();
   closeModal();
   renderBooksTab();
   renderInquiryTab();
   renderWeeklyFocus();
-  toast(editId ? 'Inquiry updated 🔍' : 'Inquiry added 🔍');
+  toast('Inquiry added 🔍');
 }
 
 function markBookDone(id) {
@@ -5135,13 +5148,12 @@ function noteTileHTML(n) {
     : '';
   return `<div class="note-tile ${done ? 'done-today' : ''}" onclick="toggleNoteDone('${n.id}')">
     <div class="note-icon">${done ? '✅' : '📝'}</div>
-    <div class="note-name">${String(n.text || '').replace(/</g,'&lt;')}</div>
+    <div class="note-name">${n.text}</div>
     ${n.reminder ? `<div class="note-meta">📅 ${formatShort(n.reminder)}</div>` : ''}
     ${n.time ? `<div class="note-meta">🕐 ${formatTimeCET(n.time)}</div>` : ''}
     <div class="note-meta">${done ? 'Done today!' : 'Tap to check off'}</div>
     <div class="note-actions">
       ${zoom}
-      <button class="small-btn" onclick="event.stopPropagation(); openNoteModal('${n.id}')">Edit</button>
       <button class="small-btn danger" onclick="event.stopPropagation(); deleteNote('${n.id}')">Delete</button>
     </div>
   </div>`;
@@ -5490,27 +5502,22 @@ function saveClass(editId) {
   toast(editId ? 'Session updated!' : 'Session added! 🎨');
 }
 
-function openNoteModal(editId = null) {
-  const n = editId ? (state.notes || []).find(x => x.id === editId) : null;
-  const text = n ? String(n.text || '').replace(/</g, '&lt;') : '';
-  const reminder = n && n.reminder ? inputDateValue(n.reminder) : inputDateValue(todayStr());
-  const time = n && n.time ? n.time : '';
-  const zoom = n ? String(n.zoom || '').replace(/"/g, '&quot;') : '';
+function openNoteModal() {
   openModal(`
-    <h3>${n ? 'Edit Note' : 'Add a Note'} 📝</h3>
+    <h3>Add a Note 📝</h3>
     <label>What should we remember?</label>
-    <textarea id="note-text" placeholder="Don't forget...">${text}</textarea>
+    <textarea id="note-text" placeholder="Don't forget..."></textarea>
     <label>Date (required) · dd/mm/yyyy</label>
-    <input type="text" id="note-reminder" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off" value="${reminder}">
+    <input type="text" id="note-reminder" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off" value="${inputDateValue(todayStr())}">
     <label>Time (optional)</label>
-    <input type="time" id="note-time" value="${time}">
+    <input type="time" id="note-time">
     <label>Zoom / link (optional)</label>
-    <input type="url" id="note-zoom" value="${zoom}" placeholder="https://...">
-    <button class="btn primary" onclick="saveNote('${editId || ''}')">${n ? 'Save Changes' : 'Save Note'}</button>
+    <input type="url" id="note-zoom" placeholder="https://...">
+    <button class="btn primary" onclick="saveNote()">Save Note</button>
   `);
 }
 
-function saveNote(editId) {
+function saveNote() {
   const textVal = document.getElementById('note-text').value.trim();
   if (!textVal) {
     toast('Please write something');
@@ -5523,21 +5530,21 @@ function saveNote(editId) {
   }
   const time = document.getElementById('note-time').value || null;
   const zoom = document.getElementById('note-zoom').value.trim() || null;
-  if (editId) {
-    const n = state.notes.find(x => x.id === editId);
-    if (n) { n.text = textVal; n.reminder = reminder; n.time = time; n.zoom = zoom; }
-  } else {
-    state.notes.push({
-      id: uid(), text: textVal, reminder, time, zoom, created: todayStr()
-    });
-  }
+  state.notes.push({
+    id: uid(),
+    text: textVal,
+    reminder,
+    time,
+    zoom,
+    created: todayStr()
+  });
   save();
   closeModal();
   renderNotes();
   renderToday();
   renderWeek();
   renderMonth();
-  toast(editId ? 'Note updated! 📝' : 'Saved! 📝');
+  toast('Saved! 📝');
 }
 
 // ---------- Init ----------
