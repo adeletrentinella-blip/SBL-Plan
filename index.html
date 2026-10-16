@@ -2367,14 +2367,15 @@ body.theme-highcontrast .nav-btn.active {
 const APP_VERSION = '2026-10-08e';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
-/* Firebase optional — leave empty for this-device accounts */
+/* Firebase — cloud accounts + sync across devices */
 const FIREBASE_CONFIG = {
-  apiKey: "",
-  authDomain: "",
-  projectId: "",
-  storageBucket: "",
-  messagingSenderId: "",
-  appId: ""
+  apiKey: "AIzaSyCISQ-4ZLwcbkXLWUr_yYL5W7_p6vI3O4E",
+  authDomain: "sbl-plan.firebaseapp.com",
+  projectId: "sbl-plan",
+  storageBucket: "sbl-plan.firebasestorage.app",
+  messagingSenderId: "881565695334",
+  appId: "1:881565695334:web:c5f82dd7b42db877ab9ca7",
+  measurementId: "G-0PS3MSB8K5"
 };
 
 let firebaseReady = false;
@@ -2681,7 +2682,6 @@ function toggleSessionDone(id, dateStr) {
 
 function renderGoals() {
   if (!state.goals) state.goals = [];
-  // migrate old goals without term
   state.goals.forEach(g => { if (!g.term) g.term = 'short'; });
   ['short', 'medium', 'long'].forEach(term => {
     const list = document.getElementById('goals-' + term);
@@ -2729,7 +2729,7 @@ function openGoalModal(term, editId = null) {
     <label>What do you want to achieve?</label>
     <input type="text" id="goal-text" value="${text}" placeholder="e.g. Finish my science project">
     <label>What can I do to accomplish this?</label>
-    <textarea id="goal-how" placeholder="One idea per line&#10;e.g. Break it into small steps&#10;Ask my mentor for help&#10;Work on it 20 min each day">${how}</textarea>
+    <textarea id="goal-how" placeholder="One idea per line">${how}</textarea>
     <label>By when? (optional)</label>
     <input type="text" id="goal-by" value="${byVal}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
     <button class="btn primary" onclick="saveGoal('${editId || ''}')">${g ? 'Save Changes' : 'Save Goal'}</button>
@@ -2739,30 +2739,16 @@ function openGoalModal(term, editId = null) {
 function saveGoal(editId) {
   const textVal = document.getElementById('goal-text').value.trim();
   if (!textVal) { toast('Write your goal'); return; }
-  const how = (document.getElementById('goal-how') || {}).value
-    ? document.getElementById('goal-how').value.trim()
-    : '';
+  const howEl = document.getElementById('goal-how');
+  const how = howEl ? howEl.value.trim() : '';
   const byWhen = parseUserDate(document.getElementById('goal-by').value);
   const term = (document.getElementById('goal-term') || {}).value || 'short';
   if (!state.goals) state.goals = [];
   if (editId) {
     const g = state.goals.find(x => x.id === editId);
-    if (g) {
-      g.text = textVal;
-      g.how = how;
-      g.byWhen = byWhen;
-      g.term = term;
-    }
+    if (g) { g.text = textVal; g.how = how; g.byWhen = byWhen; g.term = term; }
   } else {
-    state.goals.push({
-      id: uid(),
-      text: textVal,
-      how,
-      byWhen,
-      term,
-      done: false,
-      created: todayStr()
-    });
+    state.goals.push({ id: uid(), text: textVal, how, byWhen, term, done: false, created: todayStr() });
   }
   save();
   closeModal();
@@ -4014,7 +4000,7 @@ function login() {
 }
 
 function ensureSchoolCalendar() {
-  const CAL_VERSION = 9;
+  const CAL_VERSION = 10;
   if (state.calVersion === CAL_VERSION) return;
 
   // Canonical school calendar notes (all with full dates, no duplicates)
@@ -4052,48 +4038,6 @@ function ensureSchoolCalendar() {
       id: uid(),
       text: n.text,
       reminder: n.reminder,
-      created: todayStr()
-    });
-  });
-
-  const keyEvents = [
-    { title: '🏠 Residential 1 · 27 Sep – 2 Oct 2026', date: '2026-09-27', notes: '27 Sep – 2 Oct 2026' },
-    { title: '🚫 No school · 5 Oct 2026', date: '2026-10-05', notes: 'Day after Residential 1' },
-    { title: '🔥 Bootcamp / Focus Week · 12–16 Oct 2026', date: '2026-10-12', notes: '12–16 Oct 2026' },
-    { title: '🎉 Community Celebration · Fri 16 Oct 2026', date: '2026-10-16', notes: 'Friday' },
-    { title: '🍂 Autumn Holiday · 26–30 Oct 2026', date: '2026-10-26', notes: '26–30 Oct 2026' },
-    { title: '🎄 Winter Holiday · 21 Dec 2026 – 8 Jan 2027', date: '2026-12-21', notes: '21 Dec 2026 – 8 Jan 2027' },
-    { title: '🏠 Residential 2 · 31 Jan – 5 Feb 2027', date: '2027-01-31', notes: '31 Jan – 5 Feb 2027' },
-    { title: '🎭 Carnival Holiday · 8–12 Feb 2027', date: '2027-02-08', notes: '8–12 Feb 2027' },
-    { title: '🔥 Bootcamp / Focus Week · 1–5 Mar 2027', date: '2027-03-01', notes: '1–5 Mar 2027' },
-    { title: '📚 World Book Day · 4 Mar 2027', date: '2027-03-04', notes: '4 Mar 2027' },
-    { title: '🎉 Community Celebration · Fri 5 Mar 2027', date: '2027-03-05', notes: 'Friday' },
-    { title: '🐣 Easter Holiday · 22–30 Mar 2027', date: '2027-03-22', notes: '22–30 Mar 2027' },
-    { title: '✝️ Ascension Weekend · 7–9 May 2027', date: '2027-05-07', notes: '7–9 May 2027 (no school)' },
-    { title: '✝️ Pentecost · 17 May 2027', date: '2027-05-17', notes: 'No school' },
-    { title: '💡 Hackathon · 7–11 Jun 2027', date: '2027-06-07', notes: '7–11 Jun 2027' },
-    { title: '🎉 Community Celebration · Fri 11 Jun 2027', date: '2027-06-11', notes: 'Friday' },
-    { title: '🏠 Residential 3 · 24–29 Jun 2027', date: '2027-06-24', notes: '24–29 Jun 2027' },
-    { title: '🏁 Last day of school · 29 Jun 2027', date: '2027-06-29', notes: '29 Jun 2027' },
-    { title: '☀️ Summer Holiday · 30 Jun – 27 Aug 2027', date: '2027-06-30', notes: '30 Jun – 27 Aug 2027' }
-  ];
-
-  // Remove old school tasks (by emoji prefix or known short titles)
-  state.tasks = (state.tasks || []).filter(t => {
-    const title = (t.title || '').trim();
-    if (schoolEmoji.test(title)) return false;
-    if (/^(Residential|Bootcamp|Hackathon|Community Celebration|Autumn Holiday|Winter Holiday|Carnival|Easter|Ascension|Pentecost|Summer Holiday|Dragon|No school|Last day|World Book)/i.test(title)) return false;
-    return true;
-  });
-
-  keyEvents.forEach(e => {
-    state.tasks.push({
-      id: uid(),
-      title: e.title,
-      date: e.date,
-      notes: e.notes,
-      steps: [],
-      completed: false,
       created: todayStr()
     });
   });
