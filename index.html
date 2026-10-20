@@ -6,7 +6,7 @@
   <title>SBL Plan – Your Fun Planner</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Chewy&family=Edu+QLD+Hand:wght@400..700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Chewy&family=Edu+QLD+Hand:wght@400..700&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
   <link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
   <meta name="description" content="SBL Plan – student planner for School Beyond Limitations. Privacy-friendly.">
   <style>
@@ -554,6 +554,11 @@ body.font-nunito {
   --line-height: 1.45;
   letter-spacing: 0;
 }
+body.font-poppins {
+  --font-main: 'Poppins', system-ui, sans-serif;
+  --line-height: 1.5;
+  letter-spacing: 0;
+}
 body.font-chewy {
   --font-main: 'Chewy', system-ui, sans-serif;
   font-weight: 400;
@@ -614,9 +619,106 @@ body.font-opendyslexic button {
   background: #F3E8FF;
 }
 .font-preview-nunito { font-family: 'Nunito', system-ui, sans-serif; font-weight: 800; }
+.font-preview-poppins { font-family: 'Poppins', system-ui, sans-serif; font-weight: 700; }
 .font-preview-chewy { font-family: 'Chewy', system-ui; font-weight: 400; font-style: normal; }
 .font-preview-eduqld { font-family: 'Edu QLD Hand', cursive; font-optical-sizing: auto; font-weight: 500; font-style: normal; }
 .font-preview-opendyslexic { font-family: 'OpenDyslexic', 'Comic Sans MS', system-ui, sans-serif; }
+
+/* Achievements — Duolingo-style */
+.ach-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(150px, 1fr));
+  gap: 12px;
+  margin-top: 8px;
+}
+.ach-card {
+  background: white;
+  border-radius: 18px;
+  padding: 14px 12px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  border: 3px solid #eee;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-height: 160px;
+  position: relative;
+}
+.ach-card.unlocked {
+  border-color: #58CC02;
+  background: linear-gradient(180deg, #E8F9E0 0%, #fff 55%);
+}
+.ach-card.locked {
+  opacity: 0.72;
+  filter: grayscale(0.35);
+}
+.ach-card .ach-emoji {
+  font-size: 2.2rem;
+  line-height: 1;
+}
+.ach-card .ach-title {
+  font-weight: 800;
+  font-size: 0.95rem;
+}
+.ach-card .ach-desc {
+  font-size: 0.78rem;
+  color: var(--muted);
+  line-height: 1.3;
+}
+.ach-card .ach-reward {
+  font-size: 0.75rem;
+  font-weight: 700;
+  color: #58A700;
+  margin-top: auto;
+}
+.ach-card.locked .ach-reward { color: var(--muted); }
+.ach-progress {
+  width: 100%;
+  height: 8px;
+  background: #eee;
+  border-radius: 99px;
+  overflow: hidden;
+  margin-top: 4px;
+}
+.ach-progress > i {
+  display: block;
+  height: 100%;
+  background: #58CC02;
+  border-radius: 99px;
+}
+.ach-lock {
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  font-size: 0.95rem;
+}
+.ach-summary {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+  margin-bottom: 14px;
+}
+.ach-summary .pill {
+  background: white;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-weight: 700;
+  font-size: 0.9rem;
+  box-shadow: var(--shadow);
+}
+.avatar.locked-avatar, .font-choice button.locked-choice, .theme-choice button.locked-choice {
+  opacity: 0.45;
+  position: relative;
+}
+.avatar.locked-avatar::after {
+  content: '🔒';
+  position: absolute;
+  bottom: 2px;
+  right: 2px;
+  font-size: 0.7rem;
+}
+
 
 /* ADHD focus mode – reduce distraction, one clear column */
 body.mode-adhd .bottom-nav .nav-btn:not(.active) {
@@ -2217,6 +2319,10 @@ body.theme-highcontrast .nav-btn.active {
         <span class="nav-icon">🎨</span>
         <span>Sessions</span>
       </button>
+      <button class="nav-btn" data-tab="achievements" onclick="switchTab('achievements')">
+        <span class="nav-icon">🏆</span>
+        <span>Wins</span>
+      </button>
       <button class="nav-btn" data-tab="remember" onclick="switchTab('remember')">
         <span class="nav-icon">📝</span>
         <span>Remember</span>
@@ -2341,6 +2447,13 @@ body.theme-highcontrast .nav-btn.active {
       </section>
 
       <!-- REMEMBER -->
+      <section id="tab-achievements" class="tab">
+        <h2 class="section-title">Wins 🏆</h2>
+        <p style="color:var(--muted);margin:-6px 0 12px;font-size:0.95rem">Unlock fonts, themes &amp; avatars — like badges!</p>
+        <div id="achievements-summary" class="ach-summary"></div>
+        <div id="achievements-list" class="ach-grid"></div>
+      </section>
+
       <section id="tab-remember" class="tab">
         <h2 class="section-title">Stuff to Remember 📝</h2>
         <p class="hint">Date required · disappears after that day · tap to check off</p>
@@ -2367,7 +2480,7 @@ body.theme-highcontrast .nav-btn.active {
 const APP_VERSION = '2026-10-08e';
 const STORAGE_KEY = 'sbl_plan_data_v1';
 
-/* Firebase — cloud accounts + sync across devices */
+/* Firebase optional — leave empty for this-device accounts */
 const FIREBASE_CONFIG = {
   apiKey: "AIzaSyCISQ-4ZLwcbkXLWUr_yYL5W7_p6vI3O4E",
   authDomain: "sbl-plan.firebaseapp.com",
@@ -2612,7 +2725,11 @@ let state = {
   fontFamily: 'nunito',
   privacyAccepted: false,
   notificationsEnabled: false,
-  theme: 'sunshine'
+  theme: 'sunshine',
+  unlockedAchievements: [],
+  unlockedAvatars: ['🦊'],
+  unlockedFonts: ['nunito', 'poppins', 'opendyslexic'],
+  unlockedThemes: ['sunshine']
 };
 
 // ---------- Helpers ----------
@@ -2682,6 +2799,7 @@ function toggleSessionDone(id, dateStr) {
 
 function renderGoals() {
   if (!state.goals) state.goals = [];
+  // migrate old goals without term
   state.goals.forEach(g => { if (!g.term) g.term = 'short'; });
   ['short', 'medium', 'long'].forEach(term => {
     const list = document.getElementById('goals-' + term);
@@ -2691,69 +2809,44 @@ function renderGoals() {
       list.innerHTML = `<div class="empty" style="padding:10px;font-size:0.9rem">No ${term}-term goals yet</div>`;
       return;
     }
-    list.innerHTML = items.map(g => {
-      const howLines = (g.how || '').trim().split('\n').map(s => s.trim()).filter(Boolean);
-      const howHtml = howLines.length
-        ? `<div class="card-meta" style="margin-top:6px"><strong>How:</strong></div>
-           <ul style="margin:4px 0 0 18px;padding:0;color:var(--muted);font-size:0.88rem;line-height:1.4">
-             ${howLines.map(s => `<li>${String(s).replace(/</g,'&lt;')}</li>`).join('')}
-           </ul>`
-        : '';
-      return `
+    list.innerHTML = items.map(g => `
       <div class="goal-card ${g.done ? 'done' : ''}">
         <div class="checkbox ${g.done ? 'checked' : ''}" onclick="toggleGoal('${g.id}')">${g.done ? '✓' : ''}</div>
         <div style="flex:1">
-          <div class="goal-text card-title">${String(g.text || '').replace(/</g,'&lt;')}</div>
+          <div class="goal-text card-title">${g.text}</div>
           ${g.byWhen ? `<div class="card-meta">By ${formatShort(g.byWhen)}</div>` : ''}
-          ${howHtml}
         </div>
-        <div style="display:flex;flex-direction:column;gap:6px">
-          <button class="small-btn" onclick="openGoalModal('${g.term || 'short'}', '${g.id}')">Edit</button>
-          <button class="small-btn danger" onclick="deleteGoal('${g.id}')">Delete</button>
-        </div>
-      </div>`;
-    }).join('');
+        <button class="small-btn danger" onclick="deleteGoal('${g.id}')">Delete</button>
+      </div>
+    `).join('');
   });
 }
 
-function openGoalModal(term, editId = null) {
-  const g = editId ? (state.goals || []).find(x => x.id === editId) : null;
-  const t = (g && g.term) || term || 'short';
+function openGoalModal(term) {
+  const t = term || 'short';
   const labels = { short: 'Short-term', medium: 'Medium-term', long: 'Long-term' };
-  const text = g ? String(g.text || '').replace(/"/g, '&quot;') : '';
-  const how = g ? String(g.how || '').replace(/</g, '&lt;') : '';
-  const byVal = g && g.byWhen ? inputDateValue(g.byWhen) : '';
   openModal(`
-    <h3>${g ? 'Edit' : (labels[t] || 'New')} Goal 🎯</h3>
+    <h3>${labels[t] || 'New'} Goal 🎯</h3>
     <input type="hidden" id="goal-term" value="${t}">
     <label>What do you want to achieve?</label>
-    <input type="text" id="goal-text" value="${text}" placeholder="e.g. Finish my science project">
-    <label>What can I do to accomplish this?</label>
-    <textarea id="goal-how" placeholder="One idea per line">${how}</textarea>
+    <input type="text" id="goal-text" placeholder="Write your goal">
     <label>By when? (optional)</label>
-    <input type="text" id="goal-by" value="${byVal}" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
-    <button class="btn primary" onclick="saveGoal('${editId || ''}')">${g ? 'Save Changes' : 'Save Goal'}</button>
+    <input type="text" id="goal-by" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off">
+    <button class="btn primary" onclick="saveGoal()">Save Goal</button>
   `);
 }
 
-function saveGoal(editId) {
+function saveGoal() {
   const textVal = document.getElementById('goal-text').value.trim();
   if (!textVal) { toast('Write your goal'); return; }
-  const howEl = document.getElementById('goal-how');
-  const how = howEl ? howEl.value.trim() : '';
   const byWhen = parseUserDate(document.getElementById('goal-by').value);
   const term = (document.getElementById('goal-term') || {}).value || 'short';
   if (!state.goals) state.goals = [];
-  if (editId) {
-    const g = state.goals.find(x => x.id === editId);
-    if (g) { g.text = textVal; g.how = how; g.byWhen = byWhen; g.term = term; }
-  } else {
-    state.goals.push({ id: uid(), text: textVal, how, byWhen, term, done: false, created: todayStr() });
-  }
+  state.goals.push({ id: uid(), text: textVal, byWhen, term, done: false, created: todayStr() });
   save();
   closeModal();
   renderGoals();
-  toast(editId ? 'Goal updated! 🎯' : 'Goal saved! 🎯');
+  toast('Goal saved! 🎯');
 }
 
 function toggleGoal(id) {
@@ -3397,6 +3490,7 @@ function load() {
       if (!state.classes) state.classes = [];
       if (!state.fontFamily) state.fontFamily = state.dyslexiaMode ? 'opendyslexic' : 'nunito';
       if (!state.theme) state.theme = 'sunshine';
+      if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
     } catch (e) {
       console.warn('Could not load data', e);
     }
@@ -3575,34 +3669,40 @@ function toggleDyslexiaMode() {
 }
 
 function openFontModal() {
+  ensureUnlockDefaults();
   const cur = state.fontFamily || (state.dyslexiaMode ? 'opendyslexic' : 'nunito');
+  const fonts = [
+    { id: 'nunito', label: 'Clear — Nunito', preview: 'font-preview-nunito' },
+    { id: 'poppins', label: 'Poppins', preview: 'font-preview-poppins' },
+    { id: 'chewy', label: 'Chewy', preview: 'font-preview-chewy' },
+    { id: 'eduqld', label: 'QLD Hand', preview: 'font-preview-eduqld' },
+    { id: 'opendyslexic', label: 'Easy read', preview: 'font-preview-opendyslexic' }
+  ];
+  const buttons = fonts.map(f => {
+    const locked = !isFontUnlocked(f.id);
+    return `<button type="button" class="${cur===f.id?'on':''} ${locked?'locked-choice':''}" onclick="setFontFamily('${f.id}')">
+        <span class="${f.preview}">${locked ? '🔒 ' : ''}${f.label}</span>
+      </button>`;
+  }).join('');
   openModal(`
     <h3>Choose a font</h3>
-    <div class="font-choice">
-      <button type="button" class="${cur==='nunito'?'on':''}" onclick="setFontFamily('nunito')">
-        <span class="font-preview-nunito">Clear — Nunito</span>
-      </button>
-      <button type="button" class="${cur==='chewy'?'on':''}" onclick="setFontFamily('chewy')">
-        <span class="font-preview-chewy">Chewy</span>
-      </button>
-      <button type="button" class="${cur==='eduqld'?'on':''}" onclick="setFontFamily('eduqld')">
-        <span class="font-preview-eduqld">QLD Hand</span>
-      </button>
-      <button type="button" class="${cur==='opendyslexic'?'on':''}" onclick="setFontFamily('opendyslexic')">
-        <span class="font-preview-opendyslexic">Easy read</span>
-      </button>
-    </div>
+    <p style="color:var(--muted);margin-bottom:8px;font-size:0.9rem">Poppins & Easy read are always free. Unlock more in Wins 🏆</p>
+    <div class="font-choice">${buttons}</div>
     <button class="btn primary" onclick="closeModal()">Done</button>
   `);
 }
 
 function setFontFamily(name) {
+  if (!isFontUnlocked(name)) {
+    toast('🔒 Unlock this font in Wins!');
+    return;
+  }
   state.fontFamily = name;
   state.dyslexiaMode = (name === 'opendyslexic');
   applyA11yModes();
   save();
   if (firebaseReady && auth.currentUser) cloudSaveUserData();
-  const labels = { nunito: 'Clear font', chewy: 'Chewy', eduqld: 'QLD Hand', opendyslexic: 'Easy read' };
+  const labels = { nunito: 'Clear font', poppins: 'Poppins', chewy: 'Chewy', eduqld: 'QLD Hand', opendyslexic: 'Easy read' };
   toast(labels[name] || 'Font set');
   openFontModal();
 }
@@ -3611,7 +3711,7 @@ function applyA11yModes() {
   applyTheme();
   document.body.classList.toggle('mode-adhd', !!state.adhdMode);
   const font = state.fontFamily || (state.dyslexiaMode ? 'opendyslexic' : 'nunito');
-  document.body.classList.remove('font-nunito', 'font-chewy', 'font-eduqld', 'font-opendyslexic', 'mode-dyslexia');
+  document.body.classList.remove('font-nunito', 'font-poppins', 'font-chewy', 'font-eduqld', 'font-opendyslexic', 'mode-dyslexia');
   document.body.classList.add('font-' + font);
   if (font === 'opendyslexic') document.body.classList.add('mode-dyslexia');
   const ca = document.getElementById('chip-adhd');
@@ -3673,6 +3773,193 @@ const THEME_OPTIONS = {
   highcontrast: { label: 'High contrast', emoji: '⬛', colors: ['#000000', '#FFFF00', '#0000EE'] }
 };
 
+/* ---------- Achievements (Duolingo-style unlocks) ---------- */
+const FREE_AVATARS = ['🦊'];
+const FREE_FONTS = ['nunito', 'poppins', 'opendyslexic'];
+const FREE_THEMES = ['sunshine'];
+const ALL_AVATARS = ['🦊','🐼','🦄','🐱','🐶','🦁','🐸','🐰','🐨','🐯','🐵','🐮','🐷','🦋','🐢','🐙','🦖','🐝','🦉','🐧','🐬','🦕','🌟','🚀','🌈','🐲','🎮','🎨','⚡','🏆','🌸','🍀','🎯','📚','🧩','🎈'];
+
+const ACHIEVEMENTS = [
+  { id: 'first_step', title: 'First step!', emoji: '🎯', desc: 'Complete 1 action step',
+    progress: () => Math.min(1, countDoneTasks()), target: 1,
+    reward: { type: 'avatar', value: '🐼', label: 'Panda avatar' } },
+  { id: 'five_steps', title: 'On a roll', emoji: '✅', desc: 'Complete 5 action steps',
+    progress: () => Math.min(5, countDoneTasks()), target: 5,
+    reward: { type: 'theme', value: 'ocean', label: 'Ocean theme' } },
+  { id: 'habit_day', title: 'Habit hero', emoji: '🔥', desc: 'Check off a habit',
+    progress: () => Math.min(1, countHabitChecks()), target: 1,
+    reward: { type: 'avatar', value: '🦄', label: 'Unicorn avatar' } },
+  { id: 'streak_3', title: '3-day streak', emoji: '⚡', desc: 'Get a 3-day habit streak',
+    progress: () => Math.min(3, bestHabitStreak()), target: 3,
+    reward: { type: 'font', value: 'chewy', label: 'Chewy font' } },
+  { id: 'streak_7', title: 'Week warrior', emoji: '🏅', desc: 'Get a 7-day habit streak',
+    progress: () => Math.min(7, bestHabitStreak()), target: 7,
+    reward: { type: 'theme', value: 'forest', label: 'Forest theme' } },
+  { id: 'bookworm', title: 'Bookworm', emoji: '📖', desc: 'Finish a book review',
+    progress: () => Math.min(1, countBookReviews()), target: 1,
+    reward: { type: 'theme', value: 'berry', label: 'Berry theme' } },
+  { id: 'curious', title: 'Curious mind', emoji: '🔍', desc: 'Finish an inquiry review',
+    progress: () => Math.min(1, countInquiryReviews()), target: 1,
+    reward: { type: 'avatar', value: '🦉', label: 'Owl avatar' } },
+  { id: 'goal_one', title: 'Goal getter', emoji: '🏆', desc: 'Complete 1 goal',
+    progress: () => Math.min(1, countDoneGoals()), target: 1,
+    reward: { type: 'theme', value: 'candy', label: 'Candy theme' } },
+  { id: 'reflect_1', title: 'Thoughtful', emoji: '🪞', desc: 'Write a reflection',
+    progress: () => Math.min(1, countReflections()), target: 1,
+    reward: { type: 'theme', value: 'lavender', label: 'Lavender theme' } },
+  { id: 'stars_25', title: 'Star collector', emoji: '⭐', desc: 'Earn 25 stars',
+    progress: () => Math.min(25, currentPoints()), target: 25,
+    reward: { type: 'avatar', value: '🌟', label: 'Star avatar' } },
+  { id: 'stars_50', title: 'Superstar', emoji: '✨', desc: 'Earn 50 stars',
+    progress: () => Math.min(50, currentPoints()), target: 50,
+    reward: { type: 'theme', value: 'sunset', label: 'Sunset theme' } },
+  { id: 'session_5', title: 'Showed up', emoji: '🎨', desc: 'Check off 5 sessions',
+    progress: () => Math.min(5, countSessionChecks()), target: 5,
+    reward: { type: 'font', value: 'eduqld', label: 'QLD Hand font' } },
+  { id: 'ten_steps', title: 'Action pro', emoji: '🚀', desc: 'Complete 10 action steps',
+    progress: () => Math.min(10, countDoneTasks()), target: 10,
+    reward: { type: 'theme', value: 'aurora', label: 'Aurora theme' } },
+  { id: 'stars_100', title: 'Legend', emoji: '👑', desc: 'Earn 100 stars',
+    progress: () => Math.min(100, currentPoints()), target: 100,
+    reward: { type: 'theme', value: 'midnight', label: 'Midnight theme' } }
+];
+
+function ensureUnlockDefaults() {
+  if (!state.unlockedAchievements) state.unlockedAchievements = [];
+  if (!state.unlockedAvatars) state.unlockedAvatars = FREE_AVATARS.slice();
+  if (!state.unlockedFonts) state.unlockedFonts = FREE_FONTS.slice();
+  if (!state.unlockedThemes) state.unlockedThemes = FREE_THEMES.slice();
+  FREE_AVATARS.forEach(a => { if (!state.unlockedAvatars.includes(a)) state.unlockedAvatars.push(a); });
+  FREE_FONTS.forEach(f => { if (!state.unlockedFonts.includes(f)) state.unlockedFonts.push(f); });
+  FREE_THEMES.forEach(t => { if (!state.unlockedThemes.includes(t)) state.unlockedThemes.push(t); });
+}
+
+function currentPoints() {
+  return (state.users[state.currentUser] && state.users[state.currentUser].points) || 0;
+}
+function countDoneTasks() {
+  return (state.tasks || []).filter(t => t.completed).length;
+}
+function countHabitChecks() {
+  let n = 0;
+  (state.habits || []).forEach(h => {
+    if (h.history) n += Object.keys(h.history).filter(k => h.history[k]).length;
+  });
+  return n;
+}
+function bestHabitStreak() {
+  let best = 0;
+  (state.habits || []).forEach(h => {
+    if (typeof calcStreak === 'function') best = Math.max(best, calcStreak(h) || 0);
+  });
+  return best;
+}
+function countBookReviews() {
+  return (state.books || []).filter(b => b.review || b.status === 'done').length;
+}
+function countInquiryReviews() {
+  return (state.inquiries || []).filter(i => i.review || i.status === 'done').length;
+}
+function countDoneGoals() {
+  return (state.goals || []).filter(g => g.done).length;
+}
+function countReflections() {
+  const r = state.reflections || {};
+  return Object.keys(r).filter(k => r[k] && (r[k].text || r[k].answer || Object.keys(r[k]).length)).length;
+}
+function countSessionChecks() {
+  let n = 0;
+  (state.classes || []).forEach(c => {
+    if (c.history) n += Object.keys(c.history).filter(k => c.history[k]).length;
+  });
+  return n;
+}
+
+function isAvatarUnlocked(a) {
+  ensureUnlockDefaults();
+  return state.unlockedAvatars.includes(a);
+}
+function isFontUnlocked(f) {
+  ensureUnlockDefaults();
+  return state.unlockedFonts.includes(f);
+}
+function isThemeUnlocked(t) {
+  ensureUnlockDefaults();
+  return state.unlockedThemes.includes(t);
+}
+
+function applyAchievementReward(reward) {
+  if (!reward) return;
+  ensureUnlockDefaults();
+  if (reward.type === 'avatar' && !state.unlockedAvatars.includes(reward.value)) {
+    state.unlockedAvatars.push(reward.value);
+  }
+  if (reward.type === 'font' && !state.unlockedFonts.includes(reward.value)) {
+    state.unlockedFonts.push(reward.value);
+  }
+  if (reward.type === 'theme' && !state.unlockedThemes.includes(reward.value)) {
+    state.unlockedThemes.push(reward.value);
+  }
+}
+
+function checkAchievements(silent) {
+  ensureUnlockDefaults();
+  let newly = [];
+  ACHIEVEMENTS.forEach(a => {
+    if (state.unlockedAchievements.includes(a.id)) return;
+    const p = a.progress();
+    if (p >= a.target) {
+      state.unlockedAchievements.push(a.id);
+      applyAchievementReward(a.reward);
+      newly.push(a);
+    }
+  });
+  if (newly.length) {
+    save();
+    if (firebaseReady && auth && auth.currentUser) cloudSaveUserData();
+    if (!silent) {
+      const a = newly[0];
+      toast('🏆 ' + a.title + (a.reward ? ' — unlocked ' + a.reward.label + '!' : '!'));
+      if (newly.length > 1) setTimeout(() => toast('+' + (newly.length - 1) + ' more win' + (newly.length > 2 ? 's' : '') + '!'), 1200);
+    }
+    if (document.getElementById('tab-achievements')?.classList.contains('active')) renderAchievementsTab();
+  }
+  return newly;
+}
+
+function renderAchievementsTab() {
+  ensureUnlockDefaults();
+  const sum = document.getElementById('achievements-summary');
+  const list = document.getElementById('achievements-list');
+  if (!list) return;
+  const unlocked = state.unlockedAchievements.length;
+  const total = ACHIEVEMENTS.length;
+  if (sum) {
+    sum.innerHTML = `
+      <div class="pill">🏆 ${unlocked}/${total} unlocked</div>
+      <div class="pill">⭐ ${currentPoints()} stars</div>
+      <div class="pill">🎨 ${state.unlockedThemes.length} themes</div>
+      <div class="pill">Aa ${state.unlockedFonts.length} fonts</div>
+      <div class="pill">😊 ${state.unlockedAvatars.length} avatars</div>`;
+  }
+  list.innerHTML = ACHIEVEMENTS.map(a => {
+    const done = state.unlockedAchievements.includes(a.id);
+    const p = a.progress();
+    const pct = Math.round((p / a.target) * 100);
+    const rewardTxt = a.reward ? a.reward.label : '';
+    return `<div class="ach-card ${done ? 'unlocked' : 'locked'}">
+      ${done ? '' : '<span class="ach-lock">🔒</span>'}
+      <div class="ach-emoji">${a.emoji}</div>
+      <div class="ach-title">${a.title}</div>
+      <div class="ach-desc">${a.desc}</div>
+      ${done ? '' : `<div class="ach-progress"><i style="width:${pct}%"></i></div>
+        <div class="ach-desc">${p}/${a.target}</div>`}
+      <div class="ach-reward">${done ? '✓ ' : '🎁 '}${rewardTxt}</div>
+    </div>`;
+  }).join('');
+}
+
+
 function applyTheme() {
   const name = state.theme || 'sunshine';
   const themes = Object.keys(THEME_OPTIONS);
@@ -3690,17 +3977,19 @@ function applyTheme() {
 }
 
 function openThemeModal() {
+  ensureUnlockDefaults();
   const cur = state.theme || 'sunshine';
   const buttons = Object.entries(THEME_OPTIONS).map(([key, t]) => {
+    const locked = !isThemeUnlocked(key);
     const swatches = t.colors.map(c => `<i style="background:${c}"></i>`).join('');
-    return `<button type="button" class="${cur === key ? 'on' : ''}" onclick="setTheme('${key}')">
-      <span>${t.emoji} ${t.label}</span>
+    return `<button type="button" class="${cur === key ? 'on' : ''} ${locked ? 'locked-choice' : ''}" onclick="setTheme('${key}')">
+      <span>${locked ? '🔒 ' : ''}${t.emoji} ${t.label}</span>
       <div class="theme-swatch">${swatches}</div>
     </button>`;
   }).join('');
   openModal(`
     <h3>Theme 🎨</h3>
-    <p style="color:var(--muted);margin-bottom:8px;font-size:0.9rem">Pick colours for the whole planner</p>
+    <p style="color:var(--muted);margin-bottom:8px;font-size:0.9rem">Unlock more themes in the Wins tab 🏆</p>
     <div class="theme-choice">${buttons}</div>
     <button class="btn primary" onclick="closeModal()">Done</button>
   `);
@@ -3708,6 +3997,10 @@ function openThemeModal() {
 
 function setTheme(name) {
   if (!THEME_OPTIONS[name]) name = 'sunshine';
+  if (!isThemeUnlocked(name)) {
+    toast('🔒 Unlock this theme in Wins!');
+    return;
+  }
   state.theme = name;
   applyTheme();
   applyA11yModes();
@@ -3843,6 +4136,10 @@ async function cloudSaveUserData() {
     notificationsEnabled: !!state.notificationsEnabled,
     theme: state.theme || 'sunshine',
     calVersion: state.calVersion,
+    unlockedAchievements: state.unlockedAchievements || [],
+    unlockedAvatars: state.unlockedAvatars || ['🦊'],
+    unlockedFonts: state.unlockedFonts || ['nunito', 'poppins', 'opendyslexic'],
+    unlockedThemes: state.unlockedThemes || ['sunshine'],
     updatedAt: new Date().toISOString()
   };
   try {
@@ -3883,6 +4180,11 @@ async function cloudLoadUserData() {
     if (data.readingBook !== undefined) state.readingBook = data.readingBook;
     if (data.topicInquiry !== undefined) state.topicInquiry = data.topicInquiry;
     if (data.calVersion) state.calVersion = data.calVersion;
+    if (data.unlockedAchievements) state.unlockedAchievements = data.unlockedAchievements;
+    if (data.unlockedAvatars) state.unlockedAvatars = data.unlockedAvatars;
+    if (data.unlockedFonts) state.unlockedFonts = data.unlockedFonts;
+    if (data.unlockedThemes) state.unlockedThemes = data.unlockedThemes;
+    ensureUnlockDefaults();
     save();
   } catch (e) {
     console.warn('cloud load', e);
@@ -4000,7 +4302,7 @@ function login() {
 }
 
 function ensureSchoolCalendar() {
-  const CAL_VERSION = 10;
+  const CAL_VERSION = 9;
   if (state.calVersion === CAL_VERSION) return;
 
   // Canonical school calendar notes (all with full dates, no duplicates)
@@ -4038,6 +4340,48 @@ function ensureSchoolCalendar() {
       id: uid(),
       text: n.text,
       reminder: n.reminder,
+      created: todayStr()
+    });
+  });
+
+  const keyEvents = [
+    { title: '🏠 Residential 1 · 27 Sep – 2 Oct 2026', date: '2026-09-27', notes: '27 Sep – 2 Oct 2026' },
+    { title: '🚫 No school · 5 Oct 2026', date: '2026-10-05', notes: 'Day after Residential 1' },
+    { title: '🔥 Bootcamp / Focus Week · 12–16 Oct 2026', date: '2026-10-12', notes: '12–16 Oct 2026' },
+    { title: '🎉 Community Celebration · Fri 16 Oct 2026', date: '2026-10-16', notes: 'Friday' },
+    { title: '🍂 Autumn Holiday · 26–30 Oct 2026', date: '2026-10-26', notes: '26–30 Oct 2026' },
+    { title: '🎄 Winter Holiday · 21 Dec 2026 – 8 Jan 2027', date: '2026-12-21', notes: '21 Dec 2026 – 8 Jan 2027' },
+    { title: '🏠 Residential 2 · 31 Jan – 5 Feb 2027', date: '2027-01-31', notes: '31 Jan – 5 Feb 2027' },
+    { title: '🎭 Carnival Holiday · 8–12 Feb 2027', date: '2027-02-08', notes: '8–12 Feb 2027' },
+    { title: '🔥 Bootcamp / Focus Week · 1–5 Mar 2027', date: '2027-03-01', notes: '1–5 Mar 2027' },
+    { title: '📚 World Book Day · 4 Mar 2027', date: '2027-03-04', notes: '4 Mar 2027' },
+    { title: '🎉 Community Celebration · Fri 5 Mar 2027', date: '2027-03-05', notes: 'Friday' },
+    { title: '🐣 Easter Holiday · 22–30 Mar 2027', date: '2027-03-22', notes: '22–30 Mar 2027' },
+    { title: '✝️ Ascension Weekend · 7–9 May 2027', date: '2027-05-07', notes: '7–9 May 2027 (no school)' },
+    { title: '✝️ Pentecost · 17 May 2027', date: '2027-05-17', notes: 'No school' },
+    { title: '💡 Hackathon · 7–11 Jun 2027', date: '2027-06-07', notes: '7–11 Jun 2027' },
+    { title: '🎉 Community Celebration · Fri 11 Jun 2027', date: '2027-06-11', notes: 'Friday' },
+    { title: '🏠 Residential 3 · 24–29 Jun 2027', date: '2027-06-24', notes: '24–29 Jun 2027' },
+    { title: '🏁 Last day of school · 29 Jun 2027', date: '2027-06-29', notes: '29 Jun 2027' },
+    { title: '☀️ Summer Holiday · 30 Jun – 27 Aug 2027', date: '2027-06-30', notes: '30 Jun – 27 Aug 2027' }
+  ];
+
+  // Remove old school tasks (by emoji prefix or known short titles)
+  state.tasks = (state.tasks || []).filter(t => {
+    const title = (t.title || '').trim();
+    if (schoolEmoji.test(title)) return false;
+    if (/^(Residential|Bootcamp|Hackathon|Community Celebration|Autumn Holiday|Winter Holiday|Carnival|Easter|Ascension|Pentecost|Summer Holiday|Dragon|No school|Last day|World Book)/i.test(title)) return false;
+    return true;
+  });
+
+  keyEvents.forEach(e => {
+    state.tasks.push({
+      id: uid(),
+      title: e.title,
+      date: e.date,
+      notes: e.notes,
+      steps: [],
+      completed: false,
       created: todayStr()
     });
   });
@@ -4120,21 +4464,26 @@ function renderHeader() {
 
 // ---------- Change Avatar anytime ----------
 function openAvatarModal() {
+  ensureUnlockDefaults();
   const current = state.users[state.currentUser]?.avatar || '🦊';
-  const avatars = ['🦊','🐼','🦄','🐱','🐶','🦁','🐸','🐰','🐨','🐯','🐵','🐮','🐷','🦋','🐢','🐙','🦖','🐝','🦉','🐧','🐬','🦕','🌟','🚀','🌈','🐲','🎮','🎨','⚡','🏆','🌸','🍀','🎯','📚','🧩','🎈'];
-  const options = avatars.map(a =>
-    `<span class="avatar ${a === current ? 'selected' : ''}" data-avatar="${a}" onclick="selectAvatar(this)" style="background:${avatarBg(a)}">${a}</span>`
-  ).join('');
+  const options = ALL_AVATARS.map(a => {
+    const locked = !isAvatarUnlocked(a);
+    return `<span class="avatar ${a === current ? 'selected' : ''} ${locked ? 'locked-avatar' : ''}" data-avatar="${a}" data-locked="${locked ? '1' : '0'}" onclick="selectAvatar(this)" style="background:${avatarBg(a)}">${a}</span>`;
+  }).join('');
 
   openModal(`
     <h3>Change Your Avatar ✨</h3>
-    <p style="color:var(--muted);margin-bottom:12px">Tap a new one!</p>
+    <p style="color:var(--muted);margin-bottom:12px">🦊 is free — unlock more in Wins 🏆</p>
     <div class="avatars" style="justify-content:center">${options}</div>
     <button class="btn primary" onclick="saveAvatar()">Save Avatar</button>
   `);
 }
 
 function selectAvatar(el) {
+  if (el.dataset.locked === '1') {
+    toast('🔒 Unlock this avatar in Wins!');
+    return;
+  }
   document.querySelectorAll('#modal-content .avatar').forEach(a => a.classList.remove('selected'));
   el.classList.add('selected');
 }
@@ -4142,6 +4491,10 @@ function selectAvatar(el) {
 function saveAvatar() {
   const selected = document.querySelector('#modal-content .avatar.selected');
   if (!selected) return;
+  if (selected.dataset.locked === '1' || !isAvatarUnlocked(selected.dataset.avatar)) {
+    toast('🔒 Unlock this avatar in Wins!');
+    return;
+  }
   const user = state.users[state.currentUser];
   if (user) {
     user.avatar = selected.dataset.avatar;
@@ -4761,6 +5114,7 @@ function addPoints(n) {
   if (user) {
     user.points = Math.max(0, (user.points || 0) + n);
     renderHeader();
+    checkAchievements();
   }
 }
 
@@ -5506,6 +5860,8 @@ function renderAll() {
   renderReflection();
   renderBooksTab();
   renderInquiryTab();
+  renderAchievementsTab();
+  checkAchievements(true);
 }
 
 // Close modal on overlay click
