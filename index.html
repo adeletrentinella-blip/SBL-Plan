@@ -623,7 +623,6 @@ body.font-opendyslexic button {
 .font-preview-chewy { font-family: 'Chewy', system-ui; font-weight: 400; font-style: normal; }
 .font-preview-eduqld { font-family: 'Edu QLD Hand', cursive; font-optical-sizing: auto; font-weight: 500; font-style: normal; }
 .font-preview-opendyslexic { font-family: 'OpenDyslexic', 'Comic Sans MS', system-ui, sans-serif; }
-
 /* Achievements — Duolingo-style */
 .ach-grid {
   display: grid;
@@ -649,74 +648,27 @@ body.font-opendyslexic button {
   border-color: #58CC02;
   background: linear-gradient(180deg, #E8F9E0 0%, #fff 55%);
 }
-.ach-card.locked {
-  opacity: 0.72;
-  filter: grayscale(0.35);
-}
-.ach-card .ach-emoji {
-  font-size: 2.2rem;
-  line-height: 1;
-}
-.ach-card .ach-title {
-  font-weight: 800;
-  font-size: 0.95rem;
-}
-.ach-card .ach-desc {
-  font-size: 0.78rem;
-  color: var(--muted);
-  line-height: 1.3;
-}
-.ach-card .ach-reward {
-  font-size: 0.75rem;
-  font-weight: 700;
-  color: #58A700;
-  margin-top: auto;
-}
+.ach-card.locked { opacity: 0.85; }
+.ach-card .ach-emoji { font-size: 2.2rem; line-height: 1; }
+.ach-card .ach-title { font-weight: 800; font-size: 0.95rem; }
+.ach-card .ach-desc { font-size: 0.78rem; color: var(--muted); line-height: 1.3; }
+.ach-card .ach-reward { font-size: 0.75rem; font-weight: 700; color: #58A700; margin-top: auto; }
 .ach-card.locked .ach-reward { color: var(--muted); }
 .ach-progress {
-  width: 100%;
-  height: 8px;
-  background: #eee;
-  border-radius: 99px;
-  overflow: hidden;
-  margin-top: 4px;
+  width: 100%; height: 8px; background: #eee; border-radius: 99px; overflow: hidden; margin-top: 4px;
 }
-.ach-progress > i {
-  display: block;
-  height: 100%;
-  background: #58CC02;
-  border-radius: 99px;
-}
-.ach-lock {
-  position: absolute;
-  top: 8px;
-  right: 10px;
-  font-size: 0.95rem;
-}
-.ach-summary {
-  display: flex;
-  gap: 10px;
-  flex-wrap: wrap;
-  margin-bottom: 14px;
-}
+.ach-progress > i { display: block; height: 100%; background: #58CC02; border-radius: 99px; }
+.ach-lock { position: absolute; top: 8px; right: 10px; font-size: 0.95rem; }
+.ach-summary { display: flex; gap: 10px; flex-wrap: wrap; margin-bottom: 14px; }
 .ach-summary .pill {
-  background: white;
-  border-radius: 999px;
-  padding: 8px 14px;
-  font-weight: 700;
-  font-size: 0.9rem;
-  box-shadow: var(--shadow);
+  background: white; border-radius: 999px; padding: 8px 14px;
+  font-weight: 700; font-size: 0.9rem; box-shadow: var(--shadow);
 }
 .avatar.locked-avatar, .font-choice button.locked-choice, .theme-choice button.locked-choice {
-  opacity: 0.45;
-  position: relative;
+  opacity: 0.45; position: relative;
 }
 .avatar.locked-avatar::after {
-  content: '🔒';
-  position: absolute;
-  bottom: 2px;
-  right: 2px;
-  font-size: 0.7rem;
+  content: '🔒'; position: absolute; bottom: 2px; right: 2px; font-size: 0.7rem;
 }
 
 
@@ -3669,7 +3621,7 @@ function toggleDyslexiaMode() {
 }
 
 function openFontModal() {
-  ensureUnlockDefaults();
+  if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
   const cur = state.fontFamily || (state.dyslexiaMode ? 'opendyslexic' : 'nunito');
   const fonts = [
     { id: 'nunito', label: 'Clear — Nunito', preview: 'font-preview-nunito' },
@@ -3679,21 +3631,21 @@ function openFontModal() {
     { id: 'opendyslexic', label: 'Easy read', preview: 'font-preview-opendyslexic' }
   ];
   const buttons = fonts.map(f => {
-    const locked = !isFontUnlocked(f.id);
+    const locked = typeof isFontUnlocked === 'function' && !isFontUnlocked(f.id);
     return `<button type="button" class="${cur===f.id?'on':''} ${locked?'locked-choice':''}" onclick="setFontFamily('${f.id}')">
         <span class="${f.preview}">${locked ? '🔒 ' : ''}${f.label}</span>
       </button>`;
   }).join('');
   openModal(`
     <h3>Choose a font</h3>
-    <p style="color:var(--muted);margin-bottom:8px;font-size:0.9rem">Poppins & Easy read are always free. Unlock more in Wins 🏆</p>
+    <p style="color:var(--muted);margin-bottom:8px;font-size:0.9rem">Poppins & Easy read are always free. More in Wins 🏆</p>
     <div class="font-choice">${buttons}</div>
     <button class="btn primary" onclick="closeModal()">Done</button>
   `);
 }
 
 function setFontFamily(name) {
-  if (!isFontUnlocked(name)) {
+  if (typeof isFontUnlocked === 'function' && !isFontUnlocked(name)) {
     toast('🔒 Unlock this font in Wins!');
     return;
   }
@@ -3786,56 +3738,118 @@ const ACHIEVEMENTS = [
   { id: 'five_steps', title: 'On a roll', emoji: '✅', desc: 'Complete 5 action steps',
     progress: () => Math.min(5, countDoneTasks()), target: 5,
     reward: { type: 'theme', value: 'ocean', label: 'Ocean theme' } },
+  { id: 'ten_steps', title: 'Action pro', emoji: '🚀', desc: 'Complete 10 action steps',
+    progress: () => Math.min(10, countDoneTasks()), target: 10,
+    reward: { type: 'theme', value: 'aurora', label: 'Aurora theme' } },
+  { id: 'twenty_steps', title: 'Unstoppable', emoji: '💪', desc: 'Complete 20 action steps',
+    progress: () => Math.min(20, countDoneTasks()), target: 20,
+    reward: { type: 'theme', value: 'ember', label: 'Ember theme' } },
   { id: 'habit_day', title: 'Habit hero', emoji: '🔥', desc: 'Check off a habit',
     progress: () => Math.min(1, countHabitChecks()), target: 1,
     reward: { type: 'avatar', value: '🦄', label: 'Unicorn avatar' } },
+  { id: 'habit_10', title: 'Habit builder', emoji: '🧱', desc: 'Check habits 10 times',
+    progress: () => Math.min(10, countHabitChecks()), target: 10,
+    reward: { type: 'avatar', value: '🐱', label: 'Cat avatar' } },
   { id: 'streak_3', title: '3-day streak', emoji: '⚡', desc: 'Get a 3-day habit streak',
     progress: () => Math.min(3, bestHabitStreak()), target: 3,
     reward: { type: 'font', value: 'chewy', label: 'Chewy font' } },
   { id: 'streak_7', title: 'Week warrior', emoji: '🏅', desc: 'Get a 7-day habit streak',
     progress: () => Math.min(7, bestHabitStreak()), target: 7,
     reward: { type: 'theme', value: 'forest', label: 'Forest theme' } },
+  { id: 'streak_14', title: 'Fortnight legend', emoji: '👑', desc: 'Get a 14-day habit streak',
+    progress: () => Math.min(14, bestHabitStreak()), target: 14,
+    reward: { type: 'theme', value: 'grape', label: 'Grape theme' } },
   { id: 'bookworm', title: 'Bookworm', emoji: '📖', desc: 'Finish a book review',
     progress: () => Math.min(1, countBookReviews()), target: 1,
     reward: { type: 'theme', value: 'berry', label: 'Berry theme' } },
+  { id: 'library', title: 'Little library', emoji: '📚', desc: 'Finish 3 book reviews',
+    progress: () => Math.min(3, countBookReviews()), target: 3,
+    reward: { type: 'avatar', value: '📚', label: 'Books avatar' } },
   { id: 'curious', title: 'Curious mind', emoji: '🔍', desc: 'Finish an inquiry review',
     progress: () => Math.min(1, countInquiryReviews()), target: 1,
     reward: { type: 'avatar', value: '🦉', label: 'Owl avatar' } },
+  { id: 'explorer', title: 'Explorer', emoji: '🗺️', desc: 'Finish 3 inquiry reviews',
+    progress: () => Math.min(3, countInquiryReviews()), target: 3,
+    reward: { type: 'theme', value: 'sky', label: 'Sky theme' } },
   { id: 'goal_one', title: 'Goal getter', emoji: '🏆', desc: 'Complete 1 goal',
     progress: () => Math.min(1, countDoneGoals()), target: 1,
     reward: { type: 'theme', value: 'candy', label: 'Candy theme' } },
+  { id: 'goal_three', title: 'Dream chaser', emoji: '🌠', desc: 'Complete 3 goals',
+    progress: () => Math.min(3, countDoneGoals()), target: 3,
+    reward: { type: 'theme', value: 'rose', label: 'Rose theme' } },
   { id: 'reflect_1', title: 'Thoughtful', emoji: '🪞', desc: 'Write a reflection',
     progress: () => Math.min(1, countReflections()), target: 1,
     reward: { type: 'theme', value: 'lavender', label: 'Lavender theme' } },
+  { id: 'reflect_5', title: 'Deep thinker', emoji: '🧠', desc: 'Write 5 reflections',
+    progress: () => Math.min(5, countReflections()), target: 5,
+    reward: { type: 'theme', value: 'arctic', label: 'Arctic theme' } },
+  { id: 'session_5', title: 'Showed up', emoji: '🎨', desc: 'Check off 5 sessions',
+    progress: () => Math.min(5, countSessionChecks()), target: 5,
+    reward: { type: 'font', value: 'eduqld', label: 'QLD Hand font' } },
+  { id: 'session_20', title: 'Class champion', emoji: '🎓', desc: 'Check off 20 sessions',
+    progress: () => Math.min(20, countSessionChecks()), target: 20,
+    reward: { type: 'theme', value: 'mint', label: 'Mint theme' } },
   { id: 'stars_25', title: 'Star collector', emoji: '⭐', desc: 'Earn 25 stars',
     progress: () => Math.min(25, currentPoints()), target: 25,
     reward: { type: 'avatar', value: '🌟', label: 'Star avatar' } },
   { id: 'stars_50', title: 'Superstar', emoji: '✨', desc: 'Earn 50 stars',
     progress: () => Math.min(50, currentPoints()), target: 50,
     reward: { type: 'theme', value: 'sunset', label: 'Sunset theme' } },
-  { id: 'session_5', title: 'Showed up', emoji: '🎨', desc: 'Check off 5 sessions',
-    progress: () => Math.min(5, countSessionChecks()), target: 5,
-    reward: { type: 'font', value: 'eduqld', label: 'QLD Hand font' } },
-  { id: 'ten_steps', title: 'Action pro', emoji: '🚀', desc: 'Complete 10 action steps',
-    progress: () => Math.min(10, countDoneTasks()), target: 10,
-    reward: { type: 'theme', value: 'aurora', label: 'Aurora theme' } },
   { id: 'stars_100', title: 'Legend', emoji: '👑', desc: 'Earn 100 stars',
     progress: () => Math.min(100, currentPoints()), target: 100,
-    reward: { type: 'theme', value: 'midnight', label: 'Midnight theme' } }
+    reward: { type: 'theme', value: 'midnight', label: 'Midnight theme' } },
+  { id: 'stars_200', title: 'Galaxy brain', emoji: '🌌', desc: 'Earn 200 stars',
+    progress: () => Math.min(200, currentPoints()), target: 200,
+    reward: { type: 'theme', value: 'coffee', label: 'Coffee theme' } },
+  { id: 'stars_300', title: 'Ultimate', emoji: '🖤', desc: 'Earn 300 stars',
+    progress: () => Math.min(300, currentPoints()), target: 300,
+    reward: { type: 'theme', value: 'highcontrast', label: 'High contrast theme' } },
+  // Avatar pack unlocks via mixed progress
+  { id: 'pack_pets', title: 'Pet pack', emoji: '🐶', desc: 'Complete 3 action steps',
+    progress: () => Math.min(3, countDoneTasks()), target: 3,
+    reward: { type: 'avatars', value: ['🐶','🦁','🐸','🐰'], label: 'Pet avatars' } },
+  { id: 'pack_wild', title: 'Wild pack', emoji: '🐯', desc: 'Earn 40 stars',
+    progress: () => Math.min(40, currentPoints()), target: 40,
+    reward: { type: 'avatars', value: ['🐨','🐯','🐵','🐷','🐮'], label: 'Wild avatars' } },
+  { id: 'pack_ocean', title: 'Ocean pack', emoji: '🐬', desc: 'Check 10 sessions',
+    progress: () => Math.min(10, countSessionChecks()), target: 10,
+    reward: { type: 'avatars', value: ['🐢','🐙','🐧','🐬','🐝'], label: 'Ocean avatars' } },
+  { id: 'pack_dino', title: 'Dino pack', emoji: '🦖', desc: '7-day habit streak',
+    progress: () => Math.min(7, bestHabitStreak()), target: 7,
+    reward: { type: 'avatars', value: ['🦖','🦕','🐲'], label: 'Dino avatars' } },
+  { id: 'pack_fun', title: 'Fun pack', emoji: '🎮', desc: 'Earn 75 stars',
+    progress: () => Math.min(75, currentPoints()), target: 75,
+    reward: { type: 'avatars', value: ['🚀','🌈','🎮','🎨','⚡','🏆'], label: 'Fun avatars' } },
+  { id: 'pack_nature', title: 'Nature pack', emoji: '🌸', desc: 'Complete 2 goals',
+    progress: () => Math.min(2, countDoneGoals()), target: 2,
+    reward: { type: 'avatars', value: ['🌸','🍀','🎯','🧩','🎈'], label: 'Nature avatars' } },
+  { id: 'theme_peach', title: 'Peachy', emoji: '🍑', desc: 'Write 2 reflections',
+    progress: () => Math.min(2, countReflections()), target: 2,
+    reward: { type: 'theme', value: 'peach', label: 'Peach theme' } },
+  { id: 'theme_lemon', title: 'Zesty', emoji: '🍋', desc: 'Check habits 5 times',
+    progress: () => Math.min(5, countHabitChecks()), target: 5,
+    reward: { type: 'theme', value: 'lemon', label: 'Lemon theme' } },
+  { id: 'theme_sand', title: 'Desert trek', emoji: '🏜️', desc: 'Complete 15 action steps',
+    progress: () => Math.min(15, countDoneTasks()), target: 15,
+    reward: { type: 'theme', value: 'sand', label: 'Sand theme' } },
+  { id: 'theme_mono', title: 'Minimalist', emoji: '◻️', desc: 'Earn 150 stars',
+    progress: () => Math.min(150, currentPoints()), target: 150,
+    reward: { type: 'theme', value: 'mono', label: 'Mono theme' } }
 ];
 
 function ensureUnlockDefaults() {
-  if (!state.unlockedAchievements) state.unlockedAchievements = [];
-  if (!state.unlockedAvatars) state.unlockedAvatars = FREE_AVATARS.slice();
-  if (!state.unlockedFonts) state.unlockedFonts = FREE_FONTS.slice();
-  if (!state.unlockedThemes) state.unlockedThemes = FREE_THEMES.slice();
+  if (!Array.isArray(state.unlockedAchievements)) state.unlockedAchievements = [];
+  if (!Array.isArray(state.unlockedAvatars)) state.unlockedAvatars = FREE_AVATARS.slice();
+  if (!Array.isArray(state.unlockedFonts)) state.unlockedFonts = FREE_FONTS.slice();
+  if (!Array.isArray(state.unlockedThemes)) state.unlockedThemes = FREE_THEMES.slice();
   FREE_AVATARS.forEach(a => { if (!state.unlockedAvatars.includes(a)) state.unlockedAvatars.push(a); });
   FREE_FONTS.forEach(f => { if (!state.unlockedFonts.includes(f)) state.unlockedFonts.push(f); });
   FREE_THEMES.forEach(t => { if (!state.unlockedThemes.includes(t)) state.unlockedThemes.push(t); });
 }
 
 function currentPoints() {
-  return (state.users[state.currentUser] && state.users[state.currentUser].points) || 0;
+  const u = state.users && state.currentUser ? state.users[state.currentUser] : null;
+  return (u && u.points) || 0;
 }
 function countDoneTasks() {
   return (state.tasks || []).filter(t => t.completed).length;
@@ -3843,56 +3857,56 @@ function countDoneTasks() {
 function countHabitChecks() {
   let n = 0;
   (state.habits || []).forEach(h => {
-    if (h.history) n += Object.keys(h.history).filter(k => h.history[k]).length;
+    if (h.history) Object.keys(h.history).forEach(k => { if (h.history[k]) n++; });
   });
   return n;
 }
 function bestHabitStreak() {
   let best = 0;
   (state.habits || []).forEach(h => {
-    if (typeof calcStreak === 'function') best = Math.max(best, calcStreak(h) || 0);
+    try { best = Math.max(best, (typeof calcStreak === 'function' ? calcStreak(h) : 0) || 0); } catch (e) {}
   });
   return best;
 }
 function countBookReviews() {
-  return (state.books || []).filter(b => b.review || b.status === 'done').length;
+  return (state.books || []).filter(b => b.review || b.status === 'done' || b.status === 'completed').length;
 }
 function countInquiryReviews() {
-  return (state.inquiries || []).filter(i => i.review || i.status === 'done').length;
+  return (state.inquiries || []).filter(i => i.review || i.status === 'done' || i.status === 'completed').length;
 }
 function countDoneGoals() {
   return (state.goals || []).filter(g => g.done).length;
 }
 function countReflections() {
   const r = state.reflections || {};
-  return Object.keys(r).filter(k => r[k] && (r[k].text || r[k].answer || Object.keys(r[k]).length)).length;
+  return Object.keys(r).filter(k => {
+    const v = r[k];
+    if (!v) return false;
+    if (typeof v === 'string') return v.trim().length > 0;
+    if (typeof v === 'object') return Object.keys(v).some(kk => v[kk] && String(v[kk]).trim());
+    return true;
+  }).length;
 }
 function countSessionChecks() {
   let n = 0;
   (state.classes || []).forEach(c => {
-    if (c.history) n += Object.keys(c.history).filter(k => c.history[k]).length;
+    if (c.history) Object.keys(c.history).forEach(k => { if (c.history[k]) n++; });
   });
   return n;
 }
 
-function isAvatarUnlocked(a) {
-  ensureUnlockDefaults();
-  return state.unlockedAvatars.includes(a);
-}
-function isFontUnlocked(f) {
-  ensureUnlockDefaults();
-  return state.unlockedFonts.includes(f);
-}
-function isThemeUnlocked(t) {
-  ensureUnlockDefaults();
-  return state.unlockedThemes.includes(t);
-}
+function isAvatarUnlocked(a) { ensureUnlockDefaults(); return state.unlockedAvatars.includes(a); }
+function isFontUnlocked(f) { ensureUnlockDefaults(); return state.unlockedFonts.includes(f); }
+function isThemeUnlocked(t) { ensureUnlockDefaults(); return state.unlockedThemes.includes(t); }
 
 function applyAchievementReward(reward) {
   if (!reward) return;
   ensureUnlockDefaults();
   if (reward.type === 'avatar' && !state.unlockedAvatars.includes(reward.value)) {
     state.unlockedAvatars.push(reward.value);
+  }
+  if (reward.type === 'avatars' && Array.isArray(reward.value)) {
+    reward.value.forEach(a => { if (!state.unlockedAvatars.includes(a)) state.unlockedAvatars.push(a); });
   }
   if (reward.type === 'font' && !state.unlockedFonts.includes(reward.value)) {
     state.unlockedFonts.push(reward.value);
@@ -3907,7 +3921,8 @@ function checkAchievements(silent) {
   let newly = [];
   ACHIEVEMENTS.forEach(a => {
     if (state.unlockedAchievements.includes(a.id)) return;
-    const p = a.progress();
+    let p = 0;
+    try { p = a.progress(); } catch (e) { p = 0; }
     if (p >= a.target) {
       state.unlockedAchievements.push(a.id);
       applyAchievementReward(a.reward);
@@ -3916,19 +3931,22 @@ function checkAchievements(silent) {
   });
   if (newly.length) {
     save();
-    if (firebaseReady && auth && auth.currentUser) cloudSaveUserData();
+    try { if (firebaseReady && auth && auth.currentUser) cloudSaveUserData(); } catch (e) {}
     if (!silent) {
       const a = newly[0];
       toast('🏆 ' + a.title + (a.reward ? ' — unlocked ' + a.reward.label + '!' : '!'));
-      if (newly.length > 1) setTimeout(() => toast('+' + (newly.length - 1) + ' more win' + (newly.length > 2 ? 's' : '') + '!'), 1200);
+      if (newly.length > 1) {
+        setTimeout(() => toast('+' + (newly.length - 1) + ' more win' + (newly.length > 2 ? 's' : '') + '!'), 1100);
+      }
     }
-    if (document.getElementById('tab-achievements')?.classList.contains('active')) renderAchievementsTab();
   }
   return newly;
 }
 
 function renderAchievementsTab() {
   ensureUnlockDefaults();
+  // Claim any already-earned wins before painting
+  checkAchievements(true);
   const sum = document.getElementById('achievements-summary');
   const list = document.getElementById('achievements-list');
   if (!list) return;
@@ -3944,15 +3962,16 @@ function renderAchievementsTab() {
   }
   list.innerHTML = ACHIEVEMENTS.map(a => {
     const done = state.unlockedAchievements.includes(a.id);
-    const p = a.progress();
-    const pct = Math.round((p / a.target) * 100);
+    let p = 0;
+    try { p = a.progress(); } catch (e) { p = 0; }
+    const pct = Math.min(100, Math.round((p / a.target) * 100));
     const rewardTxt = a.reward ? a.reward.label : '';
     return `<div class="ach-card ${done ? 'unlocked' : 'locked'}">
       ${done ? '' : '<span class="ach-lock">🔒</span>'}
       <div class="ach-emoji">${a.emoji}</div>
       <div class="ach-title">${a.title}</div>
       <div class="ach-desc">${a.desc}</div>
-      ${done ? '' : `<div class="ach-progress"><i style="width:${pct}%"></i></div>
+      ${done ? '<div class="ach-desc" style="color:#58A700;font-weight:700">Unlocked!</div>' : `<div class="ach-progress"><i style="width:${pct}%"></i></div>
         <div class="ach-desc">${p}/${a.target}</div>`}
       <div class="ach-reward">${done ? '✓ ' : '🎁 '}${rewardTxt}</div>
     </div>`;
@@ -3977,10 +3996,10 @@ function applyTheme() {
 }
 
 function openThemeModal() {
-  ensureUnlockDefaults();
+  if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
   const cur = state.theme || 'sunshine';
   const buttons = Object.entries(THEME_OPTIONS).map(([key, t]) => {
-    const locked = !isThemeUnlocked(key);
+    const locked = typeof isThemeUnlocked === 'function' && !isThemeUnlocked(key);
     const swatches = t.colors.map(c => `<i style="background:${c}"></i>`).join('');
     return `<button type="button" class="${cur === key ? 'on' : ''} ${locked ? 'locked-choice' : ''}" onclick="setTheme('${key}')">
       <span>${locked ? '🔒 ' : ''}${t.emoji} ${t.label}</span>
@@ -3989,7 +4008,7 @@ function openThemeModal() {
   }).join('');
   openModal(`
     <h3>Theme 🎨</h3>
-    <p style="color:var(--muted);margin-bottom:8px;font-size:0.9rem">Unlock more themes in the Wins tab 🏆</p>
+    <p style="color:var(--muted);margin-bottom:8px;font-size:0.9rem">Unlock more in the Wins tab 🏆</p>
     <div class="theme-choice">${buttons}</div>
     <button class="btn primary" onclick="closeModal()">Done</button>
   `);
@@ -3997,7 +4016,7 @@ function openThemeModal() {
 
 function setTheme(name) {
   if (!THEME_OPTIONS[name]) name = 'sunshine';
-  if (!isThemeUnlocked(name)) {
+  if (typeof isThemeUnlocked === 'function' && !isThemeUnlocked(name)) {
     toast('🔒 Unlock this theme in Wins!');
     return;
   }
@@ -4184,7 +4203,8 @@ async function cloudLoadUserData() {
     if (data.unlockedAvatars) state.unlockedAvatars = data.unlockedAvatars;
     if (data.unlockedFonts) state.unlockedFonts = data.unlockedFonts;
     if (data.unlockedThemes) state.unlockedThemes = data.unlockedThemes;
-    ensureUnlockDefaults();
+    if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
+    if (typeof checkAchievements === 'function') checkAchievements(true);
     save();
   } catch (e) {
     console.warn('cloud load', e);
@@ -4464,10 +4484,11 @@ function renderHeader() {
 
 // ---------- Change Avatar anytime ----------
 function openAvatarModal() {
-  ensureUnlockDefaults();
+  if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
   const current = state.users[state.currentUser]?.avatar || '🦊';
-  const options = ALL_AVATARS.map(a => {
-    const locked = !isAvatarUnlocked(a);
+  const list = (typeof ALL_AVATARS !== 'undefined') ? ALL_AVATARS : ['🦊','🐼','🦄','🐱','🐶','🦁','🐸','🐰','🐨','🐯','🐵','🐮','🐷','🦋','🐢','🐙','🦖','🐝','🦉','🐧','🐬','🦕','🌟','🚀','🌈','🐲','🎮','🎨','⚡','🏆','🌸','🍀','🎯','📚','🧩','🎈'];
+  const options = list.map(a => {
+    const locked = typeof isAvatarUnlocked === 'function' && !isAvatarUnlocked(a);
     return `<span class="avatar ${a === current ? 'selected' : ''} ${locked ? 'locked-avatar' : ''}" data-avatar="${a}" data-locked="${locked ? '1' : '0'}" onclick="selectAvatar(this)" style="background:${avatarBg(a)}">${a}</span>`;
   }).join('');
 
@@ -4491,7 +4512,7 @@ function selectAvatar(el) {
 function saveAvatar() {
   const selected = document.querySelector('#modal-content .avatar.selected');
   if (!selected) return;
-  if (selected.dataset.locked === '1' || !isAvatarUnlocked(selected.dataset.avatar)) {
+  if (selected.dataset.locked === '1' || (typeof isAvatarUnlocked === 'function' && !isAvatarUnlocked(selected.dataset.avatar))) {
     toast('🔒 Unlock this avatar in Wins!');
     return;
   }
@@ -5114,7 +5135,7 @@ function addPoints(n) {
   if (user) {
     user.points = Math.max(0, (user.points || 0) + n);
     renderHeader();
-    checkAchievements();
+    if (typeof checkAchievements === 'function') checkAchievements();
   }
 }
 
@@ -5860,8 +5881,8 @@ function renderAll() {
   renderReflection();
   renderBooksTab();
   renderInquiryTab();
-  renderAchievementsTab();
-  checkAchievements(true);
+  if (typeof checkAchievements === 'function') checkAchievements(true);
+  if (typeof renderAchievementsTab === 'function') renderAchievementsTab();
 }
 
 // Close modal on overlay click
