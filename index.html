@@ -6,7 +6,7 @@
   <title>SBL Plan – Your Fun Planner</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Chewy&family=Edu+QLD+Hand:wght@400..700&family=Nunito:wght@400;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Chewy&family=Edu+QLD+Hand:wght@400..700&family=Nunito:wght@400;600;700;800&family=Poppins:wght@400;500;700&display=swap" rel="stylesheet">
   <link href="https://fonts.cdnfonts.com/css/opendyslexic" rel="stylesheet">
   <meta name="description" content="SBL Plan – student planner for School Beyond Limitations. Privacy-friendly.">
   <style>
@@ -554,6 +554,11 @@ body.font-nunito {
   --line-height: 1.45;
   letter-spacing: 0;
 }
+body.font-poppins {
+  --font-main: 'Poppins', system-ui, sans-serif;
+  --line-height: 1.5;
+  letter-spacing: 0;
+}
 body.font-chewy {
   --font-main: 'Chewy', system-ui, sans-serif;
   font-weight: 400;
@@ -614,6 +619,7 @@ body.font-opendyslexic button {
   background: #F3E8FF;
 }
 .font-preview-nunito { font-family: 'Nunito', system-ui, sans-serif; font-weight: 800; }
+.font-preview-poppins { font-family: 'Poppins', system-ui, sans-serif; font-weight: 700; }
 .font-preview-chewy { font-family: 'Chewy', system-ui; font-weight: 400; font-style: normal; }
 .font-preview-eduqld { font-family: 'Edu QLD Hand', cursive; font-optical-sizing: auto; font-weight: 500; font-style: normal; }
 .font-preview-opendyslexic { font-family: 'OpenDyslexic', 'Comic Sans MS', system-ui, sans-serif; }
@@ -1002,61 +1008,34 @@ body {
 }
 
 
+/* Achievements */
+.ach-grid { display:grid; grid-template-columns:repeat(auto-fill,minmax(150px,1fr)); gap:12px; margin-top:8px; }
+.ach-card { background:#fff; border-radius:18px; padding:14px 12px; text-align:center; box-shadow:var(--shadow); border:3px solid #eee; display:flex; flex-direction:column; align-items:center; gap:6px; min-height:160px; position:relative; }
+.ach-card.unlocked { border-color:#58CC02; background:linear-gradient(180deg,#E8F9E0 0%,#fff 55%); }
+.ach-card.locked { opacity:0.85; }
+.ach-card .ach-emoji { font-size:2.2rem; line-height:1; }
+.ach-card .ach-title { font-weight:800; font-size:0.95rem; }
+.ach-card .ach-desc { font-size:0.78rem; color:var(--muted); line-height:1.3; }
+.ach-card .ach-reward { font-size:0.75rem; font-weight:700; color:#58A700; margin-top:auto; }
+.ach-card.locked .ach-reward { color:var(--muted); }
+.ach-progress { width:100%; height:8px; background:#eee; border-radius:99px; overflow:hidden; margin-top:4px; }
+.ach-progress > i { display:block; height:100%; background:#58CC02; border-radius:99px; }
+.ach-lock { position:absolute; top:8px; right:10px; font-size:0.95rem; }
+.ach-summary { display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+.ach-summary .pill { background:#fff; border-radius:999px; padding:8px 14px; font-weight:700; font-size:0.9rem; box-shadow:var(--shadow); }
+.avatar.locked-avatar, .font-choice button.locked-choice, .theme-choice button.locked-choice { opacity:0.45; position:relative; }
+.avatar.locked-avatar::after { content:'🔒'; position:absolute; bottom:2px; right:2px; font-size:0.7rem; }
+
 /* Zoom directory */
 .zoom-dir-section { margin-bottom: 22px; }
-.zoom-dir-section h3 {
-  font-size: 1.1rem;
-  font-weight: 800;
-  margin: 0 0 10px;
-  color: var(--text);
-}
-.zoom-dir-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-  gap: 10px;
-}
-.zoom-dir-card {
-  background: white;
-  border-radius: 16px;
-  padding: 14px 14px 12px;
-  box-shadow: var(--shadow);
-  border-top: 4px solid #2D8CFF;
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-}
-.zoom-dir-card .zd-name {
-  font-weight: 800;
-  font-size: 0.98rem;
-  line-height: 1.25;
-}
-.zoom-dir-card .zd-meta {
-  font-size: 0.78rem;
-  color: var(--muted);
-}
-.zoom-dir-card a.zd-btn {
-  display: inline-block;
-  text-align: center;
-  margin-top: auto;
-  padding: 8px 12px;
-  border-radius: 12px;
-  background: #E3F2FD;
-  color: #1565C0;
-  font-weight: 700;
-  font-size: 0.88rem;
-  text-decoration: none;
-}
+.zoom-dir-section h3 { font-size: 1.1rem; font-weight: 800; margin: 0 0 10px; color: var(--text); }
+.zoom-dir-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+.zoom-dir-card { background: white; border-radius: 16px; padding: 14px 14px 12px; box-shadow: var(--shadow); border-top: 4px solid #2D8CFF; display: flex; flex-direction: column; gap: 8px; }
+.zoom-dir-card .zd-name { font-weight: 800; font-size: 0.98rem; line-height: 1.25; }
+.zoom-dir-card .zd-meta { font-size: 0.78rem; color: var(--muted); }
+.zoom-dir-card a.zd-btn { display: inline-block; text-align: center; margin-top: auto; padding: 8px 12px; border-radius: 12px; background: #E3F2FD; color: #1565C0; font-weight: 700; font-size: 0.88rem; text-decoration: none; }
 .zoom-dir-card a.zd-btn:hover { background: #BBDEFB; }
-.zoom-search {
-  width: 100%;
-  padding: 12px 14px;
-  border: 2px solid #eee;
-  border-radius: 14px;
-  font-family: inherit;
-  font-size: 1rem;
-  margin-bottom: 14px;
-  box-sizing: border-box;
-}
+.zoom-search { width: 100%; padding: 12px 14px; border: 2px solid #eee; border-radius: 14px; font-family: inherit; font-size: 1rem; margin-bottom: 14px; box-sizing: border-box; }
 .zoom-search:focus { outline: none; border-color: #2D8CFF; }
 
 /* ========== BOTTOM NAV ========== */
@@ -2275,6 +2254,10 @@ body.theme-highcontrast .nav-btn.active {
         <span class="nav-icon">🎨</span>
         <span>Sessions</span>
       </button>
+      <button class="nav-btn" data-tab="achievements" onclick="switchTab('achievements')">
+        <span class="nav-icon">🏆</span>
+        <span>Wins</span>
+      </button>
       <button class="nav-btn" data-tab="zoom" onclick="switchTab('zoom')">
         <span class="nav-icon">📹</span>
         <span>Zoom</span>
@@ -2403,6 +2386,13 @@ body.theme-highcontrast .nav-btn.active {
       </section>
 
       <!-- REMEMBER -->
+      <section id="tab-achievements" class="tab">
+        <h2 class="section-title">Wins 🏆</h2>
+        <p style="color:var(--muted);margin:-6px 0 12px;font-size:0.95rem">Unlock fonts, themes &amp; avatars — like badges!</p>
+        <div id="achievements-summary" class="ach-summary"></div>
+        <div id="achievements-list" class="ach-grid"></div>
+      </section>
+
       <section id="tab-zoom" class="tab">
         <h2 class="section-title">Zoom rooms 📹</h2>
         <p style="color:var(--muted);margin:-6px 0 12px;font-size:0.95rem">Find a teacher and join their Zoom — scroll or search</p>
@@ -2681,7 +2671,11 @@ let state = {
   fontFamily: 'nunito',
   privacyAccepted: false,
   notificationsEnabled: false,
-  theme: 'sunshine'
+  theme: 'sunshine',
+  unlockedAchievements: [],
+  unlockedAvatars: ['🦊'],
+  unlockedFonts: ['nunito', 'poppins', 'opendyslexic'],
+  unlockedThemes: ['sunshine']
 };
 
 // ---------- Helpers ----------
@@ -3052,6 +3046,7 @@ function saveReflection(which) {
   }
   save();
   renderReflection();
+  if (typeof checkAchievements === 'function') checkAchievements();
   toast('Reflection saved 🪞');
 }
 
@@ -3442,6 +3437,7 @@ function load() {
       if (!state.classes) state.classes = [];
       if (!state.fontFamily) state.fontFamily = state.dyslexiaMode ? 'opendyslexic' : 'nunito';
       if (!state.theme) state.theme = 'sunshine';
+      if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
     } catch (e) {
       console.warn('Could not load data', e);
     }
@@ -3620,34 +3616,40 @@ function toggleDyslexiaMode() {
 }
 
 function openFontModal() {
+  if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
   const cur = state.fontFamily || (state.dyslexiaMode ? 'opendyslexic' : 'nunito');
+  const fonts = [
+    { id: 'nunito', label: 'Clear — Nunito', preview: 'font-preview-nunito' },
+    { id: 'poppins', label: 'Poppins', preview: 'font-preview-poppins' },
+    { id: 'chewy', label: 'Chewy', preview: 'font-preview-chewy' },
+    { id: 'eduqld', label: 'QLD Hand', preview: 'font-preview-eduqld' },
+    { id: 'opendyslexic', label: 'Easy read', preview: 'font-preview-opendyslexic' }
+  ];
+  const buttons = fonts.map(f => {
+    const locked = typeof isFontUnlocked === 'function' && !isFontUnlocked(f.id);
+    return `<button type="button" class="${cur===f.id?'on':''} ${locked?'locked-choice':''}" onclick="setFontFamily('${f.id}')">
+        <span class="${f.preview}">${locked ? '🔒 ' : ''}${f.label}</span>
+      </button>`;
+  }).join('');
   openModal(`
     <h3>Choose a font</h3>
-    <div class="font-choice">
-      <button type="button" class="${cur==='nunito'?'on':''}" onclick="setFontFamily('nunito')">
-        <span class="font-preview-nunito">Clear — Nunito</span>
-      </button>
-      <button type="button" class="${cur==='chewy'?'on':''}" onclick="setFontFamily('chewy')">
-        <span class="font-preview-chewy">Chewy</span>
-      </button>
-      <button type="button" class="${cur==='eduqld'?'on':''}" onclick="setFontFamily('eduqld')">
-        <span class="font-preview-eduqld">QLD Hand</span>
-      </button>
-      <button type="button" class="${cur==='opendyslexic'?'on':''}" onclick="setFontFamily('opendyslexic')">
-        <span class="font-preview-opendyslexic">Easy read</span>
-      </button>
-    </div>
+    <p style="color:var(--muted);margin-bottom:8px;font-size:0.9rem">Poppins & Easy read are always free. More in Wins 🏆</p>
+    <div class="font-choice">${buttons}</div>
     <button class="btn primary" onclick="closeModal()">Done</button>
   `);
 }
 
 function setFontFamily(name) {
+  if (typeof isFontUnlocked === 'function' && !isFontUnlocked(name)) {
+    toast('🔒 Unlock this font in Wins!');
+    return;
+  }
   state.fontFamily = name;
   state.dyslexiaMode = (name === 'opendyslexic');
   applyA11yModes();
   save();
   if (firebaseReady && auth.currentUser) cloudSaveUserData();
-  const labels = { nunito: 'Clear font', chewy: 'Chewy', eduqld: 'QLD Hand', opendyslexic: 'Easy read' };
+  const labels = { nunito: 'Clear font', poppins: 'Poppins', chewy: 'Chewy', eduqld: 'QLD Hand', opendyslexic: 'Easy read' };
   toast(labels[name] || 'Font set');
   openFontModal();
 }
@@ -3656,7 +3658,7 @@ function applyA11yModes() {
   applyTheme();
   document.body.classList.toggle('mode-adhd', !!state.adhdMode);
   const font = state.fontFamily || (state.dyslexiaMode ? 'opendyslexic' : 'nunito');
-  document.body.classList.remove('font-nunito', 'font-chewy', 'font-eduqld', 'font-opendyslexic', 'mode-dyslexia');
+  document.body.classList.remove('font-nunito', 'font-poppins', 'font-chewy', 'font-eduqld', 'font-opendyslexic', 'mode-dyslexia');
   document.body.classList.add('font-' + font);
   if (font === 'opendyslexic') document.body.classList.add('mode-dyslexia');
   const ca = document.getElementById('chip-adhd');
@@ -3718,6 +3720,304 @@ const THEME_OPTIONS = {
   highcontrast: { label: 'High contrast', emoji: '⬛', colors: ['#000000', '#FFFF00', '#0000EE'] }
 };
 
+/* ---------- Achievements (Duolingo-style unlocks) ---------- */
+const FREE_AVATARS = ['🦊'];
+const FREE_FONTS = ['nunito', 'poppins', 'opendyslexic'];
+const FREE_THEMES = ['sunshine'];
+const ALL_AVATARS = ['🦊','🐼','🦄','🐱','🐶','🦁','🐸','🐰','🐨','🐯','🐵','🐮','🐷','🦋','🐢','🐙','🦖','🐝','🦉','🐧','🐬','🦕','🌟','🚀','🌈','🐲','🎮','🎨','⚡','🏆','🌸','🍀','🎯','📚','🧩','🎈'];
+
+const ACHIEVEMENTS = [
+  { id: 'first_step', title: 'First step!', emoji: '🎯', desc: 'Complete 1 action step',
+    progress: () => Math.min(1, countDoneTasks()), target: 1,
+    reward: { type: 'avatar', value: '🐼', label: 'Panda avatar' } },
+  { id: 'three_steps', title: 'Getting going', emoji: '👟', desc: 'Complete 3 action steps',
+    progress: () => Math.min(3, countDoneTasks()), target: 3,
+    reward: { type: 'avatars', value: ['🐶','🦁','🐸','🐰'], label: 'Pet avatars' } },
+  { id: 'five_steps', title: 'On a roll', emoji: '✅', desc: 'Complete 5 action steps',
+    progress: () => Math.min(5, countDoneTasks()), target: 5,
+    reward: { type: 'theme', value: 'ocean', label: 'Ocean theme' } },
+  { id: 'ten_steps', title: 'Action pro', emoji: '🚀', desc: 'Complete 10 action steps',
+    progress: () => Math.min(10, countDoneTasks()), target: 10,
+    reward: { type: 'theme', value: 'aurora', label: 'Aurora theme' } },
+  { id: 'fifteen_steps', title: 'Desert trek', emoji: '🏜️', desc: 'Complete 15 action steps',
+    progress: () => Math.min(15, countDoneTasks()), target: 15,
+    reward: { type: 'theme', value: 'sand', label: 'Sand theme' } },
+  { id: 'twenty_steps', title: 'Unstoppable', emoji: '💪', desc: 'Complete 20 action steps',
+    progress: () => Math.min(20, countDoneTasks()), target: 20,
+    reward: { type: 'theme', value: 'ember', label: 'Ember theme' } },
+  { id: 'habit_day', title: 'Habit hero', emoji: '🔥', desc: 'Check off a habit',
+    progress: () => Math.min(1, countHabitChecks()), target: 1,
+    reward: { type: 'avatar', value: '🦄', label: 'Unicorn avatar' } },
+  { id: 'habit_5', title: 'Zesty', emoji: '🍋', desc: 'Check habits 5 times',
+    progress: () => Math.min(5, countHabitChecks()), target: 5,
+    reward: { type: 'theme', value: 'lemon', label: 'Lemon theme' } },
+  { id: 'habit_10', title: 'Habit builder', emoji: '🧱', desc: 'Check habits 10 times',
+    progress: () => Math.min(10, countHabitChecks()), target: 10,
+    reward: { type: 'avatar', value: '🐱', label: 'Cat avatar' } },
+  { id: 'streak_3', title: '3-day streak', emoji: '⚡', desc: 'Get a 3-day habit streak',
+    progress: () => Math.min(3, bestHabitStreak()), target: 3,
+    reward: { type: 'font', value: 'chewy', label: 'Chewy font' } },
+  { id: 'streak_7', title: 'Week warrior', emoji: '🏅', desc: 'Get a 7-day habit streak',
+    progress: () => Math.min(7, bestHabitStreak()), target: 7,
+    reward: { type: 'theme', value: 'forest', label: 'Forest theme' } },
+  { id: 'streak_7b', title: 'Dino pack', emoji: '🦖', desc: 'Get a 7-day habit streak',
+    progress: () => Math.min(7, bestHabitStreak()), target: 7,
+    reward: { type: 'avatars', value: ['🦖','🦕','🐲'], label: 'Dino avatars' } },
+  { id: 'streak_14', title: 'Fortnight legend', emoji: '👑', desc: 'Get a 14-day habit streak',
+    progress: () => Math.min(14, bestHabitStreak()), target: 14,
+    reward: { type: 'theme', value: 'grape', label: 'Grape theme' } },
+  { id: 'bookworm', title: 'Bookworm', emoji: '📖', desc: 'Finish a book review',
+    progress: () => Math.min(1, countBookReviews()), target: 1,
+    reward: { type: 'theme', value: 'berry', label: 'Berry theme' } },
+  { id: 'library', title: 'Little library', emoji: '📚', desc: 'Finish 3 book reviews',
+    progress: () => Math.min(3, countBookReviews()), target: 3,
+    reward: { type: 'avatar', value: '📚', label: 'Books avatar' } },
+  { id: 'curious', title: 'Curious mind', emoji: '🔍', desc: 'Finish an inquiry review',
+    progress: () => Math.min(1, countInquiryReviews()), target: 1,
+    reward: { type: 'avatar', value: '🦉', label: 'Owl avatar' } },
+  { id: 'explorer', title: 'Explorer', emoji: '🗺️', desc: 'Finish 3 inquiry reviews',
+    progress: () => Math.min(3, countInquiryReviews()), target: 3,
+    reward: { type: 'theme', value: 'sky', label: 'Sky theme' } },
+  { id: 'goal_one', title: 'Goal getter', emoji: '🏆', desc: 'Complete 1 goal',
+    progress: () => Math.min(1, countDoneGoals()), target: 1,
+    reward: { type: 'theme', value: 'candy', label: 'Candy theme' } },
+  { id: 'goal_two', title: 'Nature pack', emoji: '🌸', desc: 'Complete 2 goals',
+    progress: () => Math.min(2, countDoneGoals()), target: 2,
+    reward: { type: 'avatars', value: ['🌸','🍀','🎯','🧩','🎈'], label: 'Nature avatars' } },
+  { id: 'goal_three', title: 'Dream chaser', emoji: '🌠', desc: 'Complete 3 goals',
+    progress: () => Math.min(3, countDoneGoals()), target: 3,
+    reward: { type: 'theme', value: 'rose', label: 'Rose theme' } },
+  { id: 'reflect_1', title: 'Thoughtful', emoji: '🪞', desc: 'Write a reflection',
+    progress: () => Math.min(1, countReflections()), target: 1,
+    reward: { type: 'theme', value: 'lavender', label: 'Lavender theme' } },
+  { id: 'reflect_2', title: 'Peachy', emoji: '🍑', desc: 'Write 2 reflections',
+    progress: () => Math.min(2, countReflections()), target: 2,
+    reward: { type: 'theme', value: 'peach', label: 'Peach theme' } },
+  { id: 'reflect_5', title: 'Deep thinker', emoji: '🧠', desc: 'Write 5 reflections',
+    progress: () => Math.min(5, countReflections()), target: 5,
+    reward: { type: 'theme', value: 'arctic', label: 'Arctic theme' } },
+  { id: 'session_5', title: 'Showed up', emoji: '🎨', desc: 'Check off 5 sessions',
+    progress: () => Math.min(5, countSessionChecks()), target: 5,
+    reward: { type: 'font', value: 'eduqld', label: 'QLD Hand font' } },
+  { id: 'session_10', title: 'Ocean pack', emoji: '🐬', desc: 'Check off 10 sessions',
+    progress: () => Math.min(10, countSessionChecks()), target: 10,
+    reward: { type: 'avatars', value: ['🐢','🐙','🐧','🐬','🐝','🦋'], label: 'Ocean avatars' } },
+  { id: 'session_20', title: 'Class champion', emoji: '🎓', desc: 'Check off 20 sessions',
+    progress: () => Math.min(20, countSessionChecks()), target: 20,
+    reward: { type: 'theme', value: 'mint', label: 'Mint theme' } },
+  { id: 'stars_25', title: 'Star collector', emoji: '⭐', desc: 'Earn 25 stars',
+    progress: () => Math.min(25, currentPoints()), target: 25,
+    reward: { type: 'avatar', value: '🌟', label: 'Star avatar' } },
+  { id: 'stars_40', title: 'Wild pack', emoji: '🐯', desc: 'Earn 40 stars',
+    progress: () => Math.min(40, currentPoints()), target: 40,
+    reward: { type: 'avatars', value: ['🐨','🐯','🐵','🐷','🐮'], label: 'Wild avatars' } },
+  { id: 'stars_50', title: 'Superstar', emoji: '✨', desc: 'Earn 50 stars',
+    progress: () => Math.min(50, currentPoints()), target: 50,
+    reward: { type: 'theme', value: 'sunset', label: 'Sunset theme' } },
+  { id: 'stars_75', title: 'Fun pack', emoji: '🎮', desc: 'Earn 75 stars',
+    progress: () => Math.min(75, currentPoints()), target: 75,
+    reward: { type: 'avatars', value: ['🚀','🌈','🎮','🎨','⚡','🏆'], label: 'Fun avatars' } },
+  { id: 'stars_100', title: 'Legend', emoji: '👑', desc: 'Earn 100 stars',
+    progress: () => Math.min(100, currentPoints()), target: 100,
+    reward: { type: 'theme', value: 'midnight', label: 'Midnight theme' } },
+  { id: 'stars_150', title: 'Minimalist', emoji: '◻️', desc: 'Earn 150 stars',
+    progress: () => Math.min(150, currentPoints()), target: 150,
+    reward: { type: 'theme', value: 'mono', label: 'Mono theme' } },
+  { id: 'stars_200', title: 'Galaxy brain', emoji: '🌌', desc: 'Earn 200 stars',
+    progress: () => Math.min(200, currentPoints()), target: 200,
+    reward: { type: 'theme', value: 'coffee', label: 'Coffee theme' } },
+  { id: 'stars_300', title: 'Ultimate', emoji: '🖤', desc: 'Earn 300 stars',
+    progress: () => Math.min(300, currentPoints()), target: 300,
+    reward: { type: 'theme', value: 'highcontrast', label: 'High contrast theme' } }
+];
+
+function ensureUnlockDefaults() {
+  if (!Array.isArray(state.unlockedAchievements)) state.unlockedAchievements = [];
+  if (!Array.isArray(state.unlockedAvatars)) state.unlockedAvatars = FREE_AVATARS.slice();
+  if (!Array.isArray(state.unlockedFonts)) state.unlockedFonts = FREE_FONTS.slice();
+  if (!Array.isArray(state.unlockedThemes)) state.unlockedThemes = FREE_THEMES.slice();
+  FREE_AVATARS.forEach(a => { if (!state.unlockedAvatars.includes(a)) state.unlockedAvatars.push(a); });
+  FREE_FONTS.forEach(f => { if (!state.unlockedFonts.includes(f)) state.unlockedFonts.push(f); });
+  FREE_THEMES.forEach(t => { if (!state.unlockedThemes.includes(t)) state.unlockedThemes.push(t); });
+}
+function currentPoints() {
+  const u = state.users && state.currentUser ? state.users[state.currentUser] : null;
+  return (u && typeof u.points === 'number') ? u.points : 0;
+}
+function countDoneTasks() { return (state.tasks || []).filter(t => !!t.completed).length; }
+function countHabitChecks() {
+  let n = 0;
+  (state.habits || []).forEach(h => { if (h && h.history) Object.keys(h.history).forEach(k => { if (h.history[k]) n++; }); });
+  return n;
+}
+function bestHabitStreak() {
+  let best = 0;
+  (state.habits || []).forEach(h => { try { if (typeof calcStreak === 'function') best = Math.max(best, calcStreak(h) || 0); } catch (e) {} });
+  return best;
+}
+function countBookReviews() {
+  return (state.books || []).filter(b => b && (b.review || b.status === 'done' || b.status === 'completed')).length;
+}
+function countInquiryReviews() {
+  return (state.inquiries || []).filter(i => i && (i.review || i.status === 'done' || i.status === 'completed')).length;
+}
+function countDoneGoals() { return (state.goals || []).filter(g => g && g.done).length; }
+function countReflections() {
+  const r = state.reflections || {};
+  let n = 0;
+  Object.keys(r).forEach(key => {
+    const v = r[key];
+    if (!v) return;
+    if (typeof v === 'string' && v.trim()) { n++; return; }
+    if (typeof v === 'object') {
+      if (v.text && String(v.text).trim()) { n++; return; }
+      if (v.answer && String(v.answer).trim()) { n++; return; }
+      if (v.content && String(v.content).trim()) { n++; return; }
+    }
+  });
+  return n;
+}
+function countSessionChecks() {
+  let n = 0;
+  (state.classes || []).forEach(c => { if (c && c.history) Object.keys(c.history).forEach(k => { if (c.history[k]) n++; }); });
+  return n;
+}
+function isAvatarUnlocked(a) { ensureUnlockDefaults(); return state.unlockedAvatars.includes(a); }
+function isFontUnlocked(f) { ensureUnlockDefaults(); return state.unlockedFonts.includes(f); }
+function isThemeUnlocked(t) { ensureUnlockDefaults(); return state.unlockedThemes.includes(t); }
+function applyAchievementReward(reward) {
+  if (!reward) return;
+  ensureUnlockDefaults();
+  if (reward.type === 'avatar' && reward.value && !state.unlockedAvatars.includes(reward.value)) state.unlockedAvatars.push(reward.value);
+  if (reward.type === 'avatars' && Array.isArray(reward.value)) reward.value.forEach(a => { if (!state.unlockedAvatars.includes(a)) state.unlockedAvatars.push(a); });
+  if (reward.type === 'font' && reward.value && !state.unlockedFonts.includes(reward.value)) state.unlockedFonts.push(reward.value);
+  if (reward.type === 'theme' && reward.value && !state.unlockedThemes.includes(reward.value)) state.unlockedThemes.push(reward.value);
+}
+function checkAchievements(silent) {
+  ensureUnlockDefaults();
+  const newly = [];
+  ACHIEVEMENTS.forEach(a => {
+    if (state.unlockedAchievements.includes(a.id)) return;
+    let p = 0;
+    try { p = a.progress(); } catch (e) { p = 0; }
+    if (p >= a.target) {
+      state.unlockedAchievements.push(a.id);
+      applyAchievementReward(a.reward);
+      newly.push(a);
+    }
+  });
+  if (newly.length) {
+    save();
+    try { if (typeof firebaseReady !== 'undefined' && firebaseReady && auth && auth.currentUser) cloudSaveUserData(); } catch (e) {}
+    if (!silent) {
+      const a = newly[0];
+      toast('🏆 ' + a.title + (a.reward ? ' — unlocked ' + a.reward.label + '!' : '!'));
+      if (newly.length > 1) setTimeout(() => toast('+' + (newly.length - 1) + ' more win' + (newly.length > 2 ? 's' : '') + '!'), 1100);
+    }
+  }
+  return newly;
+}
+function renderAchievementsTab() {
+  ensureUnlockDefaults();
+  checkAchievements(true);
+  const sum = document.getElementById('achievements-summary');
+  const list = document.getElementById('achievements-list');
+  if (!list) return;
+  if (sum) {
+    sum.innerHTML = `
+      <div class="pill">🏆 ${state.unlockedAchievements.length}/${ACHIEVEMENTS.length} unlocked</div>
+      <div class="pill">⭐ ${currentPoints()} stars</div>
+      <div class="pill">🎨 ${state.unlockedThemes.length} themes</div>
+      <div class="pill">Aa ${state.unlockedFonts.length} fonts</div>
+      <div class="pill">😊 ${state.unlockedAvatars.length} avatars</div>`;
+  }
+  list.innerHTML = ACHIEVEMENTS.map(a => {
+    const done = state.unlockedAchievements.includes(a.id);
+    let p = 0;
+    try { p = a.progress(); } catch (e) { p = 0; }
+    const pct = Math.min(100, Math.round((p / a.target) * 100));
+    const rewardTxt = a.reward ? a.reward.label : '';
+    return `<div class="ach-card ${done ? 'unlocked' : 'locked'}">
+      ${done ? '' : '<span class="ach-lock">🔒</span>'}
+      <div class="ach-emoji">${a.emoji}</div>
+      <div class="ach-title">${a.title}</div>
+      <div class="ach-desc">${a.desc}</div>
+      ${done ? '<div class="ach-desc" style="color:#58A700;font-weight:700">Unlocked!</div>' : `<div class="ach-progress"><i style="width:${pct}%"></i></div><div class="ach-desc">${p}/${a.target}</div>`}
+      <div class="ach-reward">${done ? '✓ ' : '🎁 '}${rewardTxt}</div>
+    </div>`;
+  }).join('');
+}
+
+// ---------- School Zoom directory (no emails) ----------
+const SCHOOL_ZOOM_LINKS = [
+  { section: 'Secondary School', name: 'Dr. Martina Geromin', url: 'https://zoom.us/j/9656074147' },
+  { section: 'Secondary School', name: 'Kiki Tompazi', url: 'https://zoom.us/j/7578415886' },
+  { section: 'Secondary School', name: 'Emma Dunckley', url: 'https://us02web.zoom.us/j/7191308141' },
+  { section: 'Secondary School', name: 'Oliver Shearman', url: 'https://us02web.zoom.us/j/8070291949' },
+  { section: 'Secondary School', name: 'Susie Henshall', url: 'https://us02web.zoom.us/j/7203986243' },
+  { section: 'Secondary School', name: 'Debbie Andrew', url: 'https://us02web.zoom.us/j/6123270599' },
+  { section: 'Secondary School', name: 'Brian McHugh', url: 'https://us02web.zoom.us/j/5595592727' },
+  { section: 'Secondary School', name: 'Sonia Dos Santos', url: 'https://zoom.us/j/9962046108' },
+  { section: 'Secondary School', name: 'Lisa Cornell', url: 'https://zoom.us/j/5978477881' },
+  { section: 'Secondary School', name: 'Ajit Dhillon', url: 'https://zoom.us/j/8998641557' },
+  { section: 'Secondary School', name: 'Jayne O\u2019Keefe', url: 'https://zoom.us/j/7490881184' },
+  { section: 'Secondary School', name: 'Julia Hodgetts', url: 'https://us02web.zoom.us/j/8574955512' },
+  { section: 'Secondary School', name: 'Sean Smith', url: 'https://zoom.us/j/9190888833' },
+  { section: 'Secondary School', name: 'Dan Rogers', url: 'https://zoom.us/j/4616878957' },
+  { section: 'Secondary School', name: 'Mark Connolly', url: 'https://us02web.zoom.us/j/8442132295' },
+  { section: 'Secondary School', name: 'Paul Tyack', url: 'https://us02web.zoom.us/j/7135166548' },
+  { section: 'Secondary School', name: 'Nino Trentinella', url: 'https://zoom.us/j/7794380168' },
+  { section: 'Secondary School', name: 'Simone Schraner', url: 'https://zoom.us/j/4973896618' },
+  { section: 'Secondary School', name: 'Anna Gola\u0144ska', url: 'https://zoom.us/j/3373150398' },
+  { section: 'Primary School', name: 'Anna Gola\u0144ska', url: 'https://zoom.us/j/3373150398' },
+  { section: 'Primary School', name: 'Celia Martinez', url: 'https://us02web.zoom.us/j/3533533598' },
+  { section: 'Primary School', name: 'Warren Hudson', url: 'https://us02web.zoom.us/j/6225539425' },
+  { section: 'Primary School', name: 'Eva Skelton', url: 'https://us02web.zoom.us/j/3749334708' },
+  { section: 'Primary School', name: 'Paul Tyack', url: 'https://us02web.zoom.us/j/7135166548' },
+  { section: 'Spanish & French', name: 'Fran Rodriguez', url: 'https://us02web.zoom.us/j/4644121913' },
+  { section: 'Italian', name: 'Alice Guidetti', url: 'https://us06web.zoom.us/j/8306722774?pwd=eHNad3hVMFhsU1BBdWVjNTBIcU1idz09' },
+  { section: 'Administration', name: 'Sandra Eckert', url: 'https://us02web.zoom.us/j/8683767879' },
+  { section: 'School Psychologist', name: 'Dr. Giovanna Fungi', url: 'https://us02web.zoom.us/j/6997618837' },
+  { section: 'Fundraising', name: 'Craig Andrew', url: 'https://zoom.us/j/9491252814' }
+];
+function renderZoomDirectory(filter) {
+  const root = document.getElementById('zoom-directory');
+  if (!root) return;
+  const q = (filter || '').trim().toLowerCase();
+  const items = SCHOOL_ZOOM_LINKS.filter(z => !q || z.name.toLowerCase().includes(q) || z.section.toLowerCase().includes(q));
+  if (!items.length) {
+    root.innerHTML = '<div class="empty" style="padding:16px">No matches — try another name</div>';
+    return;
+  }
+  const order = [];
+  const bySection = {};
+  items.forEach(z => {
+    if (!bySection[z.section]) { bySection[z.section] = []; order.push(z.section); }
+    bySection[z.section].push(z);
+  });
+  root.innerHTML = order.map(sec => {
+    const cards = bySection[sec].map(z => `
+      <div class="zoom-dir-card">
+        <div class="zd-name">${z.name}</div>
+        <div class="zd-meta">${sec}</div>
+        <a class="zd-btn" href="${z.url}" target="_blank" rel="noopener">Join Zoom</a>
+      </div>`).join('');
+    return `<div class="zoom-dir-section"><h3>${sec}</h3><div class="zoom-dir-grid">${cards}</div></div>`;
+  }).join('');
+}
+function filterZoomDirectory() {
+  const el = document.getElementById('zoom-search');
+  renderZoomDirectory(el ? el.value : '');
+}
+function openZoomDirectory() {
+  switchTab('zoom');
+  const el = document.getElementById('zoom-search');
+  if (el) { el.value = ''; el.focus(); }
+  renderZoomDirectory('');
+}
+
+
+
 function applyTheme() {
   const name = state.theme || 'sunshine';
   const themes = Object.keys(THEME_OPTIONS);
@@ -3735,17 +4035,19 @@ function applyTheme() {
 }
 
 function openThemeModal() {
+  if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
   const cur = state.theme || 'sunshine';
   const buttons = Object.entries(THEME_OPTIONS).map(([key, t]) => {
+    const locked = typeof isThemeUnlocked === 'function' && !isThemeUnlocked(key);
     const swatches = t.colors.map(c => `<i style="background:${c}"></i>`).join('');
-    return `<button type="button" class="${cur === key ? 'on' : ''}" onclick="setTheme('${key}')">
-      <span>${t.emoji} ${t.label}</span>
+    return `<button type="button" class="${cur === key ? 'on' : ''} ${locked ? 'locked-choice' : ''}" onclick="setTheme('${key}')">
+      <span>${locked ? '🔒 ' : ''}${t.emoji} ${t.label}</span>
       <div class="theme-swatch">${swatches}</div>
     </button>`;
   }).join('');
   openModal(`
     <h3>Theme 🎨</h3>
-    <p style="color:var(--muted);margin-bottom:8px;font-size:0.9rem">Pick colours for the whole planner</p>
+    <p style="color:var(--muted);margin-bottom:8px;font-size:0.9rem">Unlock more in the Wins tab 🏆</p>
     <div class="theme-choice">${buttons}</div>
     <button class="btn primary" onclick="closeModal()">Done</button>
   `);
@@ -3753,6 +4055,10 @@ function openThemeModal() {
 
 function setTheme(name) {
   if (!THEME_OPTIONS[name]) name = 'sunshine';
+  if (typeof isThemeUnlocked === 'function' && !isThemeUnlocked(name)) {
+    toast('🔒 Unlock this theme in Wins!');
+    return;
+  }
   state.theme = name;
   applyTheme();
   applyA11yModes();
@@ -3888,6 +4194,10 @@ async function cloudSaveUserData() {
     notificationsEnabled: !!state.notificationsEnabled,
     theme: state.theme || 'sunshine',
     calVersion: state.calVersion,
+    unlockedAchievements: state.unlockedAchievements || [],
+    unlockedAvatars: state.unlockedAvatars || ['🦊'],
+    unlockedFonts: state.unlockedFonts || ['nunito', 'poppins', 'opendyslexic'],
+    unlockedThemes: state.unlockedThemes || ['sunshine'],
     updatedAt: new Date().toISOString()
   };
   try {
@@ -3928,6 +4238,12 @@ async function cloudLoadUserData() {
     if (data.readingBook !== undefined) state.readingBook = data.readingBook;
     if (data.topicInquiry !== undefined) state.topicInquiry = data.topicInquiry;
     if (data.calVersion) state.calVersion = data.calVersion;
+    if (data.unlockedAchievements) state.unlockedAchievements = data.unlockedAchievements;
+    if (data.unlockedAvatars) state.unlockedAvatars = data.unlockedAvatars;
+    if (data.unlockedFonts) state.unlockedFonts = data.unlockedFonts;
+    if (data.unlockedThemes) state.unlockedThemes = data.unlockedThemes;
+    if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
+    if (typeof checkAchievements === 'function') checkAchievements(true);
     save();
   } catch (e) {
     console.warn('cloud load', e);
@@ -4150,85 +4466,6 @@ function enterApp() {
 }
 
 // ---------- Navigation ----------
-
-// ---------- School Zoom directory (no emails) ----------
-const SCHOOL_ZOOM_LINKS = [
-  { section: 'Secondary School', name: 'Dr. Martina Geromin', url: 'https://zoom.us/j/9656074147' },
-  { section: 'Secondary School', name: 'Kiki Tompazi', url: 'https://zoom.us/j/7578415886' },
-  { section: 'Secondary School', name: 'Emma Dunckley', url: 'https://us02web.zoom.us/j/7191308141' },
-  { section: 'Secondary School', name: 'Oliver Shearman', url: 'https://us02web.zoom.us/j/8070291949' },
-  { section: 'Secondary School', name: 'Susie Henshall', url: 'https://us02web.zoom.us/j/7203986243' },
-  { section: 'Secondary School', name: 'Debbie Andrew', url: 'https://us02web.zoom.us/j/6123270599' },
-  { section: 'Secondary School', name: 'Brian McHugh', url: 'https://us02web.zoom.us/j/5595592727' },
-  { section: 'Secondary School', name: 'Sonia Dos Santos', url: 'https://zoom.us/j/9962046108' },
-  { section: 'Secondary School', name: 'Lisa Cornell', url: 'https://zoom.us/j/5978477881' },
-  { section: 'Secondary School', name: 'Ajit Dhillon', url: 'https://zoom.us/j/8998641557' },
-  { section: 'Secondary School', name: 'Jayne O\u2019Keefe', url: 'https://zoom.us/j/7490881184' },
-  { section: 'Secondary School', name: 'Julia Hodgetts', url: 'https://us02web.zoom.us/j/8574955512' },
-  { section: 'Secondary School', name: 'Sean Smith', url: 'https://zoom.us/j/9190888833' },
-  { section: 'Secondary School', name: 'Dan Rogers', url: 'https://zoom.us/j/4616878957' },
-  { section: 'Secondary School', name: 'Mark Connolly', url: 'https://us02web.zoom.us/j/8442132295' },
-  { section: 'Secondary School', name: 'Paul Tyack', url: 'https://us02web.zoom.us/j/7135166548' },
-  { section: 'Secondary School', name: 'Nino Trentinella', url: 'https://zoom.us/j/7794380168' },
-  { section: 'Secondary School', name: 'Simone Schraner', url: 'https://zoom.us/j/4973896618' },
-  { section: 'Secondary School', name: 'Anna Gola\u0144ska', url: 'https://zoom.us/j/3373150398' },
-  { section: 'Primary School', name: 'Anna Gola\u0144ska', url: 'https://zoom.us/j/3373150398' },
-  { section: 'Primary School', name: 'Celia Martinez', url: 'https://us02web.zoom.us/j/3533533598' },
-  { section: 'Primary School', name: 'Warren Hudson', url: 'https://us02web.zoom.us/j/6225539425' },
-  { section: 'Primary School', name: 'Eva Skelton', url: 'https://us02web.zoom.us/j/3749334708' },
-  { section: 'Primary School', name: 'Paul Tyack', url: 'https://us02web.zoom.us/j/7135166548' },
-  { section: 'Spanish & French', name: 'Fran Rodriguez', url: 'https://us02web.zoom.us/j/4644121913' },
-  { section: 'Italian', name: 'Alice Guidetti', url: 'https://us06web.zoom.us/j/8306722774?pwd=eHNad3hVMFhsU1BBdWVjNTBIcU1idz09' },
-  { section: 'Administration', name: 'Sandra Eckert', url: 'https://us02web.zoom.us/j/8683767879' },
-  { section: 'School Psychologist', name: 'Dr. Giovanna Fungi', url: 'https://us02web.zoom.us/j/6997618837' },
-  { section: 'Fundraising', name: 'Craig Andrew', url: 'https://zoom.us/j/9491252814' }
-];
-
-function renderZoomDirectory(filter) {
-  const root = document.getElementById('zoom-directory');
-  if (!root) return;
-  const q = (filter || '').trim().toLowerCase();
-  const items = SCHOOL_ZOOM_LINKS.filter(z => {
-    if (!q) return true;
-    return z.name.toLowerCase().includes(q) || z.section.toLowerCase().includes(q);
-  });
-  if (!items.length) {
-    root.innerHTML = '<div class="empty" style="padding:16px">No matches — try another name</div>';
-    return;
-  }
-  const order = [];
-  const bySection = {};
-  items.forEach(z => {
-    if (!bySection[z.section]) {
-      bySection[z.section] = [];
-      order.push(z.section);
-    }
-    bySection[z.section].push(z);
-  });
-  root.innerHTML = order.map(sec => {
-    const cards = bySection[sec].map(z => `
-      <div class="zoom-dir-card">
-        <div class="zd-name">${z.name}</div>
-        <div class="zd-meta">${sec}</div>
-        <a class="zd-btn" href="${z.url}" target="_blank" rel="noopener">Join Zoom</a>
-      </div>`).join('');
-    return `<div class="zoom-dir-section"><h3>${sec}</h3><div class="zoom-dir-grid">${cards}</div></div>`;
-  }).join('');
-}
-
-function filterZoomDirectory() {
-  const el = document.getElementById('zoom-search');
-  renderZoomDirectory(el ? el.value : '');
-}
-
-function openZoomDirectory() {
-  switchTab('zoom');
-  const el = document.getElementById('zoom-search');
-  if (el) { el.value = ''; el.focus(); }
-  renderZoomDirectory('');
-}
-
-
 function switchTab(tab) {
   document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
   document.querySelector(`.nav-btn[data-tab="${tab}"]`).classList.add('active');
@@ -4286,21 +4523,27 @@ function renderHeader() {
 
 // ---------- Change Avatar anytime ----------
 function openAvatarModal() {
+  if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
   const current = state.users[state.currentUser]?.avatar || '🦊';
-  const avatars = ['🦊','🐼','🦄','🐱','🐶','🦁','🐸','🐰','🐨','🐯','🐵','🐮','🐷','🦋','🐢','🐙','🦖','🐝','🦉','🐧','🐬','🦕','🌟','🚀','🌈','🐲','🎮','🎨','⚡','🏆','🌸','🍀','🎯','📚','🧩','🎈'];
-  const options = avatars.map(a =>
-    `<span class="avatar ${a === current ? 'selected' : ''}" data-avatar="${a}" onclick="selectAvatar(this)" style="background:${avatarBg(a)}">${a}</span>`
-  ).join('');
+  const list = (typeof ALL_AVATARS !== 'undefined') ? ALL_AVATARS : ['🦊','🐼','🦄','🐱','🐶','🦁','🐸','🐰','🐨','🐯','🐵','🐮','🐷','🦋','🐢','🐙','🦖','🐝','🦉','🐧','🐬','🦕','🌟','🚀','🌈','🐲','🎮','🎨','⚡','🏆','🌸','🍀','🎯','📚','🧩','🎈'];
+  const options = list.map(a => {
+    const locked = typeof isAvatarUnlocked === 'function' && !isAvatarUnlocked(a);
+    return `<span class="avatar ${a === current ? 'selected' : ''} ${locked ? 'locked-avatar' : ''}" data-avatar="${a}" data-locked="${locked ? '1' : '0'}" onclick="selectAvatar(this)" style="background:${avatarBg(a)}">${a}</span>`;
+  }).join('');
 
   openModal(`
     <h3>Change Your Avatar ✨</h3>
-    <p style="color:var(--muted);margin-bottom:12px">Tap a new one!</p>
+    <p style="color:var(--muted);margin-bottom:12px">🦊 is free — unlock more in Wins 🏆</p>
     <div class="avatars" style="justify-content:center">${options}</div>
     <button class="btn primary" onclick="saveAvatar()">Save Avatar</button>
   `);
 }
 
 function selectAvatar(el) {
+  if (el.dataset.locked === '1') {
+    toast('🔒 Unlock this avatar in Wins!');
+    return;
+  }
   document.querySelectorAll('#modal-content .avatar').forEach(a => a.classList.remove('selected'));
   el.classList.add('selected');
 }
@@ -4308,6 +4551,10 @@ function selectAvatar(el) {
 function saveAvatar() {
   const selected = document.querySelector('#modal-content .avatar.selected');
   if (!selected) return;
+  if (selected.dataset.locked === '1' || (typeof isAvatarUnlocked === 'function' && !isAvatarUnlocked(selected.dataset.avatar))) {
+    toast('🔒 Unlock this avatar in Wins!');
+    return;
+  }
   const user = state.users[state.currentUser];
   if (user) {
     user.avatar = selected.dataset.avatar;
@@ -4927,6 +5174,7 @@ function addPoints(n) {
   if (user) {
     user.points = Math.max(0, (user.points || 0) + n);
     renderHeader();
+    if (typeof checkAchievements === 'function') checkAchievements();
   }
 }
 
@@ -5672,7 +5920,9 @@ function renderAll() {
   renderReflection();
   renderBooksTab();
   renderInquiryTab();
-  renderZoomDirectory(document.getElementById('zoom-search')?.value || '');
+  if (typeof checkAchievements === 'function') checkAchievements(true);
+  if (typeof renderAchievementsTab === 'function') renderAchievementsTab();
+  if (typeof renderZoomDirectory === 'function') renderZoomDirectory(document.getElementById('zoom-search')?.value || '');
 }
 
 // Close modal on overlay click
