@@ -1025,7 +1025,6 @@ body {
 .ach-summary .pill { background:#fff; border-radius:999px; padding:8px 14px; font-weight:700; font-size:0.9rem; box-shadow:var(--shadow); }
 .avatar.locked-avatar, .font-choice button.locked-choice, .theme-choice button.locked-choice { opacity:0.45; position:relative; }
 .avatar.locked-avatar::after { content:'🔒'; position:absolute; bottom:2px; right:2px; font-size:0.7rem; }
-
 /* Zoom directory */
 .zoom-dir-section { margin-bottom: 22px; }
 .zoom-dir-section h3 { font-size: 1.1rem; font-weight: 800; margin: 0 0 10px; color: var(--text); }
@@ -1037,6 +1036,7 @@ body {
 .zoom-dir-card a.zd-btn:hover { background: #BBDEFB; }
 .zoom-search { width: 100%; padding: 12px 14px; border: 2px solid #eee; border-radius: 14px; font-family: inherit; font-size: 1rem; margin-bottom: 14px; box-sizing: border-box; }
 .zoom-search:focus { outline: none; border-color: #2D8CFF; }
+.reflection-saved-banner { background:#E8F9E0; border:2px solid #58CC02; border-radius:12px; padding:10px 12px; margin-bottom:10px; font-size:0.9rem; font-weight:700; color:#2d6a0e; }
 
 /* ========== BOTTOM NAV ========== */
 .bottom-nav {
@@ -2675,7 +2675,8 @@ let state = {
   unlockedAchievements: [],
   unlockedAvatars: ['🦊'],
   unlockedFonts: ['nunito', 'poppins', 'opendyslexic'],
-  unlockedThemes: ['sunshine']
+  unlockedThemes: ['sunshine'],
+  reflectionSaveCount: 0
 };
 
 // ---------- Helpers ----------
@@ -2909,12 +2910,15 @@ function renderReflection() {
   }
 
   if (dayEl) {
-    const val = dayEntry ? dayEntry.text : '';
     const qNum = (() => { try { return dailyQuestionIndex(today) + 1; } catch (e) { return 1; } })();
+    const savedBanner = dayEntry && dayEntry.text
+      ? `<div class="reflection-saved-banner">✓ Saved for today — see Past daily reflections</div>`
+      : '';
     dayEl.innerHTML = `
       <p style="font-weight:700;margin-bottom:4px">Today · ${esc(formatShort(today))} · question ${qNum} of ${DAILY_QUESTIONS.length}</p>
       <p style="color:var(--primary);font-weight:800;margin:8px 0 6px;line-height:1.35">❓ ${esc(dq)}</p>
-      <textarea id="reflection-daily" placeholder="Write your answer…">${esc(val)}</textarea>
+      ${savedBanner}
+      <textarea id="reflection-daily" placeholder="Write your answer…"></textarea>
       <button class="btn add-btn" style="margin-top:10px" onclick="saveReflection('daily')">Save daily reflection</button>
       <button class="btn add-btn" style="margin-top:8px;background:#636E72" onclick="openPastReflections('daily')">📜 Past daily reflections</button>
     `;
@@ -2922,10 +2926,14 @@ function renderReflection() {
   if (weekEl) {
     const val = weekEntry ? weekEntry.text : '';
     if (isFriday) {
+      const weekBanner = weekEntry && weekEntry.text
+        ? `<div class="reflection-saved-banner">✓ Saved for this week — see Past weekly reflections</div>`
+        : '';
       weekEl.innerHTML = `
         <p style="font-weight:700;margin-bottom:4px">This week · ${esc(formatDMY(today))} · Friday check-in</p>
         <p style="color:var(--secondary);font-weight:800;margin:8px 0 6px;line-height:1.35">❓ ${esc(wq)}</p>
-        <textarea id="reflection-weekly" placeholder="Write your answer…">${esc(val)}</textarea>
+        ${weekBanner}
+        <textarea id="reflection-weekly" placeholder="Write your answer…"></textarea>
         <button class="btn add-btn" style="margin-top:10px" onclick="saveReflection('weekly')">Save weekly reflection</button>
         <button class="btn add-btn" style="margin-top:8px;background:#636E72" onclick="openPastReflections('weekly')">📜 Past weekly reflections</button>
       `;
@@ -3020,6 +3028,7 @@ function openPastReflections(type) {
 
 function saveReflection(which) {
   if (!state.reflections) state.reflections = {};
+  if (typeof state.reflectionSaveCount !== 'number') state.reflectionSaveCount = 0;
   const now = new Date();
   const writtenAt = todayStr();
   const writtenTime = String(now.getHours()).padStart(2,'0') + ':' + String(now.getMinutes()).padStart(2,'0');
@@ -3030,7 +3039,11 @@ function saveReflection(which) {
     if (!textVal) { toast('Write something first'); return; }
     let q = 'How was your day?';
     try { q = DAILY_QUESTIONS[dailyQuestionIndex(todayStr())] || q; } catch (e) {}
+    // Keep a history list so multiple saves count toward Wins
+    if (!state.reflectionLog) state.reflectionLog = [];
+    state.reflectionLog.push({ text: textVal, writtenAt, writtenTime, question: q, type: 'daily', id: uid() });
     state.reflections[dailyKey()] = { text: textVal, writtenAt, writtenTime, question: q, type: 'daily' };
+    state.reflectionSaveCount = (state.reflectionSaveCount || 0) + 1;
   } else {
     if (now.getDay() !== 5) {
       toast('Weekly reflection is only on Fridays');
@@ -3042,10 +3055,13 @@ function saveReflection(which) {
     if (!textVal) { toast('Write something first'); return; }
     let q = 'How was your week?';
     try { q = WEEKLY_QUESTIONS[weeklyQuestionIndex(new Date())] || q; } catch (e) {}
+    if (!state.reflectionLog) state.reflectionLog = [];
+    state.reflectionLog.push({ text: textVal, writtenAt, writtenTime, question: q, type: 'weekly', id: uid() });
     state.reflections[weekKey(new Date())] = { text: textVal, writtenAt, writtenTime, question: q, type: 'weekly' };
+    state.reflectionSaveCount = (state.reflectionSaveCount || 0) + 1;
   }
   save();
-  renderReflection();
+  renderReflection(); // textarea stays empty; banner shows saved
   if (typeof checkAchievements === 'function') checkAchievements();
   toast('Reflection saved 🪞');
 }
@@ -3627,9 +3643,7 @@ function openFontModal() {
   ];
   const buttons = fonts.map(f => {
     const locked = typeof isFontUnlocked === 'function' && !isFontUnlocked(f.id);
-    return `<button type="button" class="${cur===f.id?'on':''} ${locked?'locked-choice':''}" onclick="setFontFamily('${f.id}')">
-        <span class="${f.preview}">${locked ? '🔒 ' : ''}${f.label}</span>
-      </button>`;
+    return `<button type="button" class="${cur===f.id?'on':''} ${locked?'locked-choice':''}" onclick="setFontFamily('${f.id}')"><span class="${f.preview}">${locked ? '🔒 ' : ''}${f.label}</span></button>`;
   }).join('');
   openModal(`
     <h3>Choose a font</h3>
@@ -3720,115 +3734,47 @@ const THEME_OPTIONS = {
   highcontrast: { label: 'High contrast', emoji: '⬛', colors: ['#000000', '#FFFF00', '#0000EE'] }
 };
 
-/* ---------- Achievements (Duolingo-style unlocks) ---------- */
+/* ---------- Achievements ---------- */
 const FREE_AVATARS = ['🦊'];
 const FREE_FONTS = ['nunito', 'poppins', 'opendyslexic'];
 const FREE_THEMES = ['sunshine'];
 const ALL_AVATARS = ['🦊','🐼','🦄','🐱','🐶','🦁','🐸','🐰','🐨','🐯','🐵','🐮','🐷','🦋','🐢','🐙','🦖','🐝','🦉','🐧','🐬','🦕','🌟','🚀','🌈','🐲','🎮','🎨','⚡','🏆','🌸','🍀','🎯','📚','🧩','🎈'];
 
 const ACHIEVEMENTS = [
-  { id: 'first_step', title: 'First step!', emoji: '🎯', desc: 'Complete 1 action step',
-    progress: () => Math.min(1, countDoneTasks()), target: 1,
-    reward: { type: 'avatar', value: '🐼', label: 'Panda avatar' } },
-  { id: 'three_steps', title: 'Getting going', emoji: '👟', desc: 'Complete 3 action steps',
-    progress: () => Math.min(3, countDoneTasks()), target: 3,
-    reward: { type: 'avatars', value: ['🐶','🦁','🐸','🐰'], label: 'Pet avatars' } },
-  { id: 'five_steps', title: 'On a roll', emoji: '✅', desc: 'Complete 5 action steps',
-    progress: () => Math.min(5, countDoneTasks()), target: 5,
-    reward: { type: 'theme', value: 'ocean', label: 'Ocean theme' } },
-  { id: 'ten_steps', title: 'Action pro', emoji: '🚀', desc: 'Complete 10 action steps',
-    progress: () => Math.min(10, countDoneTasks()), target: 10,
-    reward: { type: 'theme', value: 'aurora', label: 'Aurora theme' } },
-  { id: 'fifteen_steps', title: 'Desert trek', emoji: '🏜️', desc: 'Complete 15 action steps',
-    progress: () => Math.min(15, countDoneTasks()), target: 15,
-    reward: { type: 'theme', value: 'sand', label: 'Sand theme' } },
-  { id: 'twenty_steps', title: 'Unstoppable', emoji: '💪', desc: 'Complete 20 action steps',
-    progress: () => Math.min(20, countDoneTasks()), target: 20,
-    reward: { type: 'theme', value: 'ember', label: 'Ember theme' } },
-  { id: 'habit_day', title: 'Habit hero', emoji: '🔥', desc: 'Check off a habit',
-    progress: () => Math.min(1, countHabitChecks()), target: 1,
-    reward: { type: 'avatar', value: '🦄', label: 'Unicorn avatar' } },
-  { id: 'habit_5', title: 'Zesty', emoji: '🍋', desc: 'Check habits 5 times',
-    progress: () => Math.min(5, countHabitChecks()), target: 5,
-    reward: { type: 'theme', value: 'lemon', label: 'Lemon theme' } },
-  { id: 'habit_10', title: 'Habit builder', emoji: '🧱', desc: 'Check habits 10 times',
-    progress: () => Math.min(10, countHabitChecks()), target: 10,
-    reward: { type: 'avatar', value: '🐱', label: 'Cat avatar' } },
-  { id: 'streak_3', title: '3-day streak', emoji: '⚡', desc: 'Get a 3-day habit streak',
-    progress: () => Math.min(3, bestHabitStreak()), target: 3,
-    reward: { type: 'font', value: 'chewy', label: 'Chewy font' } },
-  { id: 'streak_7', title: 'Week warrior', emoji: '🏅', desc: 'Get a 7-day habit streak',
-    progress: () => Math.min(7, bestHabitStreak()), target: 7,
-    reward: { type: 'theme', value: 'forest', label: 'Forest theme' } },
-  { id: 'streak_7b', title: 'Dino pack', emoji: '🦖', desc: 'Get a 7-day habit streak',
-    progress: () => Math.min(7, bestHabitStreak()), target: 7,
-    reward: { type: 'avatars', value: ['🦖','🦕','🐲'], label: 'Dino avatars' } },
-  { id: 'streak_14', title: 'Fortnight legend', emoji: '👑', desc: 'Get a 14-day habit streak',
-    progress: () => Math.min(14, bestHabitStreak()), target: 14,
-    reward: { type: 'theme', value: 'grape', label: 'Grape theme' } },
-  { id: 'bookworm', title: 'Bookworm', emoji: '📖', desc: 'Finish a book review',
-    progress: () => Math.min(1, countBookReviews()), target: 1,
-    reward: { type: 'theme', value: 'berry', label: 'Berry theme' } },
-  { id: 'library', title: 'Little library', emoji: '📚', desc: 'Finish 3 book reviews',
-    progress: () => Math.min(3, countBookReviews()), target: 3,
-    reward: { type: 'avatar', value: '📚', label: 'Books avatar' } },
-  { id: 'curious', title: 'Curious mind', emoji: '🔍', desc: 'Finish an inquiry review',
-    progress: () => Math.min(1, countInquiryReviews()), target: 1,
-    reward: { type: 'avatar', value: '🦉', label: 'Owl avatar' } },
-  { id: 'explorer', title: 'Explorer', emoji: '🗺️', desc: 'Finish 3 inquiry reviews',
-    progress: () => Math.min(3, countInquiryReviews()), target: 3,
-    reward: { type: 'theme', value: 'sky', label: 'Sky theme' } },
-  { id: 'goal_one', title: 'Goal getter', emoji: '🏆', desc: 'Complete 1 goal',
-    progress: () => Math.min(1, countDoneGoals()), target: 1,
-    reward: { type: 'theme', value: 'candy', label: 'Candy theme' } },
-  { id: 'goal_two', title: 'Nature pack', emoji: '🌸', desc: 'Complete 2 goals',
-    progress: () => Math.min(2, countDoneGoals()), target: 2,
-    reward: { type: 'avatars', value: ['🌸','🍀','🎯','🧩','🎈'], label: 'Nature avatars' } },
-  { id: 'goal_three', title: 'Dream chaser', emoji: '🌠', desc: 'Complete 3 goals',
-    progress: () => Math.min(3, countDoneGoals()), target: 3,
-    reward: { type: 'theme', value: 'rose', label: 'Rose theme' } },
-  { id: 'reflect_1', title: 'Thoughtful', emoji: '🪞', desc: 'Write a reflection',
-    progress: () => Math.min(1, countReflections()), target: 1,
-    reward: { type: 'theme', value: 'lavender', label: 'Lavender theme' } },
-  { id: 'reflect_2', title: 'Peachy', emoji: '🍑', desc: 'Write 2 reflections',
-    progress: () => Math.min(2, countReflections()), target: 2,
-    reward: { type: 'theme', value: 'peach', label: 'Peach theme' } },
-  { id: 'reflect_5', title: 'Deep thinker', emoji: '🧠', desc: 'Write 5 reflections',
-    progress: () => Math.min(5, countReflections()), target: 5,
-    reward: { type: 'theme', value: 'arctic', label: 'Arctic theme' } },
-  { id: 'session_5', title: 'Showed up', emoji: '🎨', desc: 'Check off 5 sessions',
-    progress: () => Math.min(5, countSessionChecks()), target: 5,
-    reward: { type: 'font', value: 'eduqld', label: 'QLD Hand font' } },
-  { id: 'session_10', title: 'Ocean pack', emoji: '🐬', desc: 'Check off 10 sessions',
-    progress: () => Math.min(10, countSessionChecks()), target: 10,
-    reward: { type: 'avatars', value: ['🐢','🐙','🐧','🐬','🐝','🦋'], label: 'Ocean avatars' } },
-  { id: 'session_20', title: 'Class champion', emoji: '🎓', desc: 'Check off 20 sessions',
-    progress: () => Math.min(20, countSessionChecks()), target: 20,
-    reward: { type: 'theme', value: 'mint', label: 'Mint theme' } },
-  { id: 'stars_25', title: 'Star collector', emoji: '⭐', desc: 'Earn 25 stars',
-    progress: () => Math.min(25, currentPoints()), target: 25,
-    reward: { type: 'avatar', value: '🌟', label: 'Star avatar' } },
-  { id: 'stars_40', title: 'Wild pack', emoji: '🐯', desc: 'Earn 40 stars',
-    progress: () => Math.min(40, currentPoints()), target: 40,
-    reward: { type: 'avatars', value: ['🐨','🐯','🐵','🐷','🐮'], label: 'Wild avatars' } },
-  { id: 'stars_50', title: 'Superstar', emoji: '✨', desc: 'Earn 50 stars',
-    progress: () => Math.min(50, currentPoints()), target: 50,
-    reward: { type: 'theme', value: 'sunset', label: 'Sunset theme' } },
-  { id: 'stars_75', title: 'Fun pack', emoji: '🎮', desc: 'Earn 75 stars',
-    progress: () => Math.min(75, currentPoints()), target: 75,
-    reward: { type: 'avatars', value: ['🚀','🌈','🎮','🎨','⚡','🏆'], label: 'Fun avatars' } },
-  { id: 'stars_100', title: 'Legend', emoji: '👑', desc: 'Earn 100 stars',
-    progress: () => Math.min(100, currentPoints()), target: 100,
-    reward: { type: 'theme', value: 'midnight', label: 'Midnight theme' } },
-  { id: 'stars_150', title: 'Minimalist', emoji: '◻️', desc: 'Earn 150 stars',
-    progress: () => Math.min(150, currentPoints()), target: 150,
-    reward: { type: 'theme', value: 'mono', label: 'Mono theme' } },
-  { id: 'stars_200', title: 'Galaxy brain', emoji: '🌌', desc: 'Earn 200 stars',
-    progress: () => Math.min(200, currentPoints()), target: 200,
-    reward: { type: 'theme', value: 'coffee', label: 'Coffee theme' } },
-  { id: 'stars_300', title: 'Ultimate', emoji: '🖤', desc: 'Earn 300 stars',
-    progress: () => Math.min(300, currentPoints()), target: 300,
-    reward: { type: 'theme', value: 'highcontrast', label: 'High contrast theme' } }
+  { id: 'first_step', title: 'First step!', emoji: '🎯', desc: 'Complete 1 action step', progress: () => Math.min(1, countDoneTasks()), target: 1, reward: { type: 'avatar', value: '🐼', label: 'Panda avatar' } },
+  { id: 'three_steps', title: 'Getting going', emoji: '👟', desc: 'Complete 3 action steps', progress: () => Math.min(3, countDoneTasks()), target: 3, reward: { type: 'avatars', value: ['🐶','🦁','🐸','🐰'], label: 'Pet avatars' } },
+  { id: 'five_steps', title: 'On a roll', emoji: '✅', desc: 'Complete 5 action steps', progress: () => Math.min(5, countDoneTasks()), target: 5, reward: { type: 'theme', value: 'ocean', label: 'Ocean theme' } },
+  { id: 'ten_steps', title: 'Action pro', emoji: '🚀', desc: 'Complete 10 action steps', progress: () => Math.min(10, countDoneTasks()), target: 10, reward: { type: 'theme', value: 'aurora', label: 'Aurora theme' } },
+  { id: 'fifteen_steps', title: 'Desert trek', emoji: '🏜️', desc: 'Complete 15 action steps', progress: () => Math.min(15, countDoneTasks()), target: 15, reward: { type: 'theme', value: 'sand', label: 'Sand theme' } },
+  { id: 'twenty_steps', title: 'Unstoppable', emoji: '💪', desc: 'Complete 20 action steps', progress: () => Math.min(20, countDoneTasks()), target: 20, reward: { type: 'theme', value: 'ember', label: 'Ember theme' } },
+  { id: 'habit_day', title: 'Habit hero', emoji: '🔥', desc: 'Check off a habit', progress: () => Math.min(1, countHabitChecks()), target: 1, reward: { type: 'avatar', value: '🦄', label: 'Unicorn avatar' } },
+  { id: 'habit_5', title: 'Zesty', emoji: '🍋', desc: 'Check habits 5 times', progress: () => Math.min(5, countHabitChecks()), target: 5, reward: { type: 'theme', value: 'lemon', label: 'Lemon theme' } },
+  { id: 'habit_10', title: 'Habit builder', emoji: '🧱', desc: 'Check habits 10 times', progress: () => Math.min(10, countHabitChecks()), target: 10, reward: { type: 'avatar', value: '🐱', label: 'Cat avatar' } },
+  { id: 'streak_3', title: '3-day streak', emoji: '⚡', desc: 'Get a 3-day habit streak', progress: () => Math.min(3, bestHabitStreak()), target: 3, reward: { type: 'font', value: 'chewy', label: 'Chewy font' } },
+  { id: 'streak_7', title: 'Week warrior', emoji: '🏅', desc: 'Get a 7-day habit streak', progress: () => Math.min(7, bestHabitStreak()), target: 7, reward: { type: 'theme', value: 'forest', label: 'Forest theme' } },
+  { id: 'streak_7b', title: 'Dino pack', emoji: '🦖', desc: 'Get a 7-day habit streak', progress: () => Math.min(7, bestHabitStreak()), target: 7, reward: { type: 'avatars', value: ['🦖','🦕','🐲'], label: 'Dino avatars' } },
+  { id: 'streak_14', title: 'Fortnight legend', emoji: '👑', desc: 'Get a 14-day habit streak', progress: () => Math.min(14, bestHabitStreak()), target: 14, reward: { type: 'theme', value: 'grape', label: 'Grape theme' } },
+  { id: 'bookworm', title: 'Bookworm', emoji: '📖', desc: 'Finish a book review', progress: () => Math.min(1, countBookReviews()), target: 1, reward: { type: 'theme', value: 'berry', label: 'Berry theme' } },
+  { id: 'library', title: 'Little library', emoji: '📚', desc: 'Finish 3 book reviews', progress: () => Math.min(3, countBookReviews()), target: 3, reward: { type: 'avatar', value: '📚', label: 'Books avatar' } },
+  { id: 'curious', title: 'Curious mind', emoji: '🔍', desc: 'Finish an inquiry review', progress: () => Math.min(1, countInquiryReviews()), target: 1, reward: { type: 'avatar', value: '🦉', label: 'Owl avatar' } },
+  { id: 'explorer', title: 'Explorer', emoji: '🗺️', desc: 'Finish 3 inquiry reviews', progress: () => Math.min(3, countInquiryReviews()), target: 3, reward: { type: 'theme', value: 'sky', label: 'Sky theme' } },
+  { id: 'goal_one', title: 'Goal getter', emoji: '🏆', desc: 'Complete 1 goal', progress: () => Math.min(1, countDoneGoals()), target: 1, reward: { type: 'theme', value: 'candy', label: 'Candy theme' } },
+  { id: 'goal_two', title: 'Nature pack', emoji: '🌸', desc: 'Complete 2 goals', progress: () => Math.min(2, countDoneGoals()), target: 2, reward: { type: 'avatars', value: ['🌸','🍀','🎯','🧩','🎈'], label: 'Nature avatars' } },
+  { id: 'goal_three', title: 'Dream chaser', emoji: '🌠', desc: 'Complete 3 goals', progress: () => Math.min(3, countDoneGoals()), target: 3, reward: { type: 'theme', value: 'rose', label: 'Rose theme' } },
+  { id: 'reflect_1', title: 'Thoughtful', emoji: '🪞', desc: 'Write a reflection', progress: () => Math.min(1, countReflections()), target: 1, reward: { type: 'theme', value: 'lavender', label: 'Lavender theme' } },
+  { id: 'reflect_2', title: 'Peachy', emoji: '🍑', desc: 'Write 2 reflections', progress: () => Math.min(2, countReflections()), target: 2, reward: { type: 'theme', value: 'peach', label: 'Peach theme' } },
+  { id: 'reflect_5', title: 'Deep thinker', emoji: '🧠', desc: 'Write 5 reflections', progress: () => Math.min(5, countReflections()), target: 5, reward: { type: 'theme', value: 'arctic', label: 'Arctic theme' } },
+  { id: 'session_5', title: 'Showed up', emoji: '🎨', desc: 'Check off 5 sessions', progress: () => Math.min(5, countSessionChecks()), target: 5, reward: { type: 'font', value: 'eduqld', label: 'QLD Hand font' } },
+  { id: 'session_10', title: 'Ocean pack', emoji: '🐬', desc: 'Check off 10 sessions', progress: () => Math.min(10, countSessionChecks()), target: 10, reward: { type: 'avatars', value: ['🐢','🐙','🐧','🐬','🐝','🦋'], label: 'Ocean avatars' } },
+  { id: 'session_20', title: 'Class champion', emoji: '🎓', desc: 'Check off 20 sessions', progress: () => Math.min(20, countSessionChecks()), target: 20, reward: { type: 'theme', value: 'mint', label: 'Mint theme' } },
+  { id: 'stars_25', title: 'Star collector', emoji: '⭐', desc: 'Earn 25 stars', progress: () => Math.min(25, currentPoints()), target: 25, reward: { type: 'avatar', value: '🌟', label: 'Star avatar' } },
+  { id: 'stars_40', title: 'Wild pack', emoji: '🐯', desc: 'Earn 40 stars', progress: () => Math.min(40, currentPoints()), target: 40, reward: { type: 'avatars', value: ['🐨','🐯','🐵','🐷','🐮'], label: 'Wild avatars' } },
+  { id: 'stars_50', title: 'Superstar', emoji: '✨', desc: 'Earn 50 stars', progress: () => Math.min(50, currentPoints()), target: 50, reward: { type: 'theme', value: 'sunset', label: 'Sunset theme' } },
+  { id: 'stars_75', title: 'Fun pack', emoji: '🎮', desc: 'Earn 75 stars', progress: () => Math.min(75, currentPoints()), target: 75, reward: { type: 'avatars', value: ['🚀','🌈','🎮','🎨','⚡','🏆'], label: 'Fun avatars' } },
+  { id: 'stars_100', title: 'Legend', emoji: '👑', desc: 'Earn 100 stars', progress: () => Math.min(100, currentPoints()), target: 100, reward: { type: 'theme', value: 'midnight', label: 'Midnight theme' } },
+  { id: 'stars_150', title: 'Minimalist', emoji: '◻️', desc: 'Earn 150 stars', progress: () => Math.min(150, currentPoints()), target: 150, reward: { type: 'theme', value: 'mono', label: 'Mono theme' } },
+  { id: 'stars_200', title: 'Galaxy brain', emoji: '🌌', desc: 'Earn 200 stars', progress: () => Math.min(200, currentPoints()), target: 200, reward: { type: 'theme', value: 'coffee', label: 'Coffee theme' } },
+  { id: 'stars_300', title: 'Ultimate', emoji: '🖤', desc: 'Earn 300 stars', progress: () => Math.min(300, currentPoints()), target: 300, reward: { type: 'theme', value: 'highcontrast', label: 'High contrast theme' } }
 ];
 
 function ensureUnlockDefaults() {
@@ -3855,27 +3801,27 @@ function bestHabitStreak() {
   (state.habits || []).forEach(h => { try { if (typeof calcStreak === 'function') best = Math.max(best, calcStreak(h) || 0); } catch (e) {} });
   return best;
 }
-function countBookReviews() {
-  return (state.books || []).filter(b => b && (b.review || b.status === 'done' || b.status === 'completed')).length;
-}
-function countInquiryReviews() {
-  return (state.inquiries || []).filter(i => i && (i.review || i.status === 'done' || i.status === 'completed')).length;
-}
+function countBookReviews() { return (state.books || []).filter(b => b && (b.review || b.status === 'done' || b.status === 'completed')).length; }
+function countInquiryReviews() { return (state.inquiries || []).filter(i => i && (i.review || i.status === 'done' || i.status === 'completed')).length; }
 function countDoneGoals() { return (state.goals || []).filter(g => g && g.done).length; }
-function countReflections() {
-  const r = state.reflections || {};
+function countReflectionsFromStore() {
   let n = 0;
+  const r = state.reflections || {};
   Object.keys(r).forEach(key => {
     const v = r[key];
     if (!v) return;
-    if (typeof v === 'string' && v.trim()) { n++; return; }
-    if (typeof v === 'object') {
-      if (v.text && String(v.text).trim()) { n++; return; }
-      if (v.answer && String(v.answer).trim()) { n++; return; }
-      if (v.content && String(v.content).trim()) { n++; return; }
-    }
+    if (typeof v === 'string' && v.trim()) n++;
+    else if (typeof v === 'object' && ((v.text && String(v.text).trim()) || (v.answer && String(v.answer).trim()))) n++;
   });
+  if (Array.isArray(state.reflectionLog)) n = Math.max(n, state.reflectionLog.length);
   return n;
+}
+function countReflections() {
+  const fromStore = countReflectionsFromStore();
+  if (typeof state.reflectionSaveCount !== 'number' || state.reflectionSaveCount < fromStore) {
+    state.reflectionSaveCount = fromStore;
+  }
+  return state.reflectionSaveCount || 0;
 }
 function countSessionChecks() {
   let n = 0;
@@ -3948,7 +3894,6 @@ function renderAchievementsTab() {
   }).join('');
 }
 
-// ---------- School Zoom directory (no emails) ----------
 const SCHOOL_ZOOM_LINKS = [
   { section: 'Secondary School', name: 'Dr. Martina Geromin', url: 'https://zoom.us/j/9656074147' },
   { section: 'Secondary School', name: 'Kiki Tompazi', url: 'https://zoom.us/j/7578415886' },
@@ -3985,36 +3930,16 @@ function renderZoomDirectory(filter) {
   if (!root) return;
   const q = (filter || '').trim().toLowerCase();
   const items = SCHOOL_ZOOM_LINKS.filter(z => !q || z.name.toLowerCase().includes(q) || z.section.toLowerCase().includes(q));
-  if (!items.length) {
-    root.innerHTML = '<div class="empty" style="padding:16px">No matches — try another name</div>';
-    return;
-  }
-  const order = [];
-  const bySection = {};
-  items.forEach(z => {
-    if (!bySection[z.section]) { bySection[z.section] = []; order.push(z.section); }
-    bySection[z.section].push(z);
-  });
+  if (!items.length) { root.innerHTML = '<div class="empty" style="padding:16px">No matches — try another name</div>'; return; }
+  const order = []; const bySection = {};
+  items.forEach(z => { if (!bySection[z.section]) { bySection[z.section] = []; order.push(z.section); } bySection[z.section].push(z); });
   root.innerHTML = order.map(sec => {
-    const cards = bySection[sec].map(z => `
-      <div class="zoom-dir-card">
-        <div class="zd-name">${z.name}</div>
-        <div class="zd-meta">${sec}</div>
-        <a class="zd-btn" href="${z.url}" target="_blank" rel="noopener">Join Zoom</a>
-      </div>`).join('');
+    const cards = bySection[sec].map(z => `<div class="zoom-dir-card"><div class="zd-name">${z.name}</div><div class="zd-meta">${sec}</div><a class="zd-btn" href="${z.url}" target="_blank" rel="noopener">Join Zoom</a></div>`).join('');
     return `<div class="zoom-dir-section"><h3>${sec}</h3><div class="zoom-dir-grid">${cards}</div></div>`;
   }).join('');
 }
-function filterZoomDirectory() {
-  const el = document.getElementById('zoom-search');
-  renderZoomDirectory(el ? el.value : '');
-}
-function openZoomDirectory() {
-  switchTab('zoom');
-  const el = document.getElementById('zoom-search');
-  if (el) { el.value = ''; el.focus(); }
-  renderZoomDirectory('');
-}
+function filterZoomDirectory() { const el = document.getElementById('zoom-search'); renderZoomDirectory(el ? el.value : ''); }
+function openZoomDirectory() { switchTab('zoom'); const el = document.getElementById('zoom-search'); if (el) { el.value = ''; el.focus(); } renderZoomDirectory(''); }
 
 
 
@@ -4198,6 +4123,8 @@ async function cloudSaveUserData() {
     unlockedAvatars: state.unlockedAvatars || ['🦊'],
     unlockedFonts: state.unlockedFonts || ['nunito', 'poppins', 'opendyslexic'],
     unlockedThemes: state.unlockedThemes || ['sunshine'],
+    reflectionSaveCount: state.reflectionSaveCount || 0,
+    reflectionLog: state.reflectionLog || [],
     updatedAt: new Date().toISOString()
   };
   try {
@@ -4242,6 +4169,8 @@ async function cloudLoadUserData() {
     if (data.unlockedAvatars) state.unlockedAvatars = data.unlockedAvatars;
     if (data.unlockedFonts) state.unlockedFonts = data.unlockedFonts;
     if (data.unlockedThemes) state.unlockedThemes = data.unlockedThemes;
+    if (typeof data.reflectionSaveCount === 'number') state.reflectionSaveCount = data.reflectionSaveCount;
+    if (data.reflectionLog) state.reflectionLog = data.reflectionLog;
     if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
     if (typeof checkAchievements === 'function') checkAchievements(true);
     save();
@@ -4530,7 +4459,6 @@ function openAvatarModal() {
     const locked = typeof isAvatarUnlocked === 'function' && !isAvatarUnlocked(a);
     return `<span class="avatar ${a === current ? 'selected' : ''} ${locked ? 'locked-avatar' : ''}" data-avatar="${a}" data-locked="${locked ? '1' : '0'}" onclick="selectAvatar(this)" style="background:${avatarBg(a)}">${a}</span>`;
   }).join('');
-
   openModal(`
     <h3>Change Your Avatar ✨</h3>
     <p style="color:var(--muted);margin-bottom:12px">🦊 is free — unlock more in Wins 🏆</p>
@@ -4538,30 +4466,19 @@ function openAvatarModal() {
     <button class="btn primary" onclick="saveAvatar()">Save Avatar</button>
   `);
 }
-
 function selectAvatar(el) {
-  if (el.dataset.locked === '1') {
-    toast('🔒 Unlock this avatar in Wins!');
-    return;
-  }
+  if (el.dataset.locked === '1') { toast('🔒 Unlock this avatar in Wins!'); return; }
   document.querySelectorAll('#modal-content .avatar').forEach(a => a.classList.remove('selected'));
   el.classList.add('selected');
 }
-
 function saveAvatar() {
   const selected = document.querySelector('#modal-content .avatar.selected');
   if (!selected) return;
   if (selected.dataset.locked === '1' || (typeof isAvatarUnlocked === 'function' && !isAvatarUnlocked(selected.dataset.avatar))) {
-    toast('🔒 Unlock this avatar in Wins!');
-    return;
+    toast('🔒 Unlock this avatar in Wins!'); return;
   }
   const user = state.users[state.currentUser];
-  if (user) {
-    user.avatar = selected.dataset.avatar;
-    save();
-    renderHeader();
-    toast('Avatar updated! 🌈');
-  }
+  if (user) { user.avatar = selected.dataset.avatar; save(); renderHeader(); toast('Avatar updated! 🌈'); }
   closeModal();
 }
 
