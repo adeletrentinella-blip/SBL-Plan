@@ -3586,6 +3586,17 @@ function load() {
       if (!state.classes) state.classes = [];
       if (!state.fontFamily) state.fontFamily = state.dyslexiaMode ? 'opendyslexic' : 'nunito';
       if (!state.theme) state.theme = 'sunshine';
+      if (!state.allowedFacilitators) state.allowedFacilitators = {};
+      // Keep facilitator logged in after reload
+      if (state.currentUser && state.users && state.users[state.currentUser]) {
+        const u = state.users[state.currentUser];
+        if (u.role === 'facilitator' || state.accountRole === 'facilitator') {
+          u.role = 'facilitator';
+          state.accountRole = 'facilitator';
+        } else {
+          state.accountRole = state.accountRole || 'student';
+        }
+      }
       if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
     } catch (e) {
       console.warn('Could not load data', e);
@@ -4568,6 +4579,11 @@ function loginFacilitator() {
 }
 
 function enterFacilitatorApp() {
+  state.accountRole = 'facilitator';
+  if (state.currentUser && state.users[state.currentUser]) {
+    state.users[state.currentUser].role = 'facilitator';
+  }
+  try { save(); } catch (e) {}
   const authEl = document.getElementById('auth-screen');
   const appEl = document.getElementById('app-screen');
   if (authEl) { authEl.classList.remove('active'); authEl.style.display = 'none'; }
@@ -4578,23 +4594,30 @@ function enterFacilitatorApp() {
 async function loadStudentsForFacilitator(facEmail) {
   facEmail = normalizeEmail(facEmail);
   const list = [];
-  // 1) Local registry written by students
+  const addLink = (studentEmail, link) => {
+    if (!link || !link.allowed) return;
+    if (list.some(x => x.studentEmail === studentEmail)) return;
+    list.push({
+      studentEmail,
+      studentName: link.studentName || studentEmail.split('@')[0],
+      avatar: link.avatar || '🦊',
+      stars: link.stars || 0,
+      canBlock: !!link.canBlock,
+      perms: link.perms || Object.assign({}, DEFAULT_FAC_AREA_PERMS),
+      snapshot: link.snapshot || null,
+      accessBlocked: !!link.accessBlocked
+    });
+  };
+  // 1a) Per-facilitator index
+  try {
+    const bag = JSON.parse(localStorage.getItem('sbl_fac_students_' + facEmail) || '{}');
+    Object.keys(bag).forEach(se => addLink(se, bag[se]));
+  } catch (e) {}
+  // 1b) Full registry written by students
   try {
     const reg = JSON.parse(localStorage.getItem('sbl_student_fac_links') || '{}');
     Object.keys(reg).forEach(studentEmail => {
-      const link = reg[studentEmail] && reg[studentEmail][facEmail];
-      if (link && link.allowed) {
-        list.push({
-          studentEmail,
-          studentName: link.studentName || studentEmail.split('@')[0],
-          avatar: link.avatar || '🦊',
-          stars: link.stars || 0,
-          canBlock: !!link.canBlock,
-          perms: link.perms || Object.assign({}, DEFAULT_FAC_AREA_PERMS),
-          snapshot: link.snapshot || null,
-          accessBlocked: !!link.accessBlocked
-        });
-      }
+      addLink(studentEmail, reg[studentEmail] && reg[studentEmail][facEmail]);
     });
   } catch (e) {}
   // 2) Firebase
@@ -4651,6 +4674,18 @@ async function publishStudentFacilitatorLinks() {
     };
   });
   try { localStorage.setItem('sbl_student_fac_links', JSON.stringify(reg)); } catch (e) {}
+  // Per-facilitator index for reliable lookup
+  try {
+    Object.keys(state.allowedFacilitators).forEach(facEmail => {
+      const link = state.allowedFacilitators[facEmail];
+      const key = 'sbl_fac_students_' + facEmail;
+      let bag = {};
+      try { bag = JSON.parse(localStorage.getItem(key) || '{}'); } catch (e) {}
+      bag[studentEmail] = reg[studentEmail][facEmail];
+      if (!link.allowed) delete bag[studentEmail];
+      localStorage.setItem(key, JSON.stringify(bag));
+    });
+  } catch (e) {}
 
   // Firebase: for each allowed fac, merge into their links doc
   if (typeof firebaseReady !== 'undefined' && firebaseReady && db) {
@@ -5197,6 +5232,7 @@ async function cloudSaveUserData() {
     facilitatorPerms: state.facilitatorPerms || null,
     allowedFacilitators: state.allowedFacilitators || {},
     accountRole: state.accountRole || 'student',
+    role: state.accountRole || 'student',
     accessBlocked: !!state.accessBlocked,
     lastActive: state.lastActive || null,
     updatedAt: new Date().toISOString()
@@ -5250,6 +5286,13 @@ async function cloudLoadUserData() {
     if (data.facilitatorPerms) state.facilitatorPerms = data.facilitatorPerms;
     if (data.allowedFacilitators) state.allowedFacilitators = data.allowedFacilitators;
     if (data.accountRole) state.accountRole = data.accountRole;
+    if (data.accountRole === 'facilitator' && state.currentUser && state.users[state.currentUser]) {
+      state.users[state.currentUser].role = 'facilitator';
+    }
+    if (data.role === 'facilitator' && state.currentUser && state.users[state.currentUser]) {
+      state.users[state.currentUser].role = 'facilitator';
+      state.accountRole = 'facilitator';
+    }
     if (typeof data.accessBlocked === 'boolean') state.accessBlocked = data.accessBlocked;
     if (data.lastActive) state.lastActive = data.lastActive;
     if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
@@ -5331,7 +5374,20 @@ function register() {
             email: username, displayName: display, role, avatar
           }, { merge: true });
         } catch (e) {}
+        try {
+          if (db && auth.currentUser) {
+            await db.collection('users').doc(auth.currentUser.uid).set({
+              email: username, displayName: display, role, avatar, accountRole: role
+            }, { merge: true });
+          }
+        } catch (e) {}
         if (role === 'student') await cloudSaveUserData();
+        else {
+          // Persist facilitator session locally
+          state.accountRole = 'facilitator';
+          if (state.users[username]) state.users[username].role = 'facilitator';
+          save();
+        }
         finishReg();
       })
       .catch((e) => {
@@ -7069,26 +7125,20 @@ document.getElementById('modal-overlay').addEventListener('click', (e) => {
   if (e.target.id === 'modal-overlay') closeModal();
 });
 
-// Start – mentor link skips normal app
+// Start
 (async function boot() {
-  try {
-    if (typeof tryEnterMentorMode === 'function' && await tryEnterMentorMode()) return;
-  } catch (e) { console.warn(e); }
-  // Facilitator session restore
-  try {
-    const facSess = sessionStorage.getItem('sbl_fac_session');
-    if (facSess) {
-      const { code, data } = JSON.parse(facSess);
-      if (code && data && typeof renderFacilitatorDashboard === 'function') {
-        renderFacilitatorDashboard(code, data);
-        return;
-      }
-    }
-  } catch (e) {}
-// Start – never show login if already logged in
+// Restore local session first
 load();
-if (typeof checkAccessBlocked === 'function' && checkAccessBlocked()) return;
-if (typeof touchStudentPresence === 'function') touchStudentPresence();
+// Facilitator must stay logged in on reload
+if (state.currentUser && state.users && state.users[state.currentUser]) {
+  const u = state.users[state.currentUser];
+  if (u.role === 'facilitator' || state.accountRole === 'facilitator') {
+    state.accountRole = 'facilitator';
+    u.role = 'facilitator';
+  }
+}
+if (typeof checkAccessBlocked === 'function' && state.accountRole !== 'facilitator' && checkAccessBlocked()) return;
+if (typeof touchStudentPresence === 'function' && state.accountRole !== 'facilitator') touchStudentPresence();
 applyA11yModes();
 (function showVer(){
   const el = document.getElementById('app-version');
@@ -7116,10 +7166,35 @@ if (firebaseReady && auth) {
           username: state.currentUser,
           displayName: user.displayName || state.currentUser.split('@')[0],
           avatar: '🦊',
-          points: 0
+          points: 0,
+          role: 'student'
         };
       }
-      await cloudLoadUserData();
+      // Prefer role already on local user (facilitator reload)
+      let role = (state.users[state.currentUser].role === 'facilitator' || state.accountRole === 'facilitator')
+        ? 'facilitator' : 'student';
+      try {
+        if (db) {
+          const snap = await db.collection('users').doc(user.uid).get();
+          if (snap.exists && snap.data().role === 'facilitator') role = 'facilitator';
+          if (snap.exists && snap.data().role === 'student') {
+            // only downgrade if local was not facilitator
+            if (state.users[state.currentUser].role !== 'facilitator' && state.accountRole !== 'facilitator') role = 'student';
+          }
+        }
+      } catch (e) {}
+      state.users[state.currentUser].role = role;
+      state.accountRole = role;
+      try { await cloudLoadUserData(); } catch (e) {}
+      // Re-apply role after cloud load (cloud may omit role)
+      if (state.users[state.currentUser] && state.users[state.currentUser].role === 'facilitator') {
+        state.accountRole = 'facilitator';
+      }
+      save();
+      if (state.accountRole === 'facilitator') {
+        enterFacilitatorApp();
+        return;
+      }
       ensureSchoolCalendar();
       applyA11yModes();
       document.getElementById('auth-screen').classList.remove('active');
@@ -7127,6 +7202,12 @@ if (firebaseReady && auth) {
       document.getElementById('app-screen').classList.add('active');
       document.getElementById('app-screen').style.display = 'block';
       renderAll();
+      if (typeof updateViewerBanner === 'function') {
+        updateViewerBanner();
+        if (window._viewerBannerTimer) clearInterval(window._viewerBannerTimer);
+        window._viewerBannerTimer = setInterval(updateViewerBanner, 15000);
+      }
+      if (typeof publishStudentFacilitatorLinks === 'function') publishStudentFacilitatorLinks();
     }
   });
 }
