@@ -2315,7 +2315,7 @@ body.theme-highcontrast .nav-btn.active {
         <img id="header-logo" class="header-logo" alt="SBL" title="School Beyond Limitations">
         <button type="button" class="a11y-chip" id="chip-adhd" onclick="toggleAdhdMode()" title="Focus mode">Focus</button>
         <button type="button" class="a11y-chip" id="chip-dyslexia" onclick="openFontModal()" title="Choose font">Fonts</button>
-        <button type="button" class="a11y-chip" id="chip-facilitators" onclick="openStudentFacilitatorSettings()" title="Facilitators">👁️ Facilitators</button>
+        <button type="button" class="a11y-chip" id="chip-facilitators" onclick="openStudentFacilitatorSettings()" title="Facilitators" style="display:inline-flex">Facilitators</button>
         <button type="button" class="a11y-chip" id="chip-theme" onclick="openThemeModal()" title="Change theme">🎨 Theme</button>
         <button class="icon-btn" onclick="openTimezoneModal()" title="Change timezone">🌍</button>
         <button class="icon-btn" onclick="openSettingsModal()" title="Settings">⚙️</button>
@@ -4651,17 +4651,23 @@ function applyFacilitatorChrome(on) {
   document.querySelectorAll('.nav-btn[data-tab]').forEach(btn => {
     const tab = btn.getAttribute('data-tab');
     if (on) {
-      btn.style.display = facTabs.has(tab) ? '' : 'none';
+      // Facilitator: only Month, Zoom, Students
+      btn.style.setProperty('display', facTabs.has(tab) ? 'flex' : 'none', 'important');
     } else {
-      btn.style.display = (tab === 'students') ? 'none' : '';
+      // Student: everything except Students
+      btn.style.setProperty('display', tab === 'students' ? 'none' : 'flex', 'important');
     }
   });
-  // Header chips
   const facChip = document.getElementById('chip-facilitators');
   const focusChip = document.getElementById('chip-adhd');
-  if (facChip) facChip.style.display = on ? 'none' : '';
-  // Fonts + theme stay visible for everyone
-  if (focusChip) focusChip.style.display = on ? 'none' : '';
+  const fontChip = document.getElementById('chip-dyslexia');
+  const themeChip = document.getElementById('chip-theme');
+  // Students see Facilitators button; facilitators do not
+  if (facChip) facChip.style.setProperty('display', on ? 'none' : 'inline-flex', 'important');
+  if (focusChip) focusChip.style.setProperty('display', on ? 'none' : 'inline-flex', 'important');
+  // Fonts + Themes always available
+  if (fontChip) fontChip.style.setProperty('display', 'inline-flex', 'important');
+  if (themeChip) themeChip.style.setProperty('display', 'inline-flex', 'important');
   document.body.classList.toggle('mode-facilitator', !!on);
 }
 
@@ -4767,6 +4773,8 @@ function enterFacilitatorApp() {
   if (state.currentUser && state.users[state.currentUser]) {
     state.users[state.currentUser].role = 'facilitator';
   }
+  // Facilitators get free fonts/themes unlocked for personalisation
+  if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
   try { save(); } catch (e) {}
   if (typeof persistActiveSession === 'function') persistActiveSession();
   const authEl = document.getElementById('auth-screen');
@@ -4778,9 +4786,10 @@ function enterFacilitatorApp() {
   applyFacilitatorChrome(true);
   if (typeof renderHeader === 'function') renderHeader();
   if (typeof applyA11yModes === 'function') applyA11yModes();
+  // Default landing: Students tab
   switchTab('students');
-  renderStudentsTab();
-  if (typeof renderZoomTab === 'function') renderZoomTab();
+  if (typeof renderStudentsTab === 'function') renderStudentsTab();
+  if (typeof renderZoomDirectory === 'function') renderZoomDirectory('');
   if (typeof renderMonth === 'function') renderMonth();
 }
 
@@ -5567,8 +5576,9 @@ function enterApp() {
 
   state.accountRole = 'student';
   if (typeof publishStudentFacilitatorLinks === 'function') publishStudentFacilitatorLinks();
+  if (typeof applyFacilitatorChrome === 'function') applyFacilitatorChrome(false);
   const facChip = document.getElementById('chip-facilitators');
-  if (facChip) facChip.style.display = (state.accountRole === 'facilitator') ? 'none' : '';
+  if (facChip) facChip.style.setProperty('display', 'inline-flex', 'important');
   if (typeof updateViewerBanner === 'function') {
     updateViewerBanner();
     if (window._viewerBannerTimer) clearInterval(window._viewerBannerTimer);
