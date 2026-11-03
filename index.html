@@ -1073,6 +1073,21 @@ body.theme-dark .mentor-banner { background:#2A2A40; }
 .fac-status-offline { color: #636E72; font-weight: 700; }
 .blocked-screen { max-width: 420px; margin: 60px auto; padding: 24px; text-align: center; font-family: system-ui,sans-serif; }
 
+
+/* Goals always stack vertically (one under another) */
+#goals-short, #goals-medium, #goals-long,
+#goals-short.card-list, #goals-medium.card-list, #goals-long.card-list {
+  display: flex !important;
+  flex-direction: column !important;
+  flex-wrap: nowrap !important;
+  gap: 10px;
+}
+#goals-short > *, #goals-medium > *, #goals-long > * {
+  flex: none !important;
+  width: 100%;
+  max-width: 100%;
+}
+
 /* Wins notification dot */
 .nav-btn { position: relative; }
 .nav-btn .wins-dot {
@@ -2404,15 +2419,15 @@ body.theme-highcontrast .nav-btn.active {
         <p class="hint">Short · Medium · Long term</p>
 
         <h3 class="goal-term-title short">⚡ Short term</h3>
-        <div id="goals-short" class="card-list horizontal-stack"></div>
+        <div id="goals-short" class="card-list"></div>
         <button class="btn add-btn" style="background:#FF8A65;margin-bottom:18px" onclick="openGoalModal('short')">+ Short-term goal</button>
 
         <h3 class="goal-term-title medium">📅 Medium term</h3>
-        <div id="goals-medium" class="card-list horizontal-stack"></div>
+        <div id="goals-medium" class="card-list"></div>
         <button class="btn add-btn" style="background:#4ECDC4;margin-bottom:18px" onclick="openGoalModal('medium')">+ Medium-term goal</button>
 
         <h3 class="goal-term-title long">🌟 Long term</h3>
-        <div id="goals-long" class="card-list horizontal-stack"></div>
+        <div id="goals-long" class="card-list"></div>
         <button class="btn add-btn" style="background:#A78BFA;margin-bottom:18px" onclick="openGoalModal('long')">+ Long-term goal</button>
       </section>
 
@@ -2832,8 +2847,7 @@ function renderGoals() {
   ['short', 'medium', 'long'].forEach(term => {
     const list = document.getElementById('goals-' + term);
     if (!list) return;
-    list.classList.add('horizontal-stack');
-    const items = state.goals.filter(g => (g.term || 'short') === term);
+        const items = state.goals.filter(g => (g.term || 'short') === term);
     if (items.length === 0) {
       list.innerHTML = `<div class="empty" style="padding:10px;font-size:0.9rem">No ${term}-term goals yet</div>`;
       return;
