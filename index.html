@@ -1067,6 +1067,24 @@ body.theme-dark .mentor-banner { background:#2A2A40; }
 .fac-perm-grid label { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; }
 .fac-status-online { color: #00B894; font-weight: 800; }
 .fac-status-offline { color: #636E72; font-weight: 700; }
+.viewer-banner {
+  background: linear-gradient(90deg, #6C5CE7, #A29BFE);
+  color: #fff;
+  padding: 10px 16px;
+  font-weight: 700;
+  font-size: 0.92rem;
+  text-align: center;
+  position: sticky;
+  top: 0;
+  z-index: 50;
+}
+.fac-home { max-width: 720px; margin: 0 auto; padding: 20px; font-family: inherit; }
+.fac-student-card { background: var(--card,#fff); border-radius: 16px; padding: 14px; margin: 10px 0; box-shadow: var(--shadow); display: flex; justify-content: space-between; align-items: center; gap: 12px; }
+.fac-student-card button { padding: 8px 14px; border: none; border-radius: 12px; background: #6C5CE7; color: #fff; font-weight: 700; cursor: pointer; }
+.allow-row { display: flex; align-items: center; justify-content: space-between; gap: 10px; padding: 10px; border: 1px solid #eee; border-radius: 12px; margin: 8px 0; }
+.allow-tog button { border: 2px solid #ddd; background: #f5f5f5; padding: 6px 12px; border-radius: 999px; font-weight: 700; cursor: pointer; margin-left: 4px; }
+.allow-tog button.on-allow { background: #E8F5E9; color: #2E7D32; border-color: #81C784; }
+.allow-tog button.on-deny { background: #FFEBEE; color: #C62828; border-color: #E57373; }
 .blocked-screen { max-width: 420px; margin: 60px auto; padding: 24px; text-align: center; font-family: system-ui,sans-serif; }
 
 /* Wins notification dot */
@@ -2182,10 +2200,41 @@ body.theme-highcontrast .nav-btn.active {
           <button type="button" class="pw-toggle" onclick="togglePassword('login-password', this)" title="Show password">👁</button>
         </div>
         <button class="btn primary" onclick="login()">Let's Go! 🚀</button>
-        <button type="button" class="btn add-btn" style="margin-top:10px;background:#6C5CE7;width:100%" onclick="openFacilitatorLogin()">👁️ I'm a facilitator</button>
+        <button type="button" class="btn add-btn" style="margin-top:10px;background:#6C5CE7;width:100%" onclick="showFacilitatorAuth()">👁️ I'm a facilitator</button>
         <a href="#" class="forgot-link" onclick="showForgotPassword(); return false;">Forgot password?</a>
         <p class="switch">New here? <a href="#" onclick="showRegister()">Create account</a></p>
         <p class="switch" style="margin-top:8px;font-size:0.8rem"><button type="button" class="privacy-link" onclick="openPrivacyModal()">Privacy &amp; GDPR</button></p>
+      </div>
+
+
+      <div id="facilitator-auth-form" class="hidden">
+        <p style="font-weight:800;margin-bottom:8px">👁️ Facilitator login</p>
+        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px">Use your school email &amp; password. Students allow you from their Settings.</p>
+        <input type="email" id="fac-auth-email" value="@school-beyond-limitations.com"
+          placeholder="name@school-beyond-limitations.com"
+          autocomplete="off" data-lpignore="true">
+        <div class="password-wrap">
+          <input type="password" id="fac-auth-password" placeholder="Password" autocomplete="off" data-lpignore="true">
+          <button type="button" class="pw-toggle" onclick="togglePassword('fac-auth-password', this)" title="Show password">👁</button>
+        </div>
+        <button class="btn primary" onclick="loginFacilitator()">Log in as facilitator</button>
+        <button type="button" class="btn add-btn" style="margin-top:10px;background:#00B894;width:100%" onclick="showFacilitatorRegister()">Create facilitator account</button>
+        <p class="switch"><a href="#" onclick="showLogin(); return false;">Back to student login</a></p>
+      </div>
+
+      <div id="facilitator-register-form" class="hidden">
+        <p style="font-weight:800;margin-bottom:8px">Create facilitator account</p>
+        <input type="email" id="fac-reg-email" value="@school-beyond-limitations.com" placeholder="name@school-beyond-limitations.com" autocomplete="off" data-lpignore="true">
+        <input type="text" id="fac-reg-name" placeholder="Your name (students will see this)" autocomplete="off">
+        <div class="password-wrap">
+          <input type="password" id="fac-reg-password" placeholder="Make a password (min 8)" autocomplete="off" data-lpignore="true">
+          <button type="button" class="pw-toggle" onclick="togglePassword('fac-reg-password', this)" title="Show password">👁</button>
+        </div>
+        <label style="display:flex;gap:8px;align-items:flex-start;font-size:0.85rem;margin:10px 0;text-align:left">
+          <input type="checkbox" id="fac-consent-privacy"> I agree to the Privacy notice
+        </label>
+        <button class="btn primary" onclick="registerFacilitator()">Create account</button>
+        <p class="switch"><a href="#" onclick="showFacilitatorAuth(); return false;">Back to facilitator login</a></p>
       </div>
 
       <div id="forgot-form" class="hidden">
@@ -2751,8 +2800,10 @@ let state = {
   unseenWins: false,
   facilitatorCode: null,
   facilitatorPerms: null,
+  allowedFacilitators: {},
   accessBlocked: false,
-  lastActive: null
+  lastActive: null,
+  accountRole: 'student'
 };
 
 // ---------- Helpers ----------
@@ -3694,11 +3745,12 @@ function focusBeforeDomain(el) {
 });
 
 function showLogin() {
-  document.getElementById('login-form').classList.remove('hidden');
-  document.getElementById('register-form').classList.add('hidden');
-  const ff = document.getElementById('forgot-form');
-  if (ff) ff.classList.add('hidden');
-  prefillEmailFields();
+  document.getElementById('login-form')?.classList.remove('hidden');
+  document.getElementById('register-form')?.classList.add('hidden');
+  document.getElementById('forgot-form')?.classList.add('hidden');
+  document.getElementById('facilitator-auth-form')?.classList.add('hidden');
+  document.getElementById('facilitator-register-form')?.classList.add('hidden');
+  if (typeof prefillEmailFields === 'function') prefillEmailFields();
 }
 
 function showForgotPassword() {
@@ -4163,7 +4215,7 @@ function openSettingsModal() {
       <p style="font-size:0.8rem;color:var(--muted);margin:6px 0 0;line-height:1.4">Reminds you 5 minutes before and at the start of today’s sessions. Keep the planner open (or in a tab) for reliable alerts. Needs browser permission.</p>
       <button class="btn add-btn" style="margin-top:8px;background:#0984E3" onclick="exportMyData()">⬇️ Export my data (JSON)</button>
       <button class="btn add-btn" style="margin-top:8px;background:#6C5CE7" onclick="exportProgressReport()">📄 Share progress report</button>
-      <button class="btn add-btn" style="margin-top:8px;background:#00B894" onclick="closeModal(); openFacilitatorSettings()">👁️ Facilitator access</button>
+      <button class="btn add-btn" style="margin-top:8px;background:#00B894" onclick="closeModal(); openStudentFacilitatorSettings()">👁️ Facilitators</button>
       <button class="btn add-btn" style="margin-top:8px;background:#2D3436" onclick="downloadChromeExtension()">🧩 Download Chrome extension</button>
       <button class="btn add-btn" style="margin-top:8px;background:#E17055" onclick="closeModal(); openPrivacyModal();">🔒 Privacy notice</button>
       <button class="btn add-btn" style="margin-top:8px;background:#E74C3C" onclick="deleteMyAccount()">🗑️ Delete my account</button>
@@ -4371,9 +4423,8 @@ async function tryEnterMentorMode() {
   return true;
 }
 
-/* ---------- Facilitator access (student-controlled permissions) ---------- */
-/** Each area: 'off' | 'view' | 'edit' */
-const DEFAULT_FAC_PERMS = {
+/* ---------- Facilitator accounts (email login + student Allow) ---------- */
+const DEFAULT_FAC_AREA_PERMS = {
   goals: 'view',
   habits: 'view',
   tasks: 'view',
@@ -4382,10 +4433,9 @@ const DEFAULT_FAC_PERMS = {
   notes: 'view',
   reflections: 'off',
   wins: 'view',
-  encouragement: 'edit',
-  block: 'edit'
+  encouragement: 'edit'
 };
-const FAC_PERM_LABELS = {
+const FAC_AREA_LABELS = {
   goals: 'Goals',
   habits: 'Habits',
   tasks: 'Action steps',
@@ -4394,402 +4444,652 @@ const FAC_PERM_LABELS = {
   notes: 'Remember notes',
   reflections: 'Reflections',
   wins: 'Wins & stars',
-  encouragement: 'Encouragement note',
-  block: 'Block account access'
+  encouragement: 'Encouragement note'
 };
 
-function ensureFacPerms() {
-  if (!state.facilitatorPerms || typeof state.facilitatorPerms !== 'object') {
-    state.facilitatorPerms = Object.assign({}, DEFAULT_FAC_PERMS);
+function normalizeEmail(e) {
+  return String(e || '').trim().toLowerCase();
+}
+
+function ensureAllowedFacilitators() {
+  if (!state.allowedFacilitators || typeof state.allowedFacilitators !== 'object') {
+    state.allowedFacilitators = {};
   }
-  // Migrate old boolean viewX / editX format
-  const old = state.facilitatorPerms;
-  if (typeof old.viewGoals === 'boolean' || typeof old.editGoals === 'boolean') {
-    const map = [
-      ['goals', 'viewGoals', 'editGoals'],
-      ['habits', 'viewHabits', 'editHabits'],
-      ['tasks', 'viewTasks', 'editTasks'],
-      ['books', 'viewBooks', 'editBooks'],
-      ['sessions', 'viewSessions', null],
-      ['notes', 'viewNotes', 'editNotes'],
-      ['reflections', 'viewReflections', null],
-      ['wins', 'viewWins', null],
-      ['encouragement', 'leaveEncouragement', 'leaveEncouragement'],
-      ['block', 'canBlock', 'canBlock']
-    ];
-    const next = {};
-    map.forEach(([key, vKey, eKey]) => {
-      if (eKey && old[eKey]) next[key] = 'edit';
-      else if (vKey && old[vKey]) next[key] = 'view';
-      else if (eKey && old[eKey] === false && vKey && old[vKey] === false) next[key] = 'off';
-      else next[key] = DEFAULT_FAC_PERMS[key];
-    });
-    state.facilitatorPerms = next;
-  }
-  Object.keys(DEFAULT_FAC_PERMS).forEach(k => {
-    const v = state.facilitatorPerms[k];
-    if (v !== 'off' && v !== 'view' && v !== 'edit') state.facilitatorPerms[k] = DEFAULT_FAC_PERMS[k];
-  });
-  return state.facilitatorPerms;
+  return state.allowedFacilitators;
 }
 
-function facLevel(key) {
-  ensureFacPerms();
-  return state.facilitatorPerms[key] || 'off';
-}
-function facCanView(perms, key) {
-  const p = (perms && perms[key]) || 'off';
-  return p === 'view' || p === 'edit';
-}
-function facCanEdit(perms, key) {
-  return ((perms && perms[key]) || 'off') === 'edit';
-}
-
-function facLevelToggleHTML(key, current) {
-  const levels = ['off', 'view', 'edit'];
-  const labels = { off: 'Off', view: 'View', edit: 'Edit' };
-  const btns = levels.map(lv =>
-    `<button type="button" class="${current === lv ? 'on-' + lv : ''}" data-fac-key="${key}" data-fac-level="${lv}" onclick="setFacLevelUI('${key}','${lv}')">${labels[lv]}</button>`
-  ).join('');
-  return `<div class="fac-level-row">
-    <span class="fac-label">${FAC_PERM_LABELS[key] || key}</span>
-    <div class="fac-level-tog" id="fac-tog-${key}">${btns}</div>
-  </div>`;
-}
-
-function setFacLevelUI(key, level) {
-  ensureFacPerms();
-  state.facilitatorPerms[key] = level;
-  const wrap = document.getElementById('fac-tog-' + key);
-  if (!wrap) return;
-  wrap.querySelectorAll('button').forEach(btn => {
-    const lv = btn.getAttribute('data-fac-level');
-    btn.className = (lv === level) ? ('on-' + lv) : '';
-  });
-}
-
-function openFacilitatorSettings() {
-  ensureFacPerms();
-  if (!state.facilitatorCode) {
-    state.facilitatorCode = makeFacCode();
-    save();
-  }
-  const p = state.facilitatorPerms;
-  const code = state.facilitatorCode;
-  const blocked = !!state.accessBlocked;
-  const rows = Object.keys(DEFAULT_FAC_PERMS).map(k => facLevelToggleHTML(k, p[k] || DEFAULT_FAC_PERMS[k])).join('');
-  openModal(`
-    <h3>Facilitator access 👁️</h3>
-    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:6px">Share this code. Facilitators use <strong>I\'m a facilitator</strong> on the login screen.</p>
-    <div class="fac-code-box" id="fac-code-display">${code}</div>
-    <button class="btn add-btn" style="background:#6C5CE7" onclick="navigator.clipboard.writeText('${code}'); toast('Code copied!')">Copy code</button>
-    <button class="btn add-btn" style="margin-top:6px;background:#00B894" onclick="generateFacilitatorCode()">New code</button>
-    ${blocked ? '<p style="color:#E74C3C;font-weight:800">Account is BLOCKED</p><button class="btn add-btn" style="background:#00B894" onclick="studentUnblockAccess()">Unblock my account</button>' : ''}
-    <p style="font-weight:700;margin:14px 0 6px">What they can do</p>
-    <div class="fac-level-list">${rows}</div>
-    <button class="btn primary" onclick="saveFacilitatorPerms()">Save & publish</button>
-    <p style="font-size:0.8rem;color:var(--muted);margin-top:10px">Off = hidden · View = see only · Edit = can change (or leave notes / block)</p>
-  `);
-  // Publish current snapshot so code works immediately
-  publishFacilitatorShare().then(() => {}).catch(() => {});
-}
-
-function saveFacilitatorPerms() {
-  ensureFacPerms();
-  // levels already live in state via setFacLevelUI
-  if (!state.facilitatorCode) state.facilitatorCode = makeFacCode();
-  save();
-  publishFacilitatorShare().then(() => {
-    toast('Saved — code ' + state.facilitatorCode + ' is ready');
-    closeModal();
-  }).catch(() => {
-    toast('Saved on this device (cloud publish failed)');
-    closeModal();
-  });
-}
-
-function makeFacCode() {
-  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
-  let s = '';
-  for (let i = 0; i < 8; i++) s += chars[Math.floor(Math.random() * chars.length)];
-  return s;
-}
-
-function generateFacilitatorCode() {
-  state.facilitatorCode = makeFacCode();
-  save();
-  const el = document.getElementById('fac-code-display');
-  if (el) el.textContent = state.facilitatorCode;
-  publishFacilitatorShare().then(() => toast('New code: ' + state.facilitatorCode)).catch(() => toast('New code: ' + state.facilitatorCode));
-}
-
-function buildFacilitatorPayload() {
-  ensureFacPerms();
-  const user = state.users[state.currentUser] || {};
+function defaultFacLink(email, name) {
   return {
-    code: state.facilitatorCode,
-    studentEmail: state.currentUser,
-    studentName: user.name || user.displayName || state.currentUser || 'Student',
-    avatar: user.avatar || '🦊',
-    stars: user.points || 0,
-    perms: Object.assign({}, state.facilitatorPerms),
-    accessBlocked: !!state.accessBlocked,
-    lastActive: state.lastActive || new Date().toISOString(),
+    email: normalizeEmail(email),
+    name: name || email.split('@')[0],
+    allowed: true,
+    canBlock: false,
+    perms: Object.assign({}, DEFAULT_FAC_AREA_PERMS)
+  };
+}
+
+function showFacilitatorAuth() {
+  document.getElementById('login-form')?.classList.add('hidden');
+  document.getElementById('register-form')?.classList.add('hidden');
+  document.getElementById('forgot-form')?.classList.add('hidden');
+  document.getElementById('facilitator-register-form')?.classList.add('hidden');
+  document.getElementById('facilitator-auth-form')?.classList.remove('hidden');
+  if (typeof prefillEmailFields === 'function') prefillEmailFields();
+}
+
+function showFacilitatorRegister() {
+  document.getElementById('login-form')?.classList.add('hidden');
+  document.getElementById('register-form')?.classList.add('hidden');
+  document.getElementById('forgot-form')?.classList.add('hidden');
+  document.getElementById('facilitator-auth-form')?.classList.add('hidden');
+  document.getElementById('facilitator-register-form')?.classList.remove('hidden');
+  if (typeof prefillEmailFields === 'function') prefillEmailFields();
+}
+
+// Patch showLogin to hide fac forms too
+const _showLoginOrig = typeof showLogin === 'function' ? showLogin : null;
+
+function registerFacilitator() {
+  const email = normalizeEmail(document.getElementById('fac-reg-email')?.value);
+  const name = (document.getElementById('fac-reg-name')?.value || '').trim() || email.split('@')[0];
+  const password = document.getElementById('fac-reg-password')?.value || '';
+  if (!email || email === SCHOOL_DOMAIN.toLowerCase() || !email.includes('@')) {
+    toast('Enter your school email'); return;
+  }
+  if (password.length < 8) { toast('Password must be at least 8 characters'); return; }
+  const c = document.getElementById('fac-consent-privacy');
+  if (c && !c.checked) { toast('Please agree to the Privacy notice'); return; }
+
+  const localUser = {
+    username: email,
+    displayName: name,
+    avatar: '👁️',
+    points: 0,
+    role: 'facilitator',
+    created: todayStr(),
+    privacyAcceptedAt: new Date().toISOString()
+  };
+  if (!firebaseReady) localUser.password = password;
+  state.users[email] = localUser;
+  state.currentUser = email;
+  state.accountRole = 'facilitator';
+  state.privacyAccepted = true;
+
+  const finish = () => {
+    save();
+    enterFacilitatorApp();
+    toast('Facilitator account ready — students can Allow you in Settings');
+  };
+
+  if (firebaseReady) {
+    auth.createUserWithEmailAndPassword(email, password)
+      .then(async (cred) => {
+        try { await cred.user.updateProfile({ displayName: name }); } catch (e) {}
+        try {
+          if (db) await db.collection('users').doc(cred.user.uid).set({
+            email, displayName: name, role: 'facilitator', avatar: '👁️'
+          }, { merge: true });
+        } catch (e) {}
+        finish();
+      })
+      .catch((e) => {
+        const msg = (e && e.code === 'auth/email-already-in-use') ? 'That email is already registered' :
+          (e && e.code === 'auth/weak-password') ? 'Use a stronger password' : 'Could not create account';
+        toast(msg);
+        state.currentUser = null;
+        state.accountRole = 'student';
+      });
+    return;
+  }
+  finish();
+}
+
+function loginFacilitator() {
+  const email = normalizeEmail(document.getElementById('fac-auth-email')?.value);
+  const password = document.getElementById('fac-auth-password')?.value || '';
+  if (!email || !password) { toast('Enter email and password'); return; }
+
+  const go = async () => {
+    state.currentUser = email;
+    if (!state.users[email]) {
+      state.users[email] = { username: email, displayName: email.split('@')[0], avatar: '👁️', role: 'facilitator', points: 0 };
+    } else {
+      state.users[email].role = 'facilitator';
+    }
+    state.accountRole = 'facilitator';
+    if (firebaseReady) {
+      try { await cloudLoadUserData(); } catch (e) {}
+    }
+    save();
+    enterFacilitatorApp();
+    toast('Welcome, facilitator');
+  };
+
+  if (firebaseReady) {
+    auth.signInWithEmailAndPassword(email, password)
+      .then(() => go())
+      .catch(() => toast('Wrong email or password'));
+    return;
+  }
+  const user = state.users[email];
+  if (!user || user.password !== password) {
+    toast('Wrong email or password');
+    return;
+  }
+  if (user.role && user.role !== 'facilitator') {
+    // promote if they chose facilitator login with existing local account
+    user.role = 'facilitator';
+  }
+  go();
+}
+
+function enterFacilitatorApp() {
+  const authEl = document.getElementById('auth-screen');
+  const appEl = document.getElementById('app-screen');
+  if (authEl) { authEl.classList.remove('active'); authEl.style.display = 'none'; }
+  if (appEl) { appEl.classList.remove('active'); appEl.style.display = 'none'; }
+  renderFacilitatorHome();
+}
+
+async function loadStudentsForFacilitator(facEmail) {
+  facEmail = normalizeEmail(facEmail);
+  const list = [];
+  // 1) Local registry written by students
+  try {
+    const reg = JSON.parse(localStorage.getItem('sbl_student_fac_links') || '{}');
+    Object.keys(reg).forEach(studentEmail => {
+      const link = reg[studentEmail] && reg[studentEmail][facEmail];
+      if (link && link.allowed) {
+        list.push({
+          studentEmail,
+          studentName: link.studentName || studentEmail.split('@')[0],
+          avatar: link.avatar || '🦊',
+          stars: link.stars || 0,
+          canBlock: !!link.canBlock,
+          perms: link.perms || Object.assign({}, DEFAULT_FAC_AREA_PERMS),
+          snapshot: link.snapshot || null,
+          accessBlocked: !!link.accessBlocked
+        });
+      }
+    });
+  } catch (e) {}
+  // 2) Firebase
+  try {
+    if (typeof firebaseReady !== 'undefined' && firebaseReady && db) {
+      const snap = await db.collection('facilitatorStudentLinks').doc(facEmail).get();
+      if (snap.exists) {
+        const data = snap.data() || {};
+        const students = data.students || {};
+        Object.keys(students).forEach(studentEmail => {
+          const link = students[studentEmail];
+          if (!link || !link.allowed) return;
+          if (list.some(x => x.studentEmail === studentEmail)) return;
+          list.push({
+            studentEmail,
+            studentName: link.studentName || studentEmail.split('@')[0],
+            avatar: link.avatar || '🦊',
+            stars: link.stars || 0,
+            canBlock: !!link.canBlock,
+            perms: link.perms || Object.assign({}, DEFAULT_FAC_AREA_PERMS),
+            snapshot: link.snapshot || null,
+            accessBlocked: !!link.accessBlocked
+          });
+        });
+      }
+    }
+  } catch (e) { console.warn(e); }
+  return list;
+}
+
+async function publishStudentFacilitatorLinks() {
+  ensureAllowedFacilitators();
+  const user = state.users[state.currentUser] || {};
+  const studentEmail = normalizeEmail(state.currentUser);
+  const snapshot = buildStudentSnapshotForFac();
+  // Local registry: sbl_student_fac_links[student][fac] = link
+  let reg = {};
+  try { reg = JSON.parse(localStorage.getItem('sbl_student_fac_links') || '{}'); } catch (e) {}
+  if (!reg[studentEmail]) reg[studentEmail] = {};
+  // Clear old entries for this student then rewrite
+  reg[studentEmail] = {};
+  Object.keys(state.allowedFacilitators).forEach(facEmail => {
+    const link = state.allowedFacilitators[facEmail];
+    reg[studentEmail][facEmail] = {
+      allowed: !!link.allowed,
+      canBlock: !!link.canBlock,
+      perms: Object.assign({}, DEFAULT_FAC_AREA_PERMS, link.perms || {}),
+      studentName: user.displayName || user.name || studentEmail.split('@')[0],
+      avatar: user.avatar || '🦊',
+      stars: user.points || 0,
+      accessBlocked: !!state.accessBlocked,
+      snapshot,
+      updatedAt: new Date().toISOString()
+    };
+  });
+  try { localStorage.setItem('sbl_student_fac_links', JSON.stringify(reg)); } catch (e) {}
+
+  // Firebase: for each allowed fac, merge into their links doc
+  if (typeof firebaseReady !== 'undefined' && firebaseReady && db) {
+    for (const facEmail of Object.keys(state.allowedFacilitators)) {
+      const link = state.allowedFacilitators[facEmail];
+      try {
+        const ref = db.collection('facilitatorStudentLinks').doc(facEmail);
+        await ref.set({
+          students: {
+            [studentEmail]: {
+              allowed: !!link.allowed,
+              canBlock: !!link.canBlock,
+              perms: Object.assign({}, DEFAULT_FAC_AREA_PERMS, link.perms || {}),
+              studentName: user.displayName || user.name || studentEmail.split('@')[0],
+              avatar: user.avatar || '🦊',
+              stars: user.points || 0,
+              accessBlocked: !!state.accessBlocked,
+              snapshot,
+              updatedAt: new Date().toISOString()
+            }
+          }
+        }, { merge: true });
+      } catch (e) { console.warn('pub fac link', e); }
+    }
+  }
+}
+
+function buildStudentSnapshotForFac() {
+  return {
     goals: (state.goals || []).map(g => ({ id: g.id, text: g.text, why: g.why || '', how: g.how || '', done: !!g.done, term: g.term || 'short' })),
     habits: (state.habits || []).map(h => {
       let streak = 0;
       try { streak = calcStreak(h) || 0; } catch (e) {}
-      return { id: h.id, name: h.name || h.title || 'Habit', streak, history: h.history || {} };
+      return { id: h.id, name: h.name || h.title || 'Habit', streak };
     }),
-    tasks: (state.tasks || []).map(t => ({ id: t.id, title: t.title || t.text || '', completed: !!t.completed, date: t.date || null })),
+    tasks: (state.tasks || []).map(t => ({ id: t.id, title: t.title || t.text || '', completed: !!t.completed })),
     books: (state.books || []).map(b => ({ id: b.id, title: b.title, progress: typeof bookProgressPct === 'function' ? bookProgressPct(b) : 0 })),
     inquiries: (state.inquiries || []).map(i => ({ id: i.id, topic: i.topic, progress: typeof inquiryProgressPct === 'function' ? inquiryProgressPct(i) : 0 })),
-    notes: (state.notes || []).slice(0, 50).map(n => ({ id: n.id, text: n.text || '', reminder: n.reminder || null })),
-    classes: (state.classes || []).map(c => ({ id: c.id, name: c.name || c.title || '', day: c.day })),
+    notes: (state.notes || []).slice(0, 40).map(n => ({ id: n.id, text: n.text || '' })),
+    classes: (state.classes || []).map(c => ({ id: c.id, name: c.name || c.title || '' })),
     winsCount: (state.unlockedAchievements || []).length,
-    encouragement: (state.facilitatorEncouragement || ''),
-    celebrationsZoom: 'https://zoom.us/j/9656074147',
-    updatedAt: new Date().toISOString()
+    stars: (state.users[state.currentUser] || {}).points || 0,
+    encouragement: state.facilitatorEncouragement || '',
+    celebrationsZoom: 'https://zoom.us/j/9656074147'
   };
 }
 
-async function publishFacilitatorShare() {
-  if (!state.facilitatorCode) return false;
-  const code = String(state.facilitatorCode).toUpperCase().trim();
-  state.facilitatorCode = code;
-  const payload = buildFacilitatorPayload();
-  payload.code = code;
-  // Always local first so same-browser works even without Firebase
-  try {
-    localStorage.setItem('sbl_fac_' + code, JSON.stringify(payload));
-    const reg = JSON.parse(localStorage.getItem('sbl_fac_registry') || '{}');
-    reg[code] = { at: Date.now(), student: state.currentUser };
-    localStorage.setItem('sbl_fac_registry', JSON.stringify(reg));
-  } catch (e) { console.warn('fac local', e); }
-  try {
-    if (typeof firebaseReady !== 'undefined' && firebaseReady && db) {
-      await db.collection('facilitatorShares').doc(code).set(payload);
-      if (auth && auth.currentUser) {
-        await db.collection('users').doc(auth.currentUser.uid).set({
-          facilitatorCode: code,
-          facilitatorPerms: state.facilitatorPerms,
-          accessBlocked: !!state.accessBlocked,
-          lastActive: payload.lastActive
-        }, { merge: true });
-      }
-    }
-  } catch (e) {
-    console.warn('fac cloud', e);
-  }
-  return true;
-}
+function openStudentFacilitatorSettings() {
+  ensureAllowedFacilitators();
+  const links = state.allowedFacilitators;
+  const rows = Object.keys(links).map(email => {
+    const L = links[email];
+    const allowed = !!L.allowed;
+    return `<div class="allow-row" data-fac-email="${email}">
+      <div>
+        <div style="font-weight:800">${(L.name || email).replace(/</g,'&lt;')}</div>
+        <div style="font-size:0.8rem;color:var(--muted)">${email}</div>
+      </div>
+      <div class="allow-tog">
+        <button type="button" class="${allowed ? 'on-allow' : ''}" onclick="setFacAllow('${email}', true)">Allow</button>
+        <button type="button" class="${!allowed ? 'on-deny' : ''}" onclick="setFacAllow('${email}', false)">Don't allow</button>
+      </div>
+    </div>
+    <div style="margin:-4px 0 12px;padding:0 6px">
+      <label style="font-size:0.85rem;display:flex;gap:8px;align-items:center">
+        <input type="checkbox" ${L.canBlock ? 'checked' : ''} onchange="setFacCanBlock('${email}', this.checked)"> May block my access
+      </label>
+      <details style="margin-top:6px">
+        <summary style="cursor:pointer;font-weight:700;font-size:0.85rem">What they can see / edit</summary>
+        <div class="fac-level-list" style="margin-top:8px">
+          ${Object.keys(DEFAULT_FAC_AREA_PERMS).map(k => {
+            const cur = (L.perms && L.perms[k]) || DEFAULT_FAC_AREA_PERMS[k];
+            return facLevelToggleHTMLForStudent(email, k, cur);
+          }).join('')}
+        </div>
+      </details>
+    </div>`;
+  }).join('') || '<p style="color:var(--muted)">No facilitators yet — add one by email below.</p>';
 
-function touchStudentPresence() {
-  state.lastActive = new Date().toISOString();
-  try { save(); } catch (e) {}
-  if (state.facilitatorCode) {
-    try {
-      const key = 'sbl_fac_' + String(state.facilitatorCode).toUpperCase();
-      const raw = localStorage.getItem(key);
-      if (raw) {
-        const d = JSON.parse(raw);
-        d.lastActive = state.lastActive;
-        d.accessBlocked = !!state.accessBlocked;
-        localStorage.setItem(key, JSON.stringify(d));
-      }
-    } catch (e) {}
-  }
-}
-
-function studentUnblockAccess() {
-  state.accessBlocked = false;
-  save();
-  publishFacilitatorShare();
-  toast('Account unblocked');
-  closeModal();
-  location.reload();
-}
-
-function openFacilitatorLogin() {
   openModal(`
-    <h3>Facilitator login 👁️</h3>
-    <p style="color:var(--muted);font-size:0.9rem">Enter the 8-character code from the student.</p>
-    <label>Student code</label>
-    <input type="text" id="fac-login-code" placeholder="e.g. AB12CD34" autocomplete="off" maxlength="12" style="text-transform:uppercase;letter-spacing:0.1em;font-weight:800;font-size:1.2rem">
-    <button class="btn primary" onclick="facilitatorEnter()">Open student view</button>
-    <p style="font-size:0.8rem;color:var(--muted);margin-top:10px">If the code is not found, ask the student to open Facilitator access and tap <strong>Save & publish</strong>.</p>
+    <h3>Facilitators 👁️</h3>
+    <p style="color:var(--muted);font-size:0.9rem">Allow a facilitator (by email). They log in with <strong>I\'m a facilitator</strong> and see you in their list.</p>
+    ${rows}
+    <hr style="border:none;border-top:1px solid #eee;margin:14px 0">
+    <label>Add facilitator email</label>
+    <input type="email" id="add-fac-email" value="@school-beyond-limitations.com" placeholder="name@school-beyond-limitations.com">
+    <label>Name (optional)</label>
+    <input type="text" id="add-fac-name" placeholder="e.g. Ms Smith">
+    <button class="btn primary" onclick="addFacilitatorEmail()">Add & Allow</button>
+    <button class="btn add-btn" style="margin-top:8px;background:#00B894" onclick="saveStudentFacilitatorSettings()">Save</button>
+    ${state.accessBlocked ? '<button class="btn add-btn" style="margin-top:8px;background:#E74C3C" onclick="studentUnblockAccess()">Unblock my account</button>' : ''}
   `);
-  setTimeout(() => {
-    const el = document.getElementById('fac-login-code');
-    if (el) el.focus();
-  }, 100);
 }
 
-async function loadFacilitatorPayload(code) {
-  code = String(code || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
-  if (!code) return null;
-  let data = null;
-  try {
-    const raw = localStorage.getItem('sbl_fac_' + code) || localStorage.getItem('sbl_mentor_' + code);
-    if (raw) data = JSON.parse(raw);
-  } catch (e) {}
-  try {
-    if (!data && typeof firebaseReady !== 'undefined' && firebaseReady && db) {
-      // Wait a moment for firebase if just loading
-      let snap = await db.collection('facilitatorShares').doc(code).get();
-      if (!snap.exists) snap = await db.collection('mentorShares').doc(code).get();
-      if (snap.exists) data = snap.data();
-    }
-  } catch (e) { console.warn('fac load cloud', e); }
-  if (data && data.perms) {
-    // normalize perms if old format
-    const tmp = { facilitatorPerms: data.perms };
-    const prev = state.facilitatorPerms;
-    state.facilitatorPerms = data.perms;
-    ensureFacPerms();
-    data.perms = Object.assign({}, state.facilitatorPerms);
-    state.facilitatorPerms = prev;
-  }
-  return data;
+function facLevelToggleHTMLForStudent(facEmail, key, current) {
+  const levels = ['off', 'view', 'edit'];
+  const labels = { off: 'Off', view: 'View', edit: 'Edit' };
+  const btns = levels.map(lv =>
+    `<button type="button" class="${current === lv ? 'on-' + lv : ''}" onclick="setStudentFacAreaPerm('${facEmail}','${key}','${lv}')">${labels[lv]}</button>`
+  ).join('');
+  return `<div class="fac-level-row">
+    <span class="fac-label">${FAC_AREA_LABELS[key] || key}</span>
+    <div class="fac-level-tog" id="fac-area-${facEmail.replace(/[^a-z0-9]/gi,'_')}-${key}">${btns}</div>
+  </div>`;
 }
 
-async function facilitatorEnter() {
-  const raw = (document.getElementById('fac-login-code') || {}).value || '';
-  const code = String(raw).toUpperCase().replace(/[^A-Z0-9]/g, '');
-  if (code.length < 4) { toast('Enter the full code'); return; }
-  toast('Looking up code…');
-  // If firebase not ready yet, try init wait
-  if (typeof firebaseReady !== 'undefined' && !firebaseReady && typeof initFirebaseSafe === 'function') {
-    try { initFirebaseSafe(); } catch (e) {}
-    await new Promise(r => setTimeout(r, 600));
+function setStudentFacAreaPerm(facEmail, key, level) {
+  ensureAllowedFacilitators();
+  facEmail = normalizeEmail(facEmail);
+  if (!state.allowedFacilitators[facEmail]) return;
+  if (!state.allowedFacilitators[facEmail].perms) state.allowedFacilitators[facEmail].perms = Object.assign({}, DEFAULT_FAC_AREA_PERMS);
+  state.allowedFacilitators[facEmail].perms[key] = level;
+  const id = 'fac-area-' + facEmail.replace(/[^a-z0-9]/gi,'_') + '-' + key;
+  const wrap = document.getElementById(id);
+  if (wrap) {
+    wrap.querySelectorAll('button').forEach((btn, i) => {
+      const lv = ['off', 'view', 'edit'][i];
+      btn.className = (lv === level) ? ('on-' + lv) : '';
+    });
   }
-  const data = await loadFacilitatorPayload(code);
-  if (!data) {
-    toast('Code not found — student must Save & publish first');
-    return;
+}
+
+function setFacAllow(email, allowed) {
+  email = normalizeEmail(email);
+  ensureAllowedFacilitators();
+  if (!state.allowedFacilitators[email]) return;
+  state.allowedFacilitators[email].allowed = !!allowed;
+  openStudentFacilitatorSettings();
+}
+
+function setFacCanBlock(email, can) {
+  email = normalizeEmail(email);
+  ensureAllowedFacilitators();
+  if (!state.allowedFacilitators[email]) return;
+  state.allowedFacilitators[email].canBlock = !!can;
+}
+
+function addFacilitatorEmail() {
+  const email = normalizeEmail(document.getElementById('add-fac-email')?.value);
+  const name = (document.getElementById('add-fac-name')?.value || '').trim();
+  if (!email || email === SCHOOL_DOMAIN.toLowerCase() || !email.includes('@')) {
+    toast('Enter a valid facilitator email'); return;
   }
-  sessionStorage.setItem('sbl_fac_session', JSON.stringify({ code, data }));
+  ensureAllowedFacilitators();
+  state.allowedFacilitators[email] = defaultFacLink(email, name);
+  openStudentFacilitatorSettings();
+  toast('Added — tap Save when ready');
+}
+
+async function saveStudentFacilitatorSettings() {
+  save();
+  await publishStudentFacilitatorLinks();
+  toast('Facilitator access saved');
   closeModal();
-  renderFacilitatorDashboard(code, data);
 }
 
-function isStudentOnline(lastActive) {
-  if (!lastActive) return false;
-  const t = new Date(lastActive).getTime();
-  if (isNaN(t)) return false;
-  return (Date.now() - t) < 3 * 60 * 1000;
-}
-
-function renderFacilitatorDashboard(code, data) {
-  const perms = Object.assign({}, DEFAULT_FAC_PERMS, data.perms || {});
+async function renderFacilitatorHome() {
+  const facEmail = normalizeEmail(state.currentUser);
+  const user = state.users[facEmail] || {};
+  const students = await loadStudentsForFacilitator(facEmail);
   document.body.innerHTML = '';
   const wrap = document.createElement('div');
-  wrap.style.cssText = 'max-width:800px;margin:0 auto;padding:20px;font-family:system-ui,sans-serif';
-  const online = isStudentOnline(data.lastActive);
-  let sections = '';
-  if (facCanView(perms, 'goals')) {
-    const canEdit = facCanEdit(perms, 'goals');
-    const items = (data.goals || []).map(g => `<li>${g.done?'✓':'○'} <strong>${escFac(g.text)}</strong>${g.why ? ' — <em>'+escFac(g.why)+'</em>' : ''}</li>`).join('') || '<li>None</li>';
-    sections += `<h2>Goals ${canEdit ? '(edit allowed)' : ''}</h2><ul>${items}</ul>`;
+  wrap.className = 'fac-home';
+  const cards = students.length
+    ? students.map(s => `
+      <div class="fac-student-card">
+        <div>
+          <div style="font-weight:800;font-size:1.05rem">${escFac(s.avatar)} ${escFac(s.studentName)}</div>
+          <div style="font-size:0.85rem;color:#666">${escFac(s.studentEmail)} · ⭐ ${s.stars || 0}</div>
+          ${s.accessBlocked ? '<div style="color:#E74C3C;font-weight:700;font-size:0.85rem">Access blocked</div>' : ''}
+        </div>
+        <button type="button" data-student="${escFac(s.studentEmail)}">Open</button>
+      </div>`).join('')
+    : `<p style="color:#666">No students yet. Ask a student to open <strong>Settings → Facilitators</strong>, add your email, choose <strong>Allow</strong>, and tap Save.</p>`;
+  wrap.innerHTML = `
+    <div style="display:flex;justify-content:space-between;align-items:center;gap:12px;flex-wrap:wrap">
+      <h1 style="margin:0">👁️ ${escFac(user.displayName || facEmail.split('@')[0])}</h1>
+      <button type="button" id="fac-logout" style="padding:8px 14px;border:none;border-radius:12px;background:#636E72;color:#fff;font-weight:700;cursor:pointer">Log out</button>
+    </div>
+    <p style="color:#666">Your students</p>
+    ${cards}
+  `;
+  document.body.appendChild(wrap);
+  document.getElementById('fac-logout').onclick = () => {
+    sessionStorage.removeItem('sbl_fac_session');
+    clearFacilitatorViewing();
+    if (firebaseReady && auth) auth.signOut().catch(() => {});
+    state.currentUser = null;
+    state.accountRole = 'student';
+    save();
+    location.href = location.pathname;
+  };
+  wrap.querySelectorAll('[data-student]').forEach(btn => {
+    btn.onclick = () => {
+      const email = btn.getAttribute('data-student');
+      const s = students.find(x => x.studentEmail === email);
+      if (s) openFacilitatorStudentView(s);
+    };
+  });
+}
+
+async function setFacilitatorViewing(studentEmail) {
+  const facEmail = normalizeEmail(state.currentUser);
+  const name = (state.users[facEmail] || {}).displayName || facEmail.split('@')[0];
+  const payload = { facilitatorEmail: facEmail, facilitatorName: name, at: new Date().toISOString() };
+  try {
+    const map = JSON.parse(localStorage.getItem('sbl_fac_viewing') || '{}');
+    map[normalizeEmail(studentEmail)] = payload;
+    localStorage.setItem('sbl_fac_viewing', JSON.stringify(map));
+  } catch (e) {}
+  try {
+    if (firebaseReady && db) {
+      await db.collection('facilitatorViewing').doc(normalizeEmail(studentEmail)).set(payload);
+    }
+  } catch (e) {}
+}
+
+async function clearFacilitatorViewing(studentEmail) {
+  const facEmail = normalizeEmail(state.currentUser);
+  try {
+    const map = JSON.parse(localStorage.getItem('sbl_fac_viewing') || '{}');
+    if (studentEmail) {
+      const cur = map[normalizeEmail(studentEmail)];
+      if (cur && cur.facilitatorEmail === facEmail) delete map[normalizeEmail(studentEmail)];
+    } else {
+      Object.keys(map).forEach(k => {
+        if (map[k] && map[k].facilitatorEmail === facEmail) delete map[k];
+      });
+    }
+    localStorage.setItem('sbl_fac_viewing', JSON.stringify(map));
+  } catch (e) {}
+  try {
+    if (studentEmail && firebaseReady && db) {
+      const ref = db.collection('facilitatorViewing').doc(normalizeEmail(studentEmail));
+      const snap = await ref.get();
+      if (snap.exists && snap.data().facilitatorEmail === facEmail) await ref.delete();
+    }
+  } catch (e) {}
+}
+
+function getViewerForStudent(studentEmail) {
+  studentEmail = normalizeEmail(studentEmail || state.currentUser);
+  try {
+    const map = JSON.parse(localStorage.getItem('sbl_fac_viewing') || '{}');
+    const v = map[studentEmail];
+    if (v && v.at && (Date.now() - new Date(v.at).getTime()) < 5 * 60 * 1000) return v;
+  } catch (e) {}
+  return null;
+}
+
+function updateViewerBanner() {
+  if (state.accountRole === 'facilitator') return;
+  let bar = document.getElementById('viewer-banner');
+  const v = getViewerForStudent(state.currentUser);
+  if (!v) {
+    if (bar) bar.remove();
+    return;
   }
-  if (facCanView(perms, 'habits')) {
+  if (!bar) {
+    bar = document.createElement('div');
+    bar.id = 'viewer-banner';
+    bar.className = 'viewer-banner';
+    const app = document.getElementById('app-screen') || document.body;
+    app.insertBefore(bar, app.firstChild);
+  }
+  bar.textContent = `👁️ ${v.facilitatorName || v.facilitatorEmail} is viewing your planner`;
+}
+
+function openFacilitatorStudentView(s) {
+  setFacilitatorViewing(s.studentEmail);
+  const perms = Object.assign({}, DEFAULT_FAC_AREA_PERMS, s.perms || {});
+  const data = s.snapshot || {};
+  document.body.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.className = 'fac-home';
+  const facCanView = (k) => perms[k] === 'view' || perms[k] === 'edit';
+  const facCanEdit = (k) => perms[k] === 'edit';
+  let sections = '';
+  if (facCanView('goals')) {
+    const items = (data.goals || []).map(g => `<li>${g.done?'✓':'○'} <strong>${escFac(g.text)}</strong>${g.why ? ' — <em>'+escFac(g.why)+'</em>' : ''}</li>`).join('') || '<li>None</li>';
+    sections += `<h2>Goals</h2><ul>${items}</ul>`;
+  }
+  if (facCanView('habits')) {
     const items = (data.habits || []).map(h => `<li>${escFac(h.name)} — streak ${h.streak||0}</li>`).join('') || '<li>None</li>';
     sections += `<h2>Habits</h2><ul>${items}</ul>`;
   }
-  if (facCanView(perms, 'tasks')) {
+  if (facCanView('tasks')) {
     const items = (data.tasks || []).map(t => `<li>${t.completed?'✓':'○'} ${escFac(t.title)}</li>`).join('') || '<li>None</li>';
     sections += `<h2>Action steps</h2><ul>${items}</ul>`;
   }
-  if (facCanView(perms, 'books')) {
-    const items = (data.books || []).map(b => `<li>${escFac(b.title)} — ${b.progress||0}%</li>`).join('') || '<li>None</li>';
+  if (facCanView('books')) {
+    const items = (data.books || []).map(b => `<li>${escFac(b.title)} — ${b.progress||0}%</li>`).join('') || '';
     const inqs = (data.inquiries || []).map(i => `<li>${escFac(i.topic)} — ${i.progress||0}%</li>`).join('');
-    sections += `<h2>Books & inquiries</h2><ul>${items}${inqs}</ul>`;
+    sections += `<h2>Books & inquiries</h2><ul>${items || inqs ? items + inqs : '<li>None</li>'}</ul>`;
   }
-  if (facCanView(perms, 'notes')) {
-    const items = (data.notes || []).slice(0, 20).map(n => `<li>${escFac(n.text)}</li>`).join('') || '<li>None</li>';
+  if (facCanView('notes')) {
+    const items = (data.notes || []).map(n => `<li>${escFac(n.text)}</li>`).join('') || '<li>None</li>';
     sections += `<h2>Remember</h2><ul>${items}</ul>`;
   }
-  if (facCanView(perms, 'wins')) {
-    sections += `<h2>Wins</h2><p>${data.winsCount||0} unlocked · ⭐ ${data.stars||0} stars</p>`;
+  if (facCanView('wins')) {
+    sections += `<h2>Wins</h2><p>${data.winsCount||0} unlocked · ⭐ ${data.stars || s.stars || 0}</p>`;
   }
-  if (facCanView(perms, 'sessions')) {
-    const items = (data.classes || []).map(c => `<li>${escFac(c.name)}</li>`).join('') || '<li>None listed</li>';
+  if (facCanView('sessions')) {
+    const items = (data.classes || []).map(c => `<li>${escFac(c.name)}</li>`).join('') || '<li>None</li>';
     sections += `<h2>Sessions</h2><ul>${items}</ul>`;
   }
-  const blockBtn = facCanEdit(perms, 'block')
-    ? `<button type="button" id="fac-block-btn" style="margin:8px 8px 8px 0;padding:10px 14px;border:none;border-radius:12px;background:${data.accessBlocked?'#00B894':'#E74C3C'};color:#fff;font-weight:800;cursor:pointer">${data.accessBlocked ? 'Unblock student access' : 'Block student access'}</button>`
+  const blockBtn = s.canBlock
+    ? `<button type="button" id="fac-block-btn" style="margin:8px 8px 0 0;padding:10px 14px;border:none;border-radius:12px;background:${s.accessBlocked?'#00B894':'#E74C3C'};color:#fff;font-weight:800;cursor:pointer">${s.accessBlocked ? 'Unblock access' : 'Block access'}</button>`
     : '';
-  const encourage = facCanEdit(perms, 'encouragement')
+  const encourage = facCanEdit('encouragement')
     ? `<h2>Encouragement</h2>
        <textarea id="fac-encourage" style="width:100%;min-height:80px;padding:10px;border-radius:12px;border:2px solid #ddd;font:inherit">${escFac(data.encouragement||'')}</textarea>
        <button type="button" id="fac-encourage-save" style="margin-top:8px;padding:10px 14px;border:none;border-radius:12px;background:#6C5CE7;color:#fff;font-weight:800;cursor:pointer">Save note</button>`
-    : (facCanView(perms, 'encouragement') && data.encouragement
-      ? `<h2>Encouragement</h2><p>${escFac(data.encouragement)}</p>` : '');
+    : '';
   wrap.innerHTML = `
-    <div style="background:#F3E5F5;padding:12px 14px;border-radius:14px;font-weight:700;margin-bottom:12px">Facilitator view · code ${escFac(code)}</div>
-    <h1 style="margin:0">${escFac(data.avatar||'🦊')} ${escFac(data.studentName||'Student')}</h1>
-    <p>Status: <span class="${online?'fac-status-online':'fac-status-offline'}">${online ? '● Active now' : '○ Not active'}</span>
-      ${data.accessBlocked ? ' · <strong style="color:#E74C3C">BLOCKED</strong>' : ''}</p>
-    <p style="color:#666;font-size:0.9rem">Last active: ${data.lastActive ? new Date(data.lastActive).toLocaleString() : 'unknown'}</p>
+    <button type="button" data-back style="padding:8px 12px;border:none;border-radius:12px;background:#636E72;color:#fff;font-weight:700;cursor:pointer;margin-bottom:12px">← Back to students</button>
+    <h1 style="margin:0 0 6px">${escFac(s.avatar)} ${escFac(s.studentName)}</h1>
+    <p style="color:#666">${escFac(s.studentEmail)}</p>
     ${blockBtn}
-    <button type="button" onclick="sessionStorage.removeItem('sbl_fac_session');location.href=location.pathname" style="padding:10px 14px;border:none;border-radius:12px;background:#636E72;color:#fff;font-weight:700;cursor:pointer">Exit</button>
     ${sections}
     ${encourage}
-    <p style="margin-top:24px"><a href="${data.celebrationsZoom||'https://zoom.us/j/9656074147'}" target="_blank" rel="noopener">Celebrations Zoom (Dr. Martina)</a></p>
+    <p style="margin-top:20px"><a href="${(data.celebrationsZoom)||'https://zoom.us/j/9656074147'}" target="_blank" rel="noopener">Celebrations Zoom</a></p>
   `;
   document.body.appendChild(wrap);
+  const backBtn = wrap.querySelector('[data-back]');
+  if (backBtn) backBtn.onclick = async () => {
+    await clearFacilitatorViewing(s.studentEmail);
+    renderFacilitatorHome();
+  };
   const blockEl = document.getElementById('fac-block-btn');
   if (blockEl) {
     blockEl.onclick = async () => {
-      data.accessBlocked = !data.accessBlocked;
-      await writeFacilitatorField(code, { accessBlocked: data.accessBlocked });
-      toast(data.accessBlocked ? 'Student access blocked' : 'Student access unblocked');
-      renderFacilitatorDashboard(code, data);
+      s.accessBlocked = !s.accessBlocked;
+      await writeStudentAccessBlocked(s.studentEmail, s.accessBlocked);
+      toast(s.accessBlocked ? 'Student access blocked' : 'Student access unblocked');
+      openFacilitatorStudentView(s);
     };
   }
   const saveEnc = document.getElementById('fac-encourage-save');
   if (saveEnc) {
     saveEnc.onclick = async () => {
-      const t = (document.getElementById('fac-encourage') || {}).value || '';
-      data.encouragement = t;
-      await writeFacilitatorField(code, { encouragement: t, encouragementAt: new Date().toISOString() });
+      const t = document.getElementById('fac-encourage')?.value || '';
+      await writeStudentEncouragement(s.studentEmail, t);
       toast('Encouragement saved');
     };
   }
+  // Heartbeat while viewing
+  if (window._facViewTimer) clearInterval(window._facViewTimer);
+  window._facViewTimer = setInterval(() => setFacilitatorViewing(s.studentEmail), 30000);
 }
 
-function escFac(s) {
-  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
-}
-
-async function writeFacilitatorField(code, fields) {
-  code = String(code || '').toUpperCase();
+async function writeStudentAccessBlocked(studentEmail, blocked) {
+  studentEmail = normalizeEmail(studentEmail);
   try {
-    const raw = localStorage.getItem('sbl_fac_' + code);
-    if (raw) {
-      const d = JSON.parse(raw);
-      Object.assign(d, fields);
-      localStorage.setItem('sbl_fac_' + code, JSON.stringify(d));
+    const reg = JSON.parse(localStorage.getItem('sbl_student_fac_links') || '{}');
+    if (reg[studentEmail]) {
+      Object.keys(reg[studentEmail]).forEach(fe => {
+        if (reg[studentEmail][fe]) reg[studentEmail][fe].accessBlocked = !!blocked;
+      });
+      localStorage.setItem('sbl_student_fac_links', JSON.stringify(reg));
+    }
+  } catch (e) {}
+  // Also flag for student local state if same browser
+  try {
+    if (normalizeEmail(state.currentUser) === studentEmail) {
+      state.accessBlocked = !!blocked;
+      save();
     }
   } catch (e) {}
   try {
-    if (typeof firebaseReady !== 'undefined' && firebaseReady && db) {
-      await db.collection('facilitatorShares').doc(code).set(fields, { merge: true });
+    if (firebaseReady && db) {
+      const facEmail = normalizeEmail(state.currentUser);
+      await db.collection('facilitatorStudentLinks').doc(facEmail).set({
+        students: { [studentEmail]: { accessBlocked: !!blocked } }
+      }, { merge: true });
     }
-  } catch (e) { console.warn(e); }
+  } catch (e) {}
+}
+
+async function writeStudentEncouragement(studentEmail, textVal) {
+  studentEmail = normalizeEmail(studentEmail);
+  try {
+    const reg = JSON.parse(localStorage.getItem('sbl_student_fac_links') || '{}');
+    if (reg[studentEmail]) {
+      Object.keys(reg[studentEmail]).forEach(fe => {
+        if (reg[studentEmail][fe] && reg[studentEmail][fe].snapshot) {
+          reg[studentEmail][fe].snapshot.encouragement = textVal;
+        }
+      });
+      localStorage.setItem('sbl_student_fac_links', JSON.stringify(reg));
+    }
+  } catch (e) {}
+}
+
+function studentUnblockAccess() {
+  state.accessBlocked = false;
+  save();
+  publishStudentFacilitatorLinks();
+  toast('Account unblocked');
+  closeModal();
+  location.reload();
 }
 
 function checkAccessBlocked() {
+  if (state.accountRole === 'facilitator') return false;
   if (state.accessBlocked) {
     document.body.innerHTML = `<div class="blocked-screen">
       <h1>Access paused</h1>
-      <p>A facilitator temporarily blocked this planner. Ask them to unblock, or unblock yourself below.</p>
+      <p>A facilitator temporarily blocked this planner.</p>
       <button onclick="studentUnblockAccess()" style="padding:12px 18px;border:none;border-radius:12px;background:#00B894;color:#fff;font-weight:800;cursor:pointer">Unblock my account</button>
     </div>`;
     return true;
   }
   return false;
 }
+
+function escFac(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+// Keep old name stubs so leftover onclick handlers don't crash
+function openFacilitatorLogin() { showFacilitatorAuth(); }
+function openFacilitatorSettings() { openStudentFacilitatorSettings(); }
 
 /* ---------- Chrome extension download ---------- */
 async function downloadChromeExtension() {
@@ -4917,6 +5217,8 @@ async function cloudSaveUserData() {
     unseenWins: !!state.unseenWins,
     facilitatorCode: state.facilitatorCode || null,
     facilitatorPerms: state.facilitatorPerms || null,
+    allowedFacilitators: state.allowedFacilitators || {},
+    accountRole: state.accountRole || 'student',
     accessBlocked: !!state.accessBlocked,
     lastActive: state.lastActive || null,
     updatedAt: new Date().toISOString()
@@ -4968,6 +5270,8 @@ async function cloudLoadUserData() {
     if (typeof data.unseenWins === 'boolean') state.unseenWins = data.unseenWins;
     if (data.facilitatorCode) state.facilitatorCode = data.facilitatorCode;
     if (data.facilitatorPerms) state.facilitatorPerms = data.facilitatorPerms;
+    if (data.allowedFacilitators) state.allowedFacilitators = data.allowedFacilitators;
+    if (data.accountRole) state.accountRole = data.accountRole;
     if (typeof data.accessBlocked === 'boolean') state.accessBlocked = data.accessBlocked;
     if (data.lastActive) state.lastActive = data.lastActive;
     if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
@@ -5158,6 +5462,14 @@ function enterApp() {
   initSessionNotifications();
   scheduleSessionNotifications();
   if (firebaseReady && auth.currentUser) cloudSaveUserData();
+
+  state.accountRole = 'student';
+  if (typeof publishStudentFacilitatorLinks === 'function') publishStudentFacilitatorLinks();
+  if (typeof updateViewerBanner === 'function') {
+    updateViewerBanner();
+    if (window._viewerBannerTimer) clearInterval(window._viewerBannerTimer);
+    window._viewerBannerTimer = setInterval(updateViewerBanner, 15000);
+  }
 }
 
 // ---------- Navigation ----------
@@ -6803,17 +7115,28 @@ if (firebaseReady && auth) {
   });
 }
 if (state.currentUser && state.users[state.currentUser]) {
-  // Immediately hide auth so it never flashes
-  const auth = document.getElementById('auth-screen');
-  const app = document.getElementById('app-screen');
-  auth.classList.remove('active');
-  auth.style.display = 'none';
-  app.classList.add('active');
-  app.style.display = 'block';
-  ensureSchoolCalendar();
-  applyA11yModes();
-  renderAll();
-  if (firebaseReady && auth.currentUser) cloudSaveUserData();
+  const u = state.users[state.currentUser];
+  if ((u && u.role === 'facilitator') || state.accountRole === 'facilitator') {
+    state.accountRole = 'facilitator';
+    enterFacilitatorApp();
+  } else {
+    const auth = document.getElementById('auth-screen');
+    const app = document.getElementById('app-screen');
+    auth.classList.remove('active');
+    auth.style.display = 'none';
+    app.classList.add('active');
+    app.style.display = 'block';
+    ensureSchoolCalendar();
+    applyA11yModes();
+    renderAll();
+    if (typeof updateViewerBanner === 'function') {
+      updateViewerBanner();
+      if (window._viewerBannerTimer) clearInterval(window._viewerBannerTimer);
+      window._viewerBannerTimer = setInterval(updateViewerBanner, 15000);
+    }
+    if (typeof publishStudentFacilitatorLinks === 'function') publishStudentFacilitatorLinks();
+    if (firebaseReady && auth.currentUser) cloudSaveUserData();
+  }
 } else {
   document.getElementById('auth-screen').classList.add('active');
   document.getElementById('auth-screen').style.display = '';
