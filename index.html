@@ -4481,7 +4481,6 @@ function registerFacilitator() {
   if (!email || email === SCHOOL_DOMAIN.toLowerCase() || !email.includes('@')) {
     toast('Enter your school email'); return;
   }
-  if (password.length < 8) { toast('Password must be at least 8 characters'); return; }
   const c = document.getElementById('fac-consent-privacy');
   if (c && !c.checked) { toast('Please agree to the Privacy notice'); return; }
 
@@ -5272,10 +5271,6 @@ function register() {
 
   if (!username || username === SCHOOL_DOMAIN.toLowerCase() || !password) {
     toast('Please fill in your email and password');
-    return;
-  }
-  if (password.length < 8) {
-    toast('Password must be at least 8 characters');
     return;
   }
   const cPriv = document.getElementById('consent-privacy');
