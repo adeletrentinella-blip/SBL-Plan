@@ -1009,6 +1009,70 @@ body {
 
 /* ========== BOTTOM NAV ========== */
 
+
+body.theme-dark {
+  --bg: #121212;
+  --card: #1E1E1E;
+  --text: #F5F5F5;
+  --muted: #A0A0A0;
+  --primary: #90CAF9;
+  --secondary: #CE93D8;
+  --accent: #FFD54F;
+  --shadow: 0 4px 14px rgba(0,0,0,0.45);
+}
+body.theme-dark .card,
+body.theme-dark .habit-card,
+body.theme-dark .session-tile,
+body.theme-dark .note-tile,
+body.theme-dark .day-row,
+body.theme-dark .goal-card,
+body.theme-dark .auth-card,
+body.theme-dark .reflection-box,
+body.theme-dark .ach-card,
+body.theme-dark .zoom-dir-card {
+  background: #1E1E1E;
+  color: #F5F5F5;
+}
+body.theme-dark input,
+body.theme-dark textarea,
+body.theme-dark select,
+body.theme-dark .modal input,
+body.theme-dark .modal textarea {
+  background: #2A2A2A;
+  color: #F5F5F5;
+  border-color: #444;
+}
+body.theme-dark .bottom-nav { background: #1A1A1A; }
+body.theme-dark .nav-btn.active { color: #90CAF9; }
+.progress-bar-wrap { width:100%; height:10px; background:#eee; border-radius:99px; overflow:hidden; margin:6px 0; }
+body.theme-dark .progress-bar-wrap { background:#333; }
+.progress-bar-wrap > i { display:block; height:100%; background:var(--primary,#42A5F5); border-radius:99px; }
+.toast-undo { text-decoration:underline; font-weight:800; margin-left:10px; cursor:pointer; color:inherit; background:none; border:none; font:inherit; }
+.mentor-banner { background:linear-gradient(90deg,#E3F2FD,#F3E5F5); padding:10px 14px; border-radius:14px; margin-bottom:12px; font-weight:700; }
+body.theme-dark .mentor-banner { background:#2A2A40; }
+
+
+/* Universal horizontal stacks */
+.note-grid, .habit-grid, .books-grid, .session-grid, #notes-list, #habits-list,
+#today-habits, #books-active, #inquiry-active {
+  display: flex !important;
+  flex-direction: row;
+  flex-wrap: wrap;
+  gap: 12px;
+}
+.note-grid > *, .habit-grid > *, .books-grid > *, .session-grid > *,
+#notes-list > *, #habits-list > * {
+  flex: 1 1 200px;
+  max-width: 100%;
+  min-width: 160px;
+}
+.session-tile { min-height: 120px; height: auto; }
+.fac-perm-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px 14px; text-align: left; margin: 10px 0; }
+.fac-perm-grid label { display: flex; align-items: center; gap: 8px; font-size: 0.9rem; font-weight: 600; }
+.fac-status-online { color: #00B894; font-weight: 800; }
+.fac-status-offline { color: #636E72; font-weight: 700; }
+.blocked-screen { max-width: 420px; margin: 60px auto; padding: 24px; text-align: center; font-family: system-ui,sans-serif; }
+
 /* Wins notification dot */
 .nav-btn { position: relative; }
 .nav-btn .wins-dot {
@@ -2124,6 +2188,7 @@ body.theme-highcontrast .nav-btn.active {
           <button type="button" class="pw-toggle" onclick="togglePassword('login-password', this)" title="Show password">👁</button>
         </div>
         <button class="btn primary" onclick="login()">Let's Go! 🚀</button>
+        <button type="button" class="btn add-btn" style="margin-top:10px;background:#6C5CE7;width:100%" onclick="openFacilitatorLogin()">👁️ I'm a facilitator</button>
         <a href="#" class="forgot-link" onclick="showForgotPassword(); return false;">Forgot password?</a>
         <p class="switch">New here? <a href="#" onclick="showRegister()">Create account</a></p>
         <p class="switch" style="margin-top:8px;font-size:0.8rem"><button type="button" class="privacy-link" onclick="openPrivacyModal()">Privacy &amp; GDPR</button></p>
@@ -2415,7 +2480,7 @@ body.theme-highcontrast .nav-btn.active {
       <section id="tab-remember" class="tab">
         <h2 class="section-title">Stuff to Remember 📝</h2>
         <p class="hint">Date required · disappears after that day · tap to check off</p>
-        <div id="notes-list" class="note-grid"></div>
+        <div id="notes-list" class="note-grid horizontal-stack"></div>
         <button class="btn add-btn" onclick="openNoteModal()">+ Add Note</button>
       </section>
     </main>
@@ -2689,7 +2754,11 @@ let state = {
   unlockedFonts: ['nunito', 'poppins', 'opendyslexic'],
   unlockedThemes: ['sunshine'],
   reflectionSaveCount: 0,
-  unseenWins: false
+  unseenWins: false,
+  facilitatorCode: null,
+  facilitatorPerms: null,
+  accessBlocked: false,
+  lastActive: null
 };
 
 // ---------- Helpers ----------
@@ -3471,6 +3540,18 @@ function save() {
   if (firebaseReady && auth && auth.currentUser) {
     cloudSaveUserData();
   }
+  try {
+    if (typeof touchStudentPresence === 'function') {
+      state.lastActive = new Date().toISOString();
+    }
+    if (state.facilitatorCode && typeof publishFacilitatorShare === 'function') {
+      // debounce-ish: only every few saves via timestamp
+      if (!window._lastFacPub || Date.now() - window._lastFacPub > 15000) {
+        window._lastFacPub = Date.now();
+        publishFacilitatorShare();
+      }
+    }
+  } catch (e) {}
 }
 
 function load() {
@@ -3504,11 +3585,42 @@ window.addEventListener('visibilitychange', () => {
   }
 });
 
+let _toastTimer = null;
+let _undoAction = null;
 function toast(msg) {
   const el = document.getElementById('toast');
+  if (!el) return;
+  _undoAction = null;
+  el.innerHTML = '';
   el.textContent = msg;
   el.classList.remove('hidden');
-  setTimeout(() => el.classList.add('hidden'), 2200);
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => el.classList.add('hidden'), 2200);
+}
+/** Toast with Undo for ~5s. undoFn runs only if user taps Undo. */
+function toastWithUndo(msg, undoFn) {
+  const el = document.getElementById('toast');
+  if (!el) return;
+  _undoAction = typeof undoFn === 'function' ? undoFn : null;
+  el.innerHTML = '';
+  el.appendChild(document.createTextNode(msg + ' '));
+  const btn = document.createElement('button');
+  btn.type = 'button';
+  btn.className = 'toast-undo';
+  btn.textContent = 'Undo';
+  btn.onclick = function(e) {
+    e.stopPropagation();
+    if (_undoAction) {
+      const fn = _undoAction;
+      _undoAction = null;
+      el.classList.add('hidden');
+      fn();
+    }
+  };
+  el.appendChild(btn);
+  el.classList.remove('hidden');
+  if (_toastTimer) clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => { el.classList.add('hidden'); _undoAction = null; }, 5000);
 }
 
 function showConfetti() {
@@ -3765,13 +3877,14 @@ const THEME_OPTIONS = {
   ember: { label: 'Ember', emoji: '🔥', colors: ['#FF5722', '#FF9800', '#2A1A16'] },
   aurora: { label: 'Aurora', emoji: '🌌', colors: ['#5BC0BE', '#9B5DE5', '#1C2541'] },
   coffee: { label: 'Coffee', emoji: '☕', colors: ['#D4A373', '#BC6C25', '#3E2723'] },
-  highcontrast: { label: 'High contrast', emoji: '⬛', colors: ['#000000', '#FFFF00', '#0000EE'] }
+  highcontrast: { label: 'High contrast', emoji: '⬛', colors: ['#000000', '#FFFF00', '#0000EE'] },
+  dark: { label: 'Dark', emoji: '🌑', colors: ['#121212', '#90CAF9', '#FFD54F'] }
 };
 
 /* ---------- Achievements + Zoom (FULL RESTORE) ---------- */
 const FREE_AVATARS = ['🦊'];
 const FREE_FONTS = ['nunito', 'poppins', 'opendyslexic'];
-const FREE_THEMES = ['sunshine'];
+const FREE_THEMES = ['sunshine', 'dark'];
 const ALL_AVATARS = ['🦊','🐼','🦄','🐱','🐶','🦁','🐸','🐰','🐨','🐯','🐵','🐮','🐷','🦋','🐢','🐙','🦖','🐝','🦉','🐧','🐬','🦕','🌟','🚀','🌈','🐲','🎮','🎨','⚡','🏆','🌸','🍀','🎯','📚','🧩','🎈'];
 
 const ACHIEVEMENTS = [
@@ -3835,8 +3948,8 @@ function bestHabitStreak() {
   (state.habits || []).forEach(h => { try { if (typeof calcStreak === 'function') best = Math.max(best, calcStreak(h) || 0); } catch (e) {} });
   return best;
 }
-function countBookReviews() { return (state.books || []).filter(b => b && (b.review || b.status === 'done' || b.status === 'completed')).length; }
-function countInquiryReviews() { return (state.inquiries || []).filter(i => i && (i.review || i.status === 'done' || i.status === 'completed')).length; }
+function countBookReviews() { return (state.books || []).filter(b => b && (b.review || b.status === 'done' || b.status === 'completed' || (typeof bookProgressPct === 'function' && bookProgressPct(b) >= 100) || b.progress >= 100)).length; }
+function countInquiryReviews() { return (state.inquiries || []).filter(i => i && (i.review || i.status === 'done' || i.status === 'completed' || (typeof inquiryProgressPct === 'function' && inquiryProgressPct(i) >= 100) || i.progress >= 100)).length; }
 function countDoneGoals() { return (state.goals || []).filter(g => g && g.done).length; }
 function countReflectionsFromStore() {
   let n = 0;
@@ -4055,7 +4168,10 @@ function openSettingsModal() {
       <button class="btn add-btn" style="margin-top:8px;background:#636E72" onclick="closeModal(); openTimezoneModal();">🌍 Timezone</button>
       <button class="btn add-btn" style="margin-top:8px;background:${notifColor}" onclick="toggleSessionNotifications()">${notifLabel}</button>
       <p style="font-size:0.8rem;color:var(--muted);margin:6px 0 0;line-height:1.4">Reminds you 5 minutes before and at the start of today’s sessions. Keep the planner open (or in a tab) for reliable alerts. Needs browser permission.</p>
-      <button class="btn add-btn" style="margin-top:8px;background:#0984E3" onclick="exportMyData()">⬇️ Export my data</button>
+      <button class="btn add-btn" style="margin-top:8px;background:#0984E3" onclick="exportMyData()">⬇️ Export my data (JSON)</button>
+      <button class="btn add-btn" style="margin-top:8px;background:#6C5CE7" onclick="exportProgressReport()">📄 Share progress report</button>
+      <button class="btn add-btn" style="margin-top:8px;background:#00B894" onclick="closeModal(); openFacilitatorSettings()">👁️ Facilitator access</button>
+      <button class="btn add-btn" style="margin-top:8px;background:#2D3436" onclick="downloadChromeExtension()">🧩 Download Chrome extension</button>
       <button class="btn add-btn" style="margin-top:8px;background:#E17055" onclick="closeModal(); openPrivacyModal();">🔒 Privacy notice</button>
       <button class="btn add-btn" style="margin-top:8px;background:#E74C3C" onclick="deleteMyAccount()">🗑️ Delete my account</button>
       <button class="btn add-btn" style="margin-top:8px;background:#2D3436" onclick="logoutUser()">Log out</button>
@@ -4082,7 +4198,9 @@ function exportMyData() {
     adhdMode: state.adhdMode,
     dyslexiaMode: state.dyslexiaMode,
     notificationsEnabled: !!state.notificationsEnabled,
-    theme: state.theme || 'sunshine'
+    theme: state.theme || 'sunshine',
+    unlockedAchievements: state.unlockedAchievements || [],
+    reflectionSaveCount: state.reflectionSaveCount || 0
   };
   const blob = new Blob([JSON.stringify(payload, null, 2)], { type: 'application/json' });
   const a = document.createElement('a');
@@ -4091,6 +4209,519 @@ function exportMyData() {
   a.click();
   toast('Data downloaded');
 }
+
+function exportProgressReport() {
+  const user = state.users[state.currentUser] || {};
+  const name = user.name || state.currentUser || 'Student';
+  const stars = user.points || 0;
+  const doneTasks = (state.tasks || []).filter(t => t.completed).length;
+  const totalTasks = (state.tasks || []).length;
+  const goals = (state.goals || []).map(g => {
+    const mark = g.done ? '✓' : '○';
+    return `<li>${mark} ${String(g.text||'').replace(/</g,'&lt;')}${g.why ? ' <em>(why: '+String(g.why).replace(/</g,'&lt;')+')</em>' : ''}</li>`;
+  }).join('') || '<li>No goals yet</li>';
+  const habits = (state.habits || []).map(h => {
+    let streak = 0;
+    try { streak = calcStreak(h) || 0; } catch(e) {}
+    return `<li>${String(h.name||h.title||'Habit').replace(/</g,'&lt;')} — streak ${streak}</li>`;
+  }).join('') || '<li>No habits yet</li>';
+  const books = (state.books || []).map(b => {
+    const pct = typeof bookProgressPct === 'function' ? bookProgressPct(b) : 0;
+    return `<li>${String(b.title||'').replace(/</g,'&lt;')} — ${pct}%</li>`;
+  }).join('') || '<li>No books</li>';
+  const wins = (state.unlockedAchievements || []).length;
+  const html = `<!DOCTYPE html><html><head><meta charset="utf-8"><title>SBL Progress — ${name}</title>
+  <style>body{font-family:system-ui,sans-serif;max-width:640px;margin:24px auto;padding:0 16px;color:#222}
+  h1{font-size:1.4rem} h2{font-size:1.1rem;margin-top:1.4em} .pill{display:inline-block;background:#E8F5E9;padding:6px 12px;border-radius:999px;margin:4px 6px 4px 0;font-weight:700}
+  </style></head><body>
+  <h1>SBL Plan progress</h1>
+  <p><strong>${name}</strong> · ${new Date().toLocaleDateString()}</p>
+  <div><span class="pill">⭐ ${stars} stars</span><span class="pill">✅ ${doneTasks}/${totalTasks} action steps</span><span class="pill">🏆 ${wins} wins</span></div>
+  <h2>Goals</h2><ul>${goals}</ul>
+  <h2>Habits</h2><ul>${habits}</ul>
+  <h2>Books</h2><ul>${books}</ul>
+  <p style="color:#666;font-size:0.85rem;margin-top:2em">Shared from SBL Plan · mentor-friendly summary</p>
+  </body></html>`;
+  const blob = new Blob([html], { type: 'text/html' });
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'sbl-progress-report.html';
+  a.click();
+  toast('Progress report downloaded — open & share/print');
+}
+
+function randomMentorCode() {
+  const chars = 'ABCDEFGHJKLMNPQRSTUVWXYZ23456789';
+  let s = '';
+  for (let i = 0; i < 8; i++) s += chars[Math.floor(Math.random() * chars.length)];
+  return s;
+}
+
+function buildMentorPayload() {
+  const user = state.users[state.currentUser] || {};
+  return {
+    code: null,
+    studentName: user.name || state.currentUser || 'Student',
+    stars: user.points || 0,
+    avatar: user.avatar || '🦊',
+    goals: (state.goals || []).map(g => ({ text: g.text, why: g.why || '', how: g.how || '', done: !!g.done, term: g.term || 'short' })),
+    habits: (state.habits || []).map(h => {
+      let streak = 0;
+      try { streak = calcStreak(h) || 0; } catch(e) {}
+      return { name: h.name || h.title || 'Habit', streak };
+    }),
+    books: (state.books || []).map(b => ({ title: b.title, progress: bookProgressPct(b), author: b.author || '' })),
+    inquiries: (state.inquiries || []).map(i => ({ topic: i.topic, progress: inquiryProgressPct(i) })),
+    winsCount: (state.unlockedAchievements || []).length,
+    celebrationsZoom: 'https://zoom.us/j/9656074147',
+    encouragement: '',
+    updatedAt: new Date().toISOString()
+  };
+}
+
+async function createMentorShare() {
+  const code = randomMentorCode();
+  const payload = buildMentorPayload();
+  payload.code = code;
+  try {
+    localStorage.setItem('sbl_mentor_' + code, JSON.stringify(payload));
+  } catch (e) {}
+  try {
+    if (typeof firebaseReady !== 'undefined' && firebaseReady && db) {
+      await db.collection('mentorShares').doc(code).set(payload);
+    }
+  } catch (e) {
+    console.warn('mentor cloud save', e);
+  }
+  const url = location.origin + location.pathname + '?mentor=' + code;
+  closeModal();
+  openModal(`
+    <h3>Mentor link 👁️</h3>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:10px">Mentors can <strong>view</strong> goals, habits, books &amp; stars. They can only leave an <strong>encouragement note</strong> — nothing else.</p>
+    <label>Share this link</label>
+    <input type="text" id="mentor-link-out" value="${url}" readonly onclick="this.select()">
+    <button class="btn primary" onclick="navigator.clipboard.writeText(document.getElementById('mentor-link-out').value); toast('Link copied!')">Copy link</button>
+    <p style="font-size:0.8rem;color:var(--muted);margin-top:10px">Code: <strong>${code}</strong></p>
+  `);
+}
+
+async function loadMentorShare(code) {
+  let data = null;
+  try {
+    const raw = localStorage.getItem('sbl_mentor_' + code);
+    if (raw) data = JSON.parse(raw);
+  } catch (e) {}
+  try {
+    if (!data && typeof firebaseReady !== 'undefined' && firebaseReady && db) {
+      const snap = await db.collection('mentorShares').doc(code).get();
+      if (snap.exists) data = snap.data();
+    }
+  } catch (e) { console.warn(e); }
+  return data;
+}
+
+async function saveMentorEncouragement(code, text) {
+  try {
+    const raw = localStorage.getItem('sbl_mentor_' + code);
+    if (raw) {
+      const d = JSON.parse(raw);
+      d.encouragement = text;
+      d.encouragementAt = new Date().toISOString();
+      localStorage.setItem('sbl_mentor_' + code, JSON.stringify(d));
+    }
+  } catch (e) {}
+  try {
+    if (typeof firebaseReady !== 'undefined' && firebaseReady && db) {
+      await db.collection('mentorShares').doc(code).set({ encouragement: text, encouragementAt: new Date().toISOString() }, { merge: true });
+    }
+  } catch (e) { console.warn(e); }
+  toast('Encouragement saved for student');
+}
+
+function renderMentorView(data, code) {
+  document.body.innerHTML = '';
+  const app = document.createElement('div');
+  app.style.cssText = 'max-width:720px;margin:0 auto;padding:20px;font-family:system-ui,sans-serif';
+  const goals = (data.goals || []).map(g => `<li style="margin:6px 0">${g.done?'✓':'○'} <strong>${String(g.text||'').replace(/</g,'&lt;')}</strong>${g.why ? '<br><span style="color:#666">Why: '+String(g.why).replace(/</g,'&lt;')+'</span>' : ''}</li>`).join('') || '<li>None yet</li>';
+  const habits = (data.habits || []).map(h => `<li>${String(h.name||'').replace(/</g,'&lt;')} — streak ${h.streak||0}</li>`).join('') || '<li>None</li>';
+  const books = (data.books || []).map(b => `<li>${String(b.title||'').replace(/</g,'&lt;')} — ${b.progress||0}%</li>`).join('') || '<li>None</li>';
+  app.innerHTML = `
+    <div class="mentor-banner" style="background:#E3F2FD;padding:12px 14px;border-radius:14px;font-weight:700;margin-bottom:14px">Mentor view · read-only (encouragement only)</div>
+    <h1 style="margin:0 0 6px">${data.avatar||'🦊'} ${String(data.studentName||'Student').replace(/</g,'&lt;')}</h1>
+    <p style="color:#666">⭐ ${data.stars||0} stars · 🏆 ${data.winsCount||0} wins · updated ${data.updatedAt ? new Date(data.updatedAt).toLocaleString() : ''}</p>
+    <h2>Goals</h2><ul>${goals}</ul>
+    <h2>Habits</h2><ul>${habits}</ul>
+    <h2>Books</h2><ul>${books}</ul>
+    <p><strong>Celebrations Zoom (Dr. Martina):</strong> <a href="${data.celebrationsZoom||'https://zoom.us/j/9656074147'}" target="_blank" rel="noopener">Join</a></p>
+    <h2>Encouragement note</h2>
+    <p style="color:#666;font-size:0.9rem">Only field mentors can edit — student can see this when they open the same link.</p>
+    <textarea id="mentor-note" style="width:100%;min-height:90px;padding:10px;border-radius:12px;border:2px solid #ddd;font:inherit">${String(data.encouragement||'').replace(/</g,'&lt;')}</textarea>
+    <button type="button" id="mentor-save-btn" style="margin-top:10px;padding:12px 18px;border:none;border-radius:12px;background:#00B894;color:#fff;font-weight:800;cursor:pointer">Save encouragement</button>
+  `;
+  document.body.appendChild(app);
+  document.getElementById('mentor-save-btn').onclick = () => {
+    const t = document.getElementById('mentor-note').value.trim();
+    saveMentorEncouragement(code, t);
+  };
+}
+
+async function tryEnterMentorMode() {
+  const params = new URLSearchParams(location.search);
+  const code = params.get('mentor');
+  if (!code) return false;
+  const data = await loadMentorShare(code);
+  if (!data) {
+    document.body.innerHTML = '<div style="max-width:480px;margin:40px auto;padding:20px;font-family:system-ui"><h2>Mentor link not found</h2><p>Ask the student to create a new mentor link from Settings.</p></div>';
+    return true;
+  }
+  renderMentorView(data, code);
+  return true;
+}
+
+/* ---------- Facilitator access (student-controlled permissions) ---------- */
+const DEFAULT_FAC_PERMS = {
+  viewGoals: true,
+  viewHabits: true,
+  viewTasks: true,
+  viewBooks: true,
+  viewSessions: true,
+  viewReflections: false,
+  viewWins: true,
+  viewNotes: true,
+  editGoals: false,
+  editHabits: false,
+  editTasks: false,
+  editBooks: false,
+  editNotes: false,
+  leaveEncouragement: true,
+  canBlock: true
+};
+
+function ensureFacPerms() {
+  if (!state.facilitatorPerms || typeof state.facilitatorPerms !== 'object') {
+    state.facilitatorPerms = Object.assign({}, DEFAULT_FAC_PERMS);
+  }
+  Object.keys(DEFAULT_FAC_PERMS).forEach(k => {
+    if (typeof state.facilitatorPerms[k] !== 'boolean') state.facilitatorPerms[k] = DEFAULT_FAC_PERMS[k];
+  });
+  return state.facilitatorPerms;
+}
+
+function openFacilitatorSettings() {
+  ensureFacPerms();
+  const p = state.facilitatorPerms;
+  const code = state.facilitatorCode || '(none yet — generate below)';
+  const blocked = !!state.accessBlocked;
+  const checks = [
+    ['viewGoals', 'View goals'], ['editGoals', 'Edit goals'],
+    ['viewHabits', 'View habits'], ['editHabits', 'Edit habits'],
+    ['viewTasks', 'View action steps'], ['editTasks', 'Edit action steps'],
+    ['viewBooks', 'View books / inquiries'], ['editBooks', 'Edit books / inquiries'],
+    ['viewSessions', 'View sessions'], ['viewWins', 'View wins'],
+    ['viewNotes', 'View remember notes'], ['editNotes', 'Edit notes'],
+    ['viewReflections', 'View reflections'], ['leaveEncouragement', 'Leave encouragement'],
+    ['canBlock', 'Can block account access']
+  ].map(([key, label]) =>
+    `<label><input type="checkbox" data-fac-perm="${key}" ${p[key] ? 'checked' : ''}> ${label}</label>`
+  ).join('');
+  openModal(`
+    <h3>Facilitator access 👁️</h3>
+    <p style="color:var(--muted);font-size:0.9rem;margin-bottom:8px">Choose what a facilitator can see or change. They log in with <strong>I\'m a facilitator</strong> + your code.</p>
+    <p style="font-weight:700">Your code: <span id="fac-code-display">${code}</span>
+      ${blocked ? ' · <span style="color:#E74C3C">ACCESS BLOCKED</span>' : ''}</p>
+    <div class="fac-perm-grid">${checks}</div>
+    <button class="btn primary" onclick="saveFacilitatorPerms()">Save permissions</button>
+    <button class="btn add-btn" style="margin-top:8px;background:#00B894" onclick="generateFacilitatorCode()">Generate / refresh code</button>
+    <button class="btn add-btn" style="margin-top:8px;background:#6C5CE7" onclick="createMentorShare()">Also create share link</button>
+    ${blocked ? '<button class="btn add-btn" style="margin-top:8px;background:#00B894" onclick="studentUnblockAccess()">Unblock my account</button>' : ''}
+    <p style="font-size:0.8rem;color:var(--muted);margin-top:10px">Facilitators can see if you are active and, if allowed, temporarily block planner access.</p>
+  `);
+}
+
+function saveFacilitatorPerms() {
+  ensureFacPerms();
+  document.querySelectorAll('[data-fac-perm]').forEach(el => {
+    state.facilitatorPerms[el.getAttribute('data-fac-perm')] = !!el.checked;
+  });
+  save();
+  publishFacilitatorShare();
+  toast('Facilitator permissions saved');
+  closeModal();
+}
+
+function generateFacilitatorCode() {
+  state.facilitatorCode = (typeof randomMentorCode === 'function') ? randomMentorCode() : String(Math.random()).slice(2, 10);
+  save();
+  publishFacilitatorShare();
+  const el = document.getElementById('fac-code-display');
+  if (el) el.textContent = state.facilitatorCode;
+  toast('Code: ' + state.facilitatorCode);
+}
+
+async function publishFacilitatorShare() {
+  ensureFacPerms();
+  if (!state.facilitatorCode) return;
+  const user = state.users[state.currentUser] || {};
+  const payload = {
+    code: state.facilitatorCode,
+    studentEmail: state.currentUser,
+    studentName: user.name || user.displayName || state.currentUser || 'Student',
+    avatar: user.avatar || '🦊',
+    stars: user.points || 0,
+    perms: Object.assign({}, state.facilitatorPerms),
+    accessBlocked: !!state.accessBlocked,
+    lastActive: state.lastActive || new Date().toISOString(),
+    goals: (state.goals || []).map(g => ({ id: g.id, text: g.text, why: g.why || '', how: g.how || '', done: !!g.done, term: g.term || 'short' })),
+    habits: (state.habits || []).map(h => {
+      let streak = 0;
+      try { streak = calcStreak(h) || 0; } catch (e) {}
+      return { id: h.id, name: h.name || h.title || 'Habit', streak, history: h.history || {} };
+    }),
+    tasks: (state.tasks || []).map(t => ({ id: t.id, title: t.title || t.text || '', completed: !!t.completed, date: t.date || null })),
+    books: (state.books || []).map(b => ({ id: b.id, title: b.title, progress: typeof bookProgressPct === 'function' ? bookProgressPct(b) : 0, pagesRead: b.pagesRead || 0, pagesTotal: b.pagesTotal || 0 })),
+    inquiries: (state.inquiries || []).map(i => ({ id: i.id, topic: i.topic, progress: typeof inquiryProgressPct === 'function' ? inquiryProgressPct(i) : 0 })),
+    notes: (state.notes || []).slice(0, 40).map(n => ({ id: n.id, text: n.text || '', reminder: n.reminder || null })),
+    classes: (state.classes || []).map(c => ({ id: c.id, name: c.name || c.title || '', day: c.day })),
+    winsCount: (state.unlockedAchievements || []).length,
+    encouragement: (state.facilitatorEncouragement || ''),
+    celebrationsZoom: 'https://zoom.us/j/9656074147',
+    updatedAt: new Date().toISOString()
+  };
+  try { localStorage.setItem('sbl_fac_' + state.facilitatorCode, JSON.stringify(payload)); } catch (e) {}
+  try {
+    if (typeof firebaseReady !== 'undefined' && firebaseReady && db) {
+      await db.collection('facilitatorShares').doc(state.facilitatorCode).set(payload);
+    }
+  } catch (e) { console.warn('fac publish', e); }
+}
+
+function touchStudentPresence() {
+  state.lastActive = new Date().toISOString();
+  try { save(); } catch (e) {}
+  if (state.facilitatorCode) {
+    try {
+      const raw = localStorage.getItem('sbl_fac_' + state.facilitatorCode);
+      if (raw) {
+        const d = JSON.parse(raw);
+        d.lastActive = state.lastActive;
+        d.accessBlocked = !!state.accessBlocked;
+        localStorage.setItem('sbl_fac_' + state.facilitatorCode, JSON.stringify(d));
+      }
+    } catch (e) {}
+  }
+}
+
+function studentUnblockAccess() {
+  state.accessBlocked = false;
+  save();
+  publishFacilitatorShare();
+  toast('Account unblocked');
+  closeModal();
+  location.reload();
+}
+
+function openFacilitatorLogin() {
+  openModal(`
+    <h3>Facilitator login 👁️</h3>
+    <p style="color:var(--muted);font-size:0.9rem">Enter the code the student shared with you.</p>
+    <label>Student code</label>
+    <input type="text" id="fac-login-code" placeholder="e.g. AB12CD34" autocomplete="off" style="text-transform:uppercase">
+    <button class="btn primary" onclick="facilitatorEnter()">Open student view</button>
+  `);
+}
+
+async function loadFacilitatorPayload(code) {
+  code = String(code || '').trim().toUpperCase();
+  let data = null;
+  try {
+    const raw = localStorage.getItem('sbl_fac_' + code) || localStorage.getItem('sbl_mentor_' + code);
+    if (raw) data = JSON.parse(raw);
+  } catch (e) {}
+  try {
+    if (!data && typeof firebaseReady !== 'undefined' && firebaseReady && db) {
+      let snap = await db.collection('facilitatorShares').doc(code).get();
+      if (!snap.exists) snap = await db.collection('mentorShares').doc(code).get();
+      if (snap.exists) data = snap.data();
+    }
+  } catch (e) { console.warn(e); }
+  return data;
+}
+
+async function facilitatorEnter() {
+  const code = (document.getElementById('fac-login-code') || {}).value || '';
+  const data = await loadFacilitatorPayload(code);
+  if (!data) { toast('Code not found — ask student to generate one'); return; }
+  sessionStorage.setItem('sbl_fac_session', JSON.stringify({ code: String(code).trim().toUpperCase(), data }));
+  closeModal();
+  renderFacilitatorDashboard(String(code).trim().toUpperCase(), data);
+}
+
+function isStudentOnline(lastActive) {
+  if (!lastActive) return false;
+  const t = new Date(lastActive).getTime();
+  if (isNaN(t)) return false;
+  return (Date.now() - t) < 3 * 60 * 1000;
+}
+
+function renderFacilitatorDashboard(code, data) {
+  const perms = Object.assign({}, DEFAULT_FAC_PERMS, data.perms || {});
+  document.body.innerHTML = '';
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'max-width:800px;margin:0 auto;padding:20px;font-family:system-ui,sans-serif';
+  const online = isStudentOnline(data.lastActive);
+  let sections = '';
+  if (perms.viewGoals) {
+    const items = (data.goals || []).map(g => `<li>${g.done?'✓':'○'} <strong>${escFac(g.text)}</strong>${g.why ? ' — <em>'+escFac(g.why)+'</em>' : ''}${perms.editGoals ? ` <button data-act="goal-toggle" data-id="${g.id}">Toggle done</button>` : ''}</li>`).join('') || '<li>None</li>';
+    sections += `<h2>Goals</h2><ul>${items}</ul>`;
+  }
+  if (perms.viewHabits) {
+    const items = (data.habits || []).map(h => `<li>${escFac(h.name)} — streak ${h.streak||0}</li>`).join('') || '<li>None</li>';
+    sections += `<h2>Habits</h2><ul>${items}</ul>`;
+  }
+  if (perms.viewTasks) {
+    const items = (data.tasks || []).map(t => `<li>${t.completed?'✓':'○'} ${escFac(t.title)}</li>`).join('') || '<li>None</li>';
+    sections += `<h2>Action steps</h2><ul>${items}</ul>`;
+  }
+  if (perms.viewBooks) {
+    const items = (data.books || []).map(b => `<li>${escFac(b.title)} — ${b.progress||0}%</li>`).join('') || '<li>None</li>';
+    const inqs = (data.inquiries || []).map(i => `<li>${escFac(i.topic)} — ${i.progress||0}%</li>`).join('');
+    sections += `<h2>Books & inquiries</h2><ul>${items}${inqs}</ul>`;
+  }
+  if (perms.viewNotes) {
+    const items = (data.notes || []).slice(0, 20).map(n => `<li>${escFac(n.text)}</li>`).join('') || '<li>None</li>';
+    sections += `<h2>Remember</h2><ul>${items}</ul>`;
+  }
+  if (perms.viewWins) {
+    sections += `<h2>Wins</h2><p>${data.winsCount||0} unlocked · ⭐ ${data.stars||0} stars</p>`;
+  }
+  if (perms.viewSessions) {
+    const items = (data.classes || []).map(c => `<li>${escFac(c.name)}</li>`).join('') || '<li>None listed</li>';
+    sections += `<h2>Sessions</h2><ul>${items}</ul>`;
+  }
+  const blockBtn = perms.canBlock
+    ? `<button type="button" id="fac-block-btn" style="margin:8px 8px 8px 0;padding:10px 14px;border:none;border-radius:12px;background:${data.accessBlocked?'#00B894':'#E74C3C'};color:#fff;font-weight:800;cursor:pointer">${data.accessBlocked ? 'Unblock student access' : 'Block student access'}</button>`
+    : '';
+  const encourage = perms.leaveEncouragement
+    ? `<h2>Encouragement</h2>
+       <textarea id="fac-encourage" style="width:100%;min-height:80px;padding:10px;border-radius:12px;border:2px solid #ddd;font:inherit">${escFac(data.encouragement||'')}</textarea>
+       <button type="button" id="fac-encourage-save" style="margin-top:8px;padding:10px 14px;border:none;border-radius:12px;background:#6C5CE7;color:#fff;font-weight:800;cursor:pointer">Save note</button>`
+    : '';
+  wrap.innerHTML = `
+    <div style="background:#F3E5F5;padding:12px 14px;border-radius:14px;font-weight:700;margin-bottom:12px">Facilitator view · code ${escFac(code)}</div>
+    <h1 style="margin:0">${escFac(data.avatar||'🦊')} ${escFac(data.studentName||'Student')}</h1>
+    <p>Status: <span class="${online?'fac-status-online':'fac-status-offline'}">${online ? '● Active now' : '○ Not active'}</span>
+      ${data.accessBlocked ? ' · <strong style="color:#E74C3C">BLOCKED</strong>' : ''}</p>
+    <p style="color:#666;font-size:0.9rem">Last active: ${data.lastActive ? new Date(data.lastActive).toLocaleString() : 'unknown'}</p>
+    ${blockBtn}
+    <button type="button" onclick="location.href=location.pathname" style="padding:10px 14px;border:none;border-radius:12px;background:#636E72;color:#fff;font-weight:700;cursor:pointer">Exit</button>
+    ${sections}
+    ${encourage}
+    <p style="margin-top:24px"><a href="${data.celebrationsZoom||'https://zoom.us/j/9656074147'}" target="_blank" rel="noopener">Celebrations Zoom (Dr. Martina)</a></p>
+  `;
+  document.body.appendChild(wrap);
+  const blockEl = document.getElementById('fac-block-btn');
+  if (blockEl) {
+    blockEl.onclick = async () => {
+      data.accessBlocked = !data.accessBlocked;
+      await writeFacilitatorField(code, { accessBlocked: data.accessBlocked });
+      toast(data.accessBlocked ? 'Student access blocked' : 'Student access unblocked');
+      renderFacilitatorDashboard(code, data);
+    };
+  }
+  const saveEnc = document.getElementById('fac-encourage-save');
+  if (saveEnc) {
+    saveEnc.onclick = async () => {
+      const t = (document.getElementById('fac-encourage') || {}).value || '';
+      data.encouragement = t;
+      await writeFacilitatorField(code, { encouragement: t, encouragementAt: new Date().toISOString() });
+      toast('Encouragement saved');
+    };
+  }
+}
+
+function escFac(s) {
+  return String(s || '').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;');
+}
+
+async function writeFacilitatorField(code, fields) {
+  try {
+    const raw = localStorage.getItem('sbl_fac_' + code);
+    if (raw) {
+      const d = JSON.parse(raw);
+      Object.assign(d, fields);
+      localStorage.setItem('sbl_fac_' + code, JSON.stringify(d));
+    }
+  } catch (e) {}
+  try {
+    if (typeof firebaseReady !== 'undefined' && firebaseReady && db) {
+      await db.collection('facilitatorShares').doc(code).set(fields, { merge: true });
+    }
+  } catch (e) { console.warn(e); }
+}
+
+function checkAccessBlocked() {
+  if (state.accessBlocked) {
+    document.body.innerHTML = `<div class="blocked-screen">
+      <h1>Access paused</h1>
+      <p>A facilitator temporarily blocked this planner. Ask them to unblock, or use Unblock if you manage your own code.</p>
+      <button onclick="studentUnblockAccess()" style="padding:12px 18px;border:none;border-radius:12px;background:#00B894;color:#fff;font-weight:800;cursor:pointer">Unblock my account</button>
+    </div>`;
+    return true;
+  }
+  // also re-check published share
+  return false;
+}
+
+/* ---------- Chrome extension download ---------- */
+async function downloadChromeExtension() {
+  toast('Preparing extension…');
+  try {
+    const JSZip = (await import('https://cdn.jsdelivr.net/npm/jszip@3.10.1/+esm')).default;
+    const zip = new JSZip();
+    const manifest = {
+      manifest_version: 3,
+      name: 'SBL Plan',
+      version: '1.0.0',
+      description: 'School Beyond Limitations student planner',
+      action: { default_title: 'Open SBL Plan', default_popup: 'popup.html' },
+      chrome_url_overrides: { newtab: 'index.html' },
+      permissions: ['storage'],
+      host_permissions: [
+        'https://*.firebaseapp.com/*',
+        'https://*.googleapis.com/*',
+        'https://*.firebaseio.com/*',
+        'https://www.gstatic.com/*'
+      ]
+    };
+    const popup = `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
+      body{font-family:system-ui,sans-serif;margin:12px;min-width:220px}
+      a{display:block;padding:10px;background:#6C5CE7;color:#fff;text-align:center;border-radius:10px;text-decoration:none;font-weight:700}
+      </style></head><body>
+      <p><strong>SBL Plan</strong></p>
+      <a href="index.html" target="_blank">Open planner</a>
+      <p style="font-size:12px;color:#666;margin-top:10px">Or set as your New Tab (already in this extension).</p>
+      </body></html>`;
+    // Use current page HTML
+    let html = document.documentElement.outerHTML;
+    // Ensure relative paths still work offline where possible
+    zip.file('manifest.json', JSON.stringify(manifest, null, 2));
+    zip.file('popup.html', popup);
+    zip.file('index.html', html);
+    zip.file('README.txt', 'SBL Plan Chrome extension\\n\\n1. Unzip this folder\\n2. Chrome → chrome://extensions\\n3. Enable Developer mode\\n4. Load unpacked → select this folder\\n');
+    const blob = await zip.generateAsync({ type: 'blob' });
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(blob);
+    a.download = 'sbl-plan-chrome-extension.zip';
+    a.click();
+    toast('Extension zip downloaded — Load unpacked in chrome://extensions');
+  } catch (e) {
+    console.warn(e);
+    toast('Could not build zip — check internet (needs JSZip CDN)');
+  }
+}
+
+
+
 
 async function deleteMyAccount() {
   if (!confirm('Delete your account and all planner data? This cannot be undone.')) return;
@@ -4165,6 +4796,10 @@ async function cloudSaveUserData() {
     reflectionSaveCount: state.reflectionSaveCount || 0,
     reflectionLog: state.reflectionLog || [],
     unseenWins: !!state.unseenWins,
+    facilitatorCode: state.facilitatorCode || null,
+    facilitatorPerms: state.facilitatorPerms || null,
+    accessBlocked: !!state.accessBlocked,
+    lastActive: state.lastActive || null,
     updatedAt: new Date().toISOString()
   };
   try {
@@ -4212,6 +4847,10 @@ async function cloudLoadUserData() {
     if (typeof data.reflectionSaveCount === 'number') state.reflectionSaveCount = data.reflectionSaveCount;
     if (data.reflectionLog) state.reflectionLog = data.reflectionLog;
     if (typeof data.unseenWins === 'boolean') state.unseenWins = data.unseenWins;
+    if (data.facilitatorCode) state.facilitatorCode = data.facilitatorCode;
+    if (data.facilitatorPerms) state.facilitatorPerms = data.facilitatorPerms;
+    if (typeof data.accessBlocked === 'boolean') state.accessBlocked = data.accessBlocked;
+    if (data.lastActive) state.lastActive = data.lastActive;
     if (typeof ensureUnlockDefaults === 'function') ensureUnlockDefaults();
     if (typeof checkAchievements === 'function') checkAchievements(true);
     if (typeof updateWinsDot === 'function') updateWinsDot();
@@ -4667,29 +5306,106 @@ function openPastInquiryReviews() {
   `);
 }
 
+function bookProgressPct(b) {
+  if (!b) return 0;
+  if (b.status === 'done' || b.review) return 100;
+  const total = Number(b.pagesTotal) || 0;
+  const read = Number(b.pagesRead) || 0;
+  if (total > 0) return Math.min(100, Math.round((read / total) * 100));
+  if (typeof b.progress === 'number') return Math.min(100, Math.max(0, Math.round(b.progress)));
+  return 0;
+}
 function bookTileHTML(b) {
-  return `<div class="habit-card book-card" onclick="markBookDone('${b.id}')" style="border-top:4px solid #42A5F5">
+  const pct = bookProgressPct(b);
+  return `<div class="habit-card book-card" style="border-top:4px solid #42A5F5">
     <div class="habit-emoji bc-emoji">📖</div>
     <div class="habit-name bc-name">${b.title.replace(/</g,'&lt;')}</div>
-    <div class="habit-streak bc-meta">Tap when finished ✓</div>
+    <div class="habit-streak bc-meta">${pct}% done${b.pagesTotal ? ' · ' + (b.pagesRead||0) + '/' + b.pagesTotal + ' pages' : ''}</div>
+    <div class="progress-bar-wrap"><i style="width:${pct}%"></i></div>
     <div class="bc-actions" onclick="event.stopPropagation()">
+      <button class="small-btn" onclick="openBookProgress('${b.id}')">Progress</button>
       ${b.link ? `<a class="small-btn" style="background:#E3F2FD;color:#1565C0;text-decoration:none" href="${b.link}" target="_blank" rel="noopener">Link</a>` : ''}
+      <button class="small-btn" onclick="markBookDone('${b.id}')">Done ✓</button>
       <button class="small-btn danger" onclick="deleteBook('${b.id}')">Delete</button>
     </div>
   </div>`;
 }
 
+function inquiryProgressPct(i) {
+  if (!i) return 0;
+  if (i.status === 'done' || i.review) return 100;
+  if (typeof i.progress === 'number') return Math.min(100, Math.max(0, Math.round(i.progress)));
+  return 0;
+}
 function inquiryTileHTML(i) {
-  return `<div class="habit-card inquiry-card" onclick="markInquiryDone('${i.id}')" style="border-top:4px solid #AB47BC">
+  const pct = inquiryProgressPct(i);
+  return `<div class="habit-card inquiry-card" style="border-top:4px solid #AB47BC">
     <div class="habit-emoji bc-emoji">🔍</div>
     <div class="habit-name bc-name">${i.topic.replace(/</g,'&lt;')}</div>
-    <div class="habit-streak bc-meta">Until Fri ${formatDMY(i.until)}</div>
-    <div class="habit-streak bc-meta">Tap when finished ✓</div>
+    <div class="habit-streak bc-meta">Until Fri ${formatDMY(i.until)} · ${pct}%</div>
+    <div class="progress-bar-wrap"><i style="width:${pct}%;background:#AB47BC"></i></div>
     <div class="bc-actions" onclick="event.stopPropagation()">
+      <button class="small-btn" onclick="openInquiryProgress('${i.id}')">Progress</button>
       ${i.link ? `<a class="small-btn" style="background:#F3E5F5;color:#6A1B9A;text-decoration:none" href="${i.link}" target="_blank" rel="noopener">Link</a>` : ''}
+      <button class="small-btn" onclick="markInquiryDone('${i.id}')">Done ✓</button>
       <button class="small-btn danger" onclick="deleteInquiry('${i.id}')">Delete</button>
     </div>
   </div>`;
+}
+
+
+function openBookProgress(id) {
+  const b = (state.books || []).find(x => x.id === id);
+  if (!b) return;
+  openModal(`
+    <h3>📖 Progress · ${(b.title || '').replace(/</g,'&lt;')}</h3>
+    <label>Pages read</label>
+    <input type="number" id="book-pages-read" min="0" value="${Number(b.pagesRead)||0}">
+    <label>Total pages (optional)</label>
+    <input type="number" id="book-pages-total" min="0" value="${Number(b.pagesTotal)||0}">
+    <label>Or percent done (0–100)</label>
+    <input type="number" id="book-progress-pct" min="0" max="100" value="${bookProgressPct(b)}">
+    <button class="btn primary" onclick="saveBookProgress('${id}')">Save progress</button>
+  `);
+}
+function saveBookProgress(id) {
+  const b = (state.books || []).find(x => x.id === id);
+  if (!b) return;
+  const read = Math.max(0, parseInt((document.getElementById('book-pages-read') || {}).value, 10) || 0);
+  const total = Math.max(0, parseInt((document.getElementById('book-pages-total') || {}).value, 10) || 0);
+  let pct = Math.min(100, Math.max(0, parseInt((document.getElementById('book-progress-pct') || {}).value, 10) || 0));
+  b.pagesRead = read;
+  b.pagesTotal = total;
+  if (total > 0) pct = Math.min(100, Math.round((read / total) * 100));
+  b.progress = pct;
+  if (pct >= 100) { b.status = 'done'; }
+  save();
+  closeModal();
+  renderBooksTab();
+  if (typeof checkAchievements === 'function') checkAchievements();
+  toast('Progress saved · ' + pct + '%');
+}
+function openInquiryProgress(id) {
+  const i = (state.inquiries || []).find(x => x.id === id);
+  if (!i) return;
+  openModal(`
+    <h3>🔍 Progress · ${(i.topic || '').replace(/</g,'&lt;')}</h3>
+    <label>How far along? (0–100%)</label>
+    <input type="number" id="inq-progress-pct" min="0" max="100" value="${inquiryProgressPct(i)}">
+    <button class="btn primary" onclick="saveInquiryProgress('${id}')">Save progress</button>
+  `);
+}
+function saveInquiryProgress(id) {
+  const i = (state.inquiries || []).find(x => x.id === id);
+  if (!i) return;
+  const pct = Math.min(100, Math.max(0, parseInt((document.getElementById('inq-progress-pct') || {}).value, 10) || 0));
+  i.progress = pct;
+  if (pct >= 100) i.status = 'done';
+  save();
+  closeModal();
+  renderInquiryTab();
+  if (typeof checkAchievements === 'function') checkAchievements();
+  toast('Progress saved · ' + pct + '%');
 }
 
 function escTxt(s) {
@@ -4751,6 +5467,9 @@ function saveReadingBook() {
     until: nextFridayISO(new Date()),
     status: 'active',
     review: null,
+    pagesRead: 0,
+    pagesTotal: 0,
+    progress: 0,
     created: todayStr()
   });
   save();
@@ -4785,6 +5504,7 @@ function saveTopicInquiry() {
     until: nextFridayISO(new Date()),
     status: 'active',
     review: null,
+    progress: 0,
     created: todayStr()
   });
   save();
@@ -5056,16 +5776,29 @@ function toggleTask(id) {
     if (!confirm('Uncheck this action step?')) return;
     task.completed = false;
     addPoints(-5);
+    save();
+    renderToday();
+    renderWeek();
     toast('Action step unchecked');
   } else {
     task.completed = true;
     addPoints(5);
     showConfetti();
-    toast('+5 stars! Action done ⭐');
+    save();
+    renderToday();
+    renderWeek();
+    toastWithUndo('+5 stars! Action done ⭐', () => {
+      const t = state.tasks.find(x => x.id === id);
+      if (t && t.completed) {
+        t.completed = false;
+        addPoints(-5);
+        save();
+        renderToday();
+        renderWeek();
+        toast('Undone');
+      }
+    });
   }
-  save();
-  renderToday();
-  renderWeek();
 }
 
 function toggleStep(taskId, stepIndex) {
@@ -5191,16 +5924,29 @@ function toggleHabit(id) {
     if (!confirm('Uncheck this habit for today?')) return;
     delete habit.history[t];
     addPoints(-3);
+    save();
+    renderTodayHabits();
+    renderHabits();
     toast('Habit unchecked');
   } else {
     habit.history[t] = true;
     addPoints(3);
     showConfetti();
-    toast('+3 stars for habit! 🔥');
+    save();
+    renderTodayHabits();
+    renderHabits();
+    toastWithUndo('+3 stars for habit! 🔥', () => {
+      const h = state.habits.find(x => x.id === id);
+      if (h && h.history && h.history[t]) {
+        delete h.history[t];
+        addPoints(-3);
+        save();
+        renderTodayHabits();
+        renderHabits();
+        toast('Undone');
+      }
+    });
   }
-  save();
-  renderTodayHabits();
-  renderHabits();
 }
 
 function deleteHabit(id) {
@@ -5440,13 +6186,14 @@ function noteTileHTML(n) {
     : '';
   return `<div class="note-tile ${done ? 'done-today' : ''}" onclick="toggleNoteDone('${n.id}')">
     <div class="note-icon">${done ? '✅' : '📝'}</div>
-    <div class="note-name">${n.text}</div>
+    <div class="note-name">${String(n.text||'').replace(/</g,'&lt;')}</div>
     ${n.reminder ? `<div class="note-meta">📅 ${formatShort(n.reminder)}</div>` : ''}
     ${n.time ? `<div class="note-meta">🕐 ${formatTimeCET(n.time)}</div>` : ''}
     <div class="note-meta">${done ? 'Done today!' : 'Tap to check off'}</div>
-    <div class="note-actions">
+    <div class="note-actions" onclick="event.stopPropagation()">
       ${zoom}
-      <button class="small-btn danger" onclick="event.stopPropagation(); deleteNote('${n.id}')">Delete</button>
+      <button class="small-btn" onclick="openNoteModal('${n.id}')">Edit</button>
+      <button class="small-btn danger" onclick="deleteNote('${n.id}')">Delete</button>
     </div>
   </div>`;
 }
@@ -5794,22 +6541,27 @@ function saveClass(editId) {
   toast(editId ? 'Session updated!' : 'Session added! 🎨');
 }
 
-function openNoteModal() {
+function openNoteModal(editId = null) {
+  const n = editId ? (state.notes || []).find(x => x.id === editId) : null;
+  const textVal = n ? String(n.text || '').replace(/</g, '&lt;') : '';
+  const rem = n && n.reminder ? inputDateValue(n.reminder) : inputDateValue(todayStr());
+  const time = n && n.time ? n.time : '';
+  const zoom = n && n.zoom ? n.zoom : '';
   openModal(`
-    <h3>Add a Note 📝</h3>
+    <h3>${n ? 'Edit' : 'Add a'} Note 📝</h3>
     <label>What should we remember?</label>
-    <textarea id="note-text" placeholder="Don't forget..."></textarea>
+    <textarea id="note-text" placeholder="Don't forget...">${textVal}</textarea>
     <label>Date (required) · dd/mm/yyyy</label>
-    <input type="text" id="note-reminder" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off" value="${inputDateValue(todayStr())}">
+    <input type="text" id="note-reminder" placeholder="dd/mm/yyyy" inputmode="numeric" autocomplete="off" value="${rem}">
     <label>Time (optional)</label>
-    <input type="time" id="note-time">
+    <input type="time" id="note-time" value="${time}">
     <label>Zoom / link (optional)</label>
-    <input type="url" id="note-zoom" placeholder="https://...">
-    <button class="btn primary" onclick="saveNote()">Save Note</button>
+    <input type="url" id="note-zoom" placeholder="https://..." value="${zoom}">
+    <button class="btn primary" onclick="saveNote('${editId || ''}')">${n ? 'Save changes' : 'Save Note'}</button>
   `);
 }
 
-function saveNote() {
+function saveNote(editId) {
   const textVal = document.getElementById('note-text').value.trim();
   if (!textVal) {
     toast('Please write something');
@@ -5822,14 +6574,19 @@ function saveNote() {
   }
   const time = document.getElementById('note-time').value || null;
   const zoom = document.getElementById('note-zoom').value.trim() || null;
-  state.notes.push({
-    id: uid(),
-    text: textVal,
-    reminder,
-    time,
-    zoom,
-    created: todayStr()
-  });
+  if (editId) {
+    const n = (state.notes || []).find(x => x.id === editId);
+    if (n) { n.text = textVal; n.reminder = reminder; n.time = time; n.zoom = zoom; }
+  } else {
+    state.notes.push({
+      id: uid(),
+      text: textVal,
+      reminder,
+      time,
+      zoom,
+      created: todayStr()
+    });
+  }
   save();
   closeModal();
   renderNotes();
@@ -5865,8 +6622,26 @@ document.getElementById('modal-overlay').addEventListener('click', (e) => {
   if (e.target.id === 'modal-overlay') closeModal();
 });
 
+// Start – mentor link skips normal app
+(async function boot() {
+  try {
+    if (typeof tryEnterMentorMode === 'function' && await tryEnterMentorMode()) return;
+  } catch (e) { console.warn(e); }
+  // Facilitator session restore
+  try {
+    const facSess = sessionStorage.getItem('sbl_fac_session');
+    if (facSess) {
+      const { code, data } = JSON.parse(facSess);
+      if (code && data && typeof renderFacilitatorDashboard === 'function') {
+        renderFacilitatorDashboard(code, data);
+        return;
+      }
+    }
+  } catch (e) {}
 // Start – never show login if already logged in
 load();
+if (typeof checkAccessBlocked === 'function' && checkAccessBlocked()) return;
+if (typeof touchStudentPresence === 'function') touchStudentPresence();
 applyA11yModes();
 (function showVer(){
   const el = document.getElementById('app-version');
@@ -5927,6 +6702,7 @@ if (state.currentUser && state.users[state.currentUser]) {
   document.getElementById('app-screen').style.display = '';
   prefillEmailFields();
 }
+})();
 
 </script>
 </body>
