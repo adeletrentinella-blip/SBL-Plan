@@ -2200,7 +2200,6 @@ body.theme-highcontrast .nav-btn.active {
           <button type="button" class="pw-toggle" onclick="togglePassword('login-password', this)" title="Show password">👁</button>
         </div>
         <button class="btn primary" onclick="login()">Let's Go! 🚀</button>
-        <button type="button" class="btn add-btn" style="margin-top:10px;background:#6C5CE7;width:100%" onclick="showFacilitatorAuth()">👁️ I'm a facilitator</button>
         <a href="#" class="forgot-link" onclick="showForgotPassword(); return false;">Forgot password?</a>
         <p class="switch">New here? <a href="#" onclick="showRegister()">Create account</a></p>
         <p class="switch" style="margin-top:8px;font-size:0.8rem"><button type="button" class="privacy-link" onclick="openPrivacyModal()">Privacy &amp; GDPR</button></p>
@@ -2246,6 +2245,12 @@ body.theme-highcontrast .nav-btn.active {
       </div>
 
       <div id="register-form" class="hidden">
+        <p style="font-weight:800;margin-bottom:8px;text-align:center">I am a…</p>
+        <div class="role-pick" style="display:flex;gap:8px;margin-bottom:14px">
+          <button type="button" id="role-student-btn" class="btn add-btn" style="flex:1;background:#00B894;color:#fff" onclick="setRegisterRole('student')">🎓 Student</button>
+          <button type="button" id="role-fac-btn" class="btn add-btn" style="flex:1;background:#ddd;color:#333" onclick="setRegisterRole('facilitator')">👁️ Facilitator</button>
+        </div>
+        <input type="hidden" id="reg-role" value="student">
         <input type="email" id="reg-email" value="@school-beyond-limitations.com"
           placeholder="name@school-beyond-limitations.com"
           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
@@ -2308,6 +2313,7 @@ body.theme-highcontrast .nav-btn.active {
             <span>A parent or guardian says I can use SBL Plan.</span>
           </label>
         </div>
+        </div>
         <button class="btn primary" onclick="register()">Create My Account ✨</button>
         <p class="switch">Already have one? <a href="#" onclick="showLogin()">Log in</a></p>
       </div>
@@ -2329,6 +2335,7 @@ body.theme-highcontrast .nav-btn.active {
         <img id="header-logo" class="header-logo" alt="SBL" title="School Beyond Limitations">
         <button type="button" class="a11y-chip" id="chip-adhd" onclick="toggleAdhdMode()" title="Focus mode">Focus</button>
         <button type="button" class="a11y-chip" id="chip-dyslexia" onclick="openFontModal()" title="Choose font">Fonts</button>
+        <button type="button" class="a11y-chip" id="chip-facilitators" onclick="openStudentFacilitatorSettings()" title="Facilitators">👁️ Facilitators</button>
         <button type="button" class="a11y-chip" id="chip-theme" onclick="openThemeModal()" title="Change theme">🎨 Theme</button>
         <button class="icon-btn" onclick="openTimezoneModal()" title="Change timezone">🌍</button>
         <button class="icon-btn" onclick="openSettingsModal()" title="Settings">⚙️</button>
@@ -3588,11 +3595,10 @@ function save() {
     if (typeof touchStudentPresence === 'function') {
       state.lastActive = new Date().toISOString();
     }
-    if (state.facilitatorCode && typeof publishFacilitatorShare === 'function') {
-      // debounce-ish: only every few saves via timestamp
-      if (!window._lastFacPub || Date.now() - window._lastFacPub > 15000) {
+    if (typeof publishStudentFacilitatorLinks === 'function' && state.accountRole !== 'facilitator') {
+      if (!window._lastFacPub || Date.now() - window._lastFacPub > 30000) {
         window._lastFacPub = Date.now();
-        publishFacilitatorShare();
+        publishStudentFacilitatorLinks();
       }
     }
   } catch (e) {}
@@ -3762,9 +3768,30 @@ function showForgotPassword() {
   if (fe && !fe.value) fe.value = '@school-beyond-limitations.com';
 }
 
+
+function setRegisterRole(role) {
+  const el = document.getElementById('reg-role');
+  if (el) el.value = role;
+  const sb = document.getElementById('role-student-btn');
+  const fb = document.getElementById('role-fac-btn');
+  const stu = document.getElementById('student-only-consent');
+  if (role === 'facilitator') {
+    if (sb) { sb.style.background = '#ddd'; sb.style.color = '#333'; }
+    if (fb) { fb.style.background = '#6C5CE7'; fb.style.color = '#fff'; }
+    if (stu) stu.style.display = 'none';
+  } else {
+    if (sb) { sb.style.background = '#00B894'; sb.style.color = '#fff'; }
+    if (fb) { fb.style.background = '#ddd'; fb.style.color = '#333'; }
+    if (stu) stu.style.display = '';
+  }
+}
+
 function showRegister() {
   document.getElementById('login-form').classList.add('hidden');
   document.getElementById('register-form').classList.remove('hidden');
+  document.getElementById('facilitator-auth-form')?.classList.add('hidden');
+  document.getElementById('facilitator-register-form')?.classList.add('hidden');
+  if (typeof setRegisterRole === 'function') setRegisterRole('student');
   const ff = document.getElementById('forgot-form');
   if (ff) ff.classList.add('hidden');
   prefillEmailFields();
@@ -4215,7 +4242,6 @@ function openSettingsModal() {
       <p style="font-size:0.8rem;color:var(--muted);margin:6px 0 0;line-height:1.4">Reminds you 5 minutes before and at the start of today’s sessions. Keep the planner open (or in a tab) for reliable alerts. Needs browser permission.</p>
       <button class="btn add-btn" style="margin-top:8px;background:#0984E3" onclick="exportMyData()">⬇️ Export my data (JSON)</button>
       <button class="btn add-btn" style="margin-top:8px;background:#6C5CE7" onclick="exportProgressReport()">📄 Share progress report</button>
-      <button class="btn add-btn" style="margin-top:8px;background:#00B894" onclick="closeModal(); openStudentFacilitatorSettings()">👁️ Facilitators</button>
       <button class="btn add-btn" style="margin-top:8px;background:#2D3436" onclick="downloadChromeExtension()">🧩 Download Chrome extension</button>
       <button class="btn add-btn" style="margin-top:8px;background:#E17055" onclick="closeModal(); openPrivacyModal();">🔒 Privacy notice</button>
       <button class="btn add-btn" style="margin-top:8px;background:#E74C3C" onclick="deleteMyAccount()">🗑️ Delete my account</button>
@@ -5288,10 +5314,11 @@ function register() {
   const username = document.getElementById('reg-email').value.trim().toLowerCase();
   const display = document.getElementById('reg-displayname').value.trim() || username.split('@')[0];
   const password = document.getElementById('reg-password').value;
-  const avatar = document.querySelector('#avatar-options .avatar.selected')?.dataset.avatar || '🦊';
+  const role = (document.getElementById('reg-role')?.value === 'facilitator') ? 'facilitator' : 'student';
+  const avatar = role === 'facilitator' ? '👁️' : (document.querySelector('#avatar-options .avatar.selected')?.dataset.avatar || '🦊');
 
   if (!username || username === SCHOOL_DOMAIN.toLowerCase() || !password) {
-    toast('Please fill in your name and password');
+    toast('Please fill in your email and password');
     return;
   }
   if (password.length < 8) {
@@ -5304,7 +5331,7 @@ function register() {
     toast('Please agree to the Privacy notice');
     return;
   }
-  if (!cPar || !cPar.checked) {
+  if (role === 'student' && (!cPar || !cPar.checked)) {
     toast('A parent or guardian must allow you to use this app');
     return;
   }
@@ -5318,13 +5345,15 @@ function register() {
     displayName: display,
     avatar,
     points: 0,
+    role,
     created: todayStr(),
     privacyAcceptedAt: new Date().toISOString()
   };
   if (!firebaseReady) localUser.password = password;
   state.users[username] = localUser;
+  state.accountRole = role;
 
-  if (state.habits.length === 0) {
+  if (role === 'student' && state.habits.length === 0) {
     state.habits = [
       { id: uid(), name: 'Reading 📚', emoji: '📚', history: {} },
       { id: uid(), name: 'Writing ✍️', emoji: '✍️', history: {} },
@@ -5334,14 +5363,28 @@ function register() {
   state.currentUser = username;
   state.privacyAccepted = true;
 
+  const finishReg = () => {
+    save();
+    if (role === 'facilitator') {
+      enterFacilitatorApp();
+      toast(`Welcome ${display}! Facilitator account ready`);
+    } else {
+      enterApp();
+      toast(`Welcome ${display}! 🎉`);
+    }
+  };
+
   if (firebaseReady) {
     auth.createUserWithEmailAndPassword(username, password)
       .then(async (cred) => {
         try { await cred.user.updateProfile({ displayName: display }); } catch (e) {}
-        await cloudSaveUserData();
-        save();
-        enterApp();
-        toast(`Welcome ${display}! 🎉`);
+        try {
+          if (db) await db.collection('users').doc(cred.user.uid).set({
+            email: username, displayName: display, role, avatar
+          }, { merge: true });
+        } catch (e) {}
+        if (role === 'student') await cloudSaveUserData();
+        finishReg();
       })
       .catch((e) => {
         console.warn(e);
@@ -5349,13 +5392,12 @@ function register() {
           (e && e.code === 'auth/weak-password') ? 'Use a stronger password' : 'Could not create cloud account';
         toast(msg);
         state.currentUser = null;
+        state.accountRole = 'student';
       });
     return;
   }
 
-  save();
-  enterApp();
-  toast(`Welcome ${display}! 🎉`);
+  finishReg();
 }
 
 function login() {
@@ -5371,11 +5413,29 @@ function login() {
       .then(async () => {
         state.currentUser = username;
         if (!state.users[username]) {
-          state.users[username] = { username, displayName: username.split('@')[0], avatar: '🦊', points: 0 };
+          state.users[username] = { username, displayName: username.split('@')[0], avatar: '🦊', points: 0, role: 'student' };
         }
         await cloudLoadUserData();
+        const role = (state.users[username] && state.users[username].role === 'facilitator') || state.accountRole === 'facilitator'
+          ? 'facilitator' : 'student';
+        // also check firestore role
+        try {
+          if (db && auth.currentUser) {
+            const snap = await db.collection('users').doc(auth.currentUser.uid).get();
+            if (snap.exists && snap.data().role === 'facilitator') {
+              state.users[username].role = 'facilitator';
+              state.accountRole = 'facilitator';
+            }
+          }
+        } catch (e) {}
         save();
-        enterApp();
+        if ((state.users[username] && state.users[username].role === 'facilitator') || state.accountRole === 'facilitator') {
+          state.accountRole = 'facilitator';
+          enterFacilitatorApp();
+        } else {
+          state.accountRole = 'student';
+          enterApp();
+        }
         toast('Welcome back! 🌟');
       })
       .catch(() => toast('Wrong name or password 🙈'));
@@ -5389,7 +5449,13 @@ function login() {
   }
   state.currentUser = username;
   save();
-  enterApp();
+  if (user.role === 'facilitator') {
+    state.accountRole = 'facilitator';
+    enterFacilitatorApp();
+  } else {
+    state.accountRole = 'student';
+    enterApp();
+  }
   toast(`Welcome back ${user.displayName}! 🌟`);
 }
 
@@ -5465,6 +5531,8 @@ function enterApp() {
 
   state.accountRole = 'student';
   if (typeof publishStudentFacilitatorLinks === 'function') publishStudentFacilitatorLinks();
+  const facChip = document.getElementById('chip-facilitators');
+  if (facChip) facChip.style.display = (state.accountRole === 'facilitator') ? 'none' : '';
   if (typeof updateViewerBanner === 'function') {
     updateViewerBanner();
     if (window._viewerBannerTimer) clearInterval(window._viewerBannerTimer);
