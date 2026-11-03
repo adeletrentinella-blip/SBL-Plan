@@ -2205,37 +2205,6 @@ body.theme-highcontrast .nav-btn.active {
         <p class="switch" style="margin-top:8px;font-size:0.8rem"><button type="button" class="privacy-link" onclick="openPrivacyModal()">Privacy &amp; GDPR</button></p>
       </div>
 
-
-      <div id="facilitator-auth-form" class="hidden">
-        <p style="font-weight:800;margin-bottom:8px">👁️ Facilitator login</p>
-        <p style="color:var(--muted);font-size:0.9rem;margin-bottom:12px">Use your school email &amp; password. Students allow you from their Settings.</p>
-        <input type="email" id="fac-auth-email" value="@school-beyond-limitations.com"
-          placeholder="name@school-beyond-limitations.com"
-          autocomplete="off" data-lpignore="true">
-        <div class="password-wrap">
-          <input type="password" id="fac-auth-password" placeholder="Password" autocomplete="off" data-lpignore="true">
-          <button type="button" class="pw-toggle" onclick="togglePassword('fac-auth-password', this)" title="Show password">👁</button>
-        </div>
-        <button class="btn primary" onclick="loginFacilitator()">Log in as facilitator</button>
-        <button type="button" class="btn add-btn" style="margin-top:10px;background:#00B894;width:100%" onclick="showFacilitatorRegister()">Create facilitator account</button>
-        <p class="switch"><a href="#" onclick="showLogin(); return false;">Back to student login</a></p>
-      </div>
-
-      <div id="facilitator-register-form" class="hidden">
-        <p style="font-weight:800;margin-bottom:8px">Create facilitator account</p>
-        <input type="email" id="fac-reg-email" value="@school-beyond-limitations.com" placeholder="name@school-beyond-limitations.com" autocomplete="off" data-lpignore="true">
-        <input type="text" id="fac-reg-name" placeholder="Your name (students will see this)" autocomplete="off">
-        <div class="password-wrap">
-          <input type="password" id="fac-reg-password" placeholder="Make a password (min 8)" autocomplete="off" data-lpignore="true">
-          <button type="button" class="pw-toggle" onclick="togglePassword('fac-reg-password', this)" title="Show password">👁</button>
-        </div>
-        <label style="display:flex;gap:8px;align-items:flex-start;font-size:0.85rem;margin:10px 0;text-align:left">
-          <input type="checkbox" id="fac-consent-privacy"> I agree to the Privacy notice
-        </label>
-        <button class="btn primary" onclick="registerFacilitator()">Create account</button>
-        <p class="switch"><a href="#" onclick="showFacilitatorAuth(); return false;">Back to facilitator login</a></p>
-      </div>
-
       <div id="forgot-form" class="hidden">
         <p style="color:var(--muted);margin-bottom:12px;font-size:0.95rem">Enter your school email. We will send a reset link if cloud accounts are enabled.</p>
         <input type="email" id="forgot-email" value="@school-beyond-limitations.com" placeholder="name@school-beyond-limitations.com"
@@ -2245,17 +2214,17 @@ body.theme-highcontrast .nav-btn.active {
       </div>
 
       <div id="register-form" class="hidden">
-        <p style="font-weight:800;margin-bottom:8px;text-align:center">I am a…</p>
-        <div class="role-pick" style="display:flex;gap:8px;margin-bottom:14px">
-          <button type="button" id="role-student-btn" class="btn add-btn" style="flex:1;background:#00B894;color:#fff" onclick="setRegisterRole('student')">🎓 Student</button>
-          <button type="button" id="role-fac-btn" class="btn add-btn" style="flex:1;background:#ddd;color:#333" onclick="setRegisterRole('facilitator')">👁️ Facilitator</button>
+        <p class="switch" style="margin-bottom:12px">I am a…</p>
+        <div class="role-pick" style="display:flex;gap:10px;margin-bottom:14px">
+          <button type="button" id="role-student-btn" class="btn primary" style="flex:1" onclick="setRegisterRole('student')">Student</button>
+          <button type="button" id="role-fac-btn" class="btn add-btn" style="flex:1" onclick="setRegisterRole('facilitator')">Facilitator</button>
         </div>
         <input type="hidden" id="reg-role" value="student">
         <input type="email" id="reg-email" value="@school-beyond-limitations.com"
           placeholder="name@school-beyond-limitations.com"
           autocomplete="off" autocorrect="off" autocapitalize="off" spellcheck="false"
           data-lpignore="true" data-1p-ignore data-form-type="other">
-        <input type="text" id="reg-displayname" placeholder="What should we call you?" autocomplete="off">
+        <input type="text" id="reg-displayname" placeholder="Display name" autocomplete="off">
         <div class="password-wrap">
           <input type="password" id="reg-password" placeholder="Make a password" autocomplete="off"
             autocorrect="off" autocapitalize="off" spellcheck="false"
@@ -2927,9 +2896,9 @@ function openGoalModal(term, editId = null) {
     <h3>${g ? 'Edit' : (labels[t] || 'New')} Goal 🎯</h3>
     <input type="hidden" id="goal-term" value="${t}">
     <label>What do you want to achieve?</label>
-    <input type="text" id="goal-text" value="${text}" placeholder="e.g. Finish my science project">
+    <input type="text" id="goal-text" value="${text}" placeholder="Write your goal">
     <label>Why do I want this?</label>
-    <input type="text" id="goal-why" value="${why}" placeholder="e.g. So I can feel proud">
+    <input type="text" id="goal-why" value="${why}" placeholder="Why this matters">
     <label>How do I achieve it?</label>
     <textarea id="goal-how" placeholder="One step per line">${how}</textarea>
     <label>By when? (optional)</label>
@@ -3776,12 +3745,12 @@ function setRegisterRole(role) {
   const fb = document.getElementById('role-fac-btn');
   const stu = document.getElementById('student-only-consent');
   if (role === 'facilitator') {
-    if (sb) { sb.style.background = '#ddd'; sb.style.color = '#333'; }
-    if (fb) { fb.style.background = '#6C5CE7'; fb.style.color = '#fff'; }
+    if (sb) { sb.className = 'btn add-btn'; sb.style.flex = '1'; }
+    if (fb) { fb.className = 'btn primary'; fb.style.flex = '1'; }
     if (stu) stu.style.display = 'none';
   } else {
-    if (sb) { sb.style.background = '#00B894'; sb.style.color = '#fff'; }
-    if (fb) { fb.style.background = '#ddd'; fb.style.color = '#333'; }
+    if (sb) { sb.className = 'btn primary'; sb.style.flex = '1'; }
+    if (fb) { fb.className = 'btn add-btn'; fb.style.flex = '1'; }
     if (stu) stu.style.display = '';
   }
 }
@@ -4489,27 +4458,19 @@ function defaultFacLink(email, name) {
     email: normalizeEmail(email),
     name: name || email.split('@')[0],
     allowed: true,
-    canBlock: false,
+    canBlock: false,  /* disabled — no student toggle */
     perms: Object.assign({}, DEFAULT_FAC_AREA_PERMS)
   };
 }
 
 function showFacilitatorAuth() {
-  document.getElementById('login-form')?.classList.add('hidden');
-  document.getElementById('register-form')?.classList.add('hidden');
-  document.getElementById('forgot-form')?.classList.add('hidden');
-  document.getElementById('facilitator-register-form')?.classList.add('hidden');
-  document.getElementById('facilitator-auth-form')?.classList.remove('hidden');
-  if (typeof prefillEmailFields === 'function') prefillEmailFields();
+  showRegister();
+  setRegisterRole('facilitator');
 }
 
 function showFacilitatorRegister() {
-  document.getElementById('login-form')?.classList.add('hidden');
-  document.getElementById('register-form')?.classList.add('hidden');
-  document.getElementById('forgot-form')?.classList.add('hidden');
-  document.getElementById('facilitator-auth-form')?.classList.add('hidden');
-  document.getElementById('facilitator-register-form')?.classList.remove('hidden');
-  if (typeof prefillEmailFields === 'function') prefillEmailFields();
+  showRegister();
+  setRegisterRole('facilitator');
 }
 
 // Patch showLogin to hide fac forms too
@@ -4757,9 +4718,6 @@ function openStudentFacilitatorSettings() {
       </div>
     </div>
     <div style="margin:-4px 0 12px;padding:0 6px">
-      <label style="font-size:0.85rem;display:flex;gap:8px;align-items:center">
-        <input type="checkbox" ${L.canBlock ? 'checked' : ''} onchange="setFacCanBlock('${email}', this.checked)"> May block my access
-      </label>
       <details style="margin-top:6px">
         <summary style="cursor:pointer;font-weight:700;font-size:0.85rem">What they can see / edit</summary>
         <div class="fac-level-list" style="margin-top:8px">
@@ -4780,7 +4738,7 @@ function openStudentFacilitatorSettings() {
     <label>Add facilitator email</label>
     <input type="email" id="add-fac-email" value="@school-beyond-limitations.com" placeholder="name@school-beyond-limitations.com">
     <label>Name (optional)</label>
-    <input type="text" id="add-fac-name" placeholder="e.g. Ms Smith">
+    <input type="text" id="add-fac-name" placeholder="Name">
     <button class="btn primary" onclick="addFacilitatorEmail()">Add & Allow</button>
     <button class="btn add-btn" style="margin-top:8px;background:#00B894" onclick="saveStudentFacilitatorSettings()">Save</button>
     ${state.accessBlocked ? '<button class="btn add-btn" style="margin-top:8px;background:#E74C3C" onclick="studentUnblockAccess()">Unblock my account</button>' : ''}
@@ -4824,10 +4782,7 @@ function setFacAllow(email, allowed) {
 }
 
 function setFacCanBlock(email, can) {
-  email = normalizeEmail(email);
-  ensureAllowedFacilitators();
-  if (!state.allowedFacilitators[email]) return;
-  state.allowedFacilitators[email].canBlock = !!can;
+  /* Block access option removed from student UI */
 }
 
 function addFacilitatorEmail() {
@@ -5984,7 +5939,7 @@ function openInquiryModal() {
     <h3>🔍 Add topic inquiry</h3>
     <p style="color:var(--muted);font-size:0.9rem;margin-bottom:10px">Stays active until Friday. When you finish, check it off and write a review.</p>
     <label>Topic</label>
-    <input type="text" id="inquiry-topic" placeholder="e.g. How do volcanoes work?">
+    <input type="text" id="inquiry-topic" placeholder="Topic">
     <label>Link (optional)</label>
     <input type="url" id="inquiry-link" placeholder="https://...">
     <button class="btn primary" onclick="saveTopicInquiry()">Add inquiry</button>
