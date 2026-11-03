@@ -1091,6 +1091,9 @@ body.theme-dark .mentor-banner { background:#2A2A40; }
 
 /* Wins notification dot */
 .nav-btn { position: relative; }
+.nav-btn[data-tab="students"] { display: none; }
+body.mode-facilitator .nav-btn[data-tab="students"] { display: flex; }
+
 .nav-btn .wins-dot {
   position: absolute; top: 4px; right: 8px;
   width: 10px; height: 10px; background: #E74C3C;
@@ -2366,6 +2369,10 @@ body.theme-highcontrast .nav-btn.active {
         <span class="nav-icon">📹</span>
         <span>Zoom</span>
       </button>
+      <button class="nav-btn" data-tab="students" onclick="switchTab('students')">
+        <span class="nav-icon">👥</span>
+        <span>Students</span>
+      </button>
       <button class="nav-btn" data-tab="remember" onclick="switchTab('remember')">
         <span class="nav-icon">📝</span>
         <span>Remember</span>
@@ -2510,6 +2517,16 @@ body.theme-highcontrast .nav-btn.active {
         <div id="notes-list" class="note-grid"></div>
         <button class="btn add-btn" onclick="openNoteModal()">+ Add Note</button>
       </section>
+
+      <!-- STUDENTS (facilitator) -->
+      <section id="tab-students" class="tab">
+        <h2 class="section-title">Your students 👥</h2>
+        <p class="hint" style="margin-bottom:12px">Students who Allowed you appear here. Pull to refresh after they save.</p>
+        <button class="btn add-btn" style="margin-bottom:12px;background:#0984E3" onclick="renderStudentsTab()">Refresh list</button>
+        <div id="students-list" class="card-list"></div>
+        <div id="student-detail" class="hidden" style="margin-top:16px"></div>
+      </section>
+
     </main>
   </div>
 
@@ -4203,6 +4220,19 @@ function setTheme(name) {
 }
 
 function openSettingsModal() {
+  if (typeof isFacilitator === 'function' && isFacilitator()) {
+    openModal(`
+      <h3>Settings ⚙️</h3>
+      <div class="settings-panel" style="text-align:left">
+        <button class="btn add-btn" style="margin-top:8px;background:#A78BFA" onclick="closeModal(); openFontModal();">Aa Fonts</button>
+        <button class="btn add-btn" style="margin-top:8px;background:var(--primary)" onclick="closeModal(); openThemeModal();">🎨 Themes</button>
+        <button class="btn add-btn" style="margin-top:8px;background:#636E72" onclick="closeModal(); openTimezoneModal();">🌍 Timezone</button>
+        <button class="btn add-btn" style="margin-top:8px;background:#2D3436" onclick="logoutUser()">Log out</button>
+        <button class="btn add-btn" style="margin-top:8px;background:#E74C3C" onclick="deleteMyAccount()">🗑️ Delete my account</button>
+      </div>
+    `);
+    return;
+  }
   const notifOk = notificationsSupported();
   const perm = notificationPermission();
   let notifLabel = 'Session reminders: OFF';
@@ -4610,24 +4640,150 @@ function readActiveSession() {
   } catch (e) { return null; }
 }
 
+
+function isFacilitator() {
+  return state.accountRole === 'facilitator' ||
+    (state.currentUser && state.users[state.currentUser] && state.users[state.currentUser].role === 'facilitator');
+}
+
+function applyFacilitatorChrome(on) {
+  const facTabs = new Set(['month', 'zoom', 'students']);
+  document.querySelectorAll('.nav-btn[data-tab]').forEach(btn => {
+    const tab = btn.getAttribute('data-tab');
+    if (on) {
+      btn.style.display = facTabs.has(tab) ? '' : 'none';
+    } else {
+      btn.style.display = (tab === 'students') ? 'none' : '';
+    }
+  });
+  // Header chips
+  const facChip = document.getElementById('chip-facilitators');
+  const focusChip = document.getElementById('chip-adhd');
+  if (facChip) facChip.style.display = on ? 'none' : '';
+  // Fonts + theme stay visible for everyone
+  if (focusChip) focusChip.style.display = on ? 'none' : '';
+  document.body.classList.toggle('mode-facilitator', !!on);
+}
+
+async function renderStudentsTab() {
+  const list = document.getElementById('students-list');
+  const detail = document.getElementById('student-detail');
+  if (!list) return;
+  if (detail) { detail.classList.add('hidden'); detail.innerHTML = ''; }
+  if (list) list.classList.remove('hidden');
+  const facEmail = normalizeEmail(state.currentUser);
+  list.innerHTML = '<div class="empty"><div class="emoji">⏳</div>Loading…</div>';
+  const students = await loadStudentsForFacilitator(facEmail);
+  window._facStudentsCache = students;
+  if (!students.length) {
+    list.innerHTML = `<div class="empty" style="text-align:left;padding:16px">
+      <div class="emoji">👥</div>
+      <p><strong>No students yet</strong></p>
+      <p style="color:var(--muted);font-size:0.9rem;line-height:1.45">Ask a student to open <strong>Facilitators</strong> in the top bar, add your email (<strong>${escFac(facEmail)}</strong>), choose <strong>Allow</strong>. Then tap Refresh list.</p>
+    </div>`;
+    return;
+  }
+  list.innerHTML = students.map((s, i) => `
+    <div class="card">
+      <div class="card-title">${escFac(s.avatar)} ${escFac(s.studentName)}</div>
+      <div class="card-meta">${escFac(s.studentEmail)} · ⭐ ${s.stars || 0}</div>
+      <button class="small-btn" style="margin-top:8px" onclick="openStudentDetailIndex(${i})">View</button>
+    </div>
+  `).join('');
+}
+function openStudentDetailIndex(i) {
+  const s = (window._facStudentsCache || [])[i];
+  if (s) openStudentDetail(s);
+}
+
+function openStudentDetail(s) {
+  if (typeof s === 'string') {
+    try { s = JSON.parse(s); } catch (e) { return; }
+  }
+  const list = document.getElementById('students-list');
+  const detail = document.getElementById('student-detail');
+  if (!detail) return;
+  if (list) list.classList.add('hidden');
+  detail.classList.remove('hidden');
+  if (typeof setFacilitatorViewing === 'function') setFacilitatorViewing(s.studentEmail);
+  const perms = Object.assign({}, DEFAULT_FAC_AREA_PERMS, s.perms || {});
+  const data = s.snapshot || {};
+  const canView = (k) => perms[k] === 'view' || perms[k] === 'edit';
+  let sections = '';
+  if (canView('goals')) {
+    const items = (data.goals || []).map(g => `<li>${g.done?'✓':'○'} <strong>${escFac(g.text)}</strong></li>`).join('') || '<li>None</li>';
+    sections += `<h3>Goals</h3><ul>${items}</ul>`;
+  }
+  if (canView('habits')) {
+    const items = (data.habits || []).map(h => `<li>${escFac(h.name)} — streak ${h.streak||0}</li>`).join('') || '<li>None</li>';
+    sections += `<h3>Habits</h3><ul>${items}</ul>`;
+  }
+  if (canView('tasks')) {
+    const items = (data.tasks || []).map(t => `<li>${t.completed?'✓':'○'} ${escFac(t.title)}</li>`).join('') || '<li>None</li>';
+    sections += `<h3>Action steps</h3><ul>${items}</ul>`;
+  }
+  if (canView('books')) {
+    const items = (data.books || []).map(b => `<li>${escFac(b.title)} — ${b.progress||0}%</li>`).join('') || '<li>None</li>';
+    sections += `<h3>Books</h3><ul>${items}</ul>`;
+  }
+  if (canView('wins')) {
+    sections += `<h3>Wins</h3><p>${data.winsCount||0} unlocked · ⭐ ${data.stars || s.stars || 0}</p>`;
+  }
+  if (canView('sessions')) {
+    const items = (data.classes || []).map(c => `<li>${escFac(c.name)}</li>`).join('') || '<li>None</li>';
+    sections += `<h3>Sessions</h3><ul>${items}</ul>`;
+  }
+  const canNote = perms.encouragement === 'edit';
+  detail.innerHTML = `
+    <button class="btn add-btn" style="margin-bottom:12px" onclick="closeStudentDetail()">← Back to students</button>
+    <div class="card">
+      <div class="card-title">${escFac(s.avatar)} ${escFac(s.studentName)}</div>
+      <div class="card-meta">${escFac(s.studentEmail)}</div>
+      ${sections || '<p style="color:var(--muted)">Nothing shared for viewing.</p>'}
+      ${canNote ? `<h3>Encouragement</h3>
+        <textarea id="fac-encourage" style="width:100%;min-height:80px;padding:10px;border-radius:12px;border:2px solid #eee;font:inherit">${escFac(data.encouragement||'')}</textarea>
+        <button class="btn primary" style="margin-top:8px" onclick="saveFacEncouragement('${escFac(s.studentEmail)}')">Save note</button>` : ''}
+    </div>
+  `;
+}
+
+function closeStudentDetail() {
+  const list = document.getElementById('students-list');
+  const detail = document.getElementById('student-detail');
+  if (detail) { detail.classList.add('hidden'); detail.innerHTML = ''; }
+  if (list) list.classList.remove('hidden');
+  if (typeof clearFacilitatorViewing === 'function') clearFacilitatorViewing();
+}
+
+async function saveFacEncouragement(studentEmail) {
+  const t = document.getElementById('fac-encourage')?.value || '';
+  if (typeof writeStudentEncouragement === 'function') await writeStudentEncouragement(studentEmail, t);
+  toast('Encouragement saved');
+}
+
+
 function enterFacilitatorApp() {
   state.accountRole = 'facilitator';
   if (state.currentUser && state.users[state.currentUser]) {
     state.users[state.currentUser].role = 'facilitator';
   }
   try { save(); } catch (e) {}
-  persistActiveSession();
+  if (typeof persistActiveSession === 'function') persistActiveSession();
   const authEl = document.getElementById('auth-screen');
   const appEl = document.getElementById('app-screen');
   const facEl = document.getElementById('facilitator-screen');
   if (authEl) { authEl.classList.remove('active'); authEl.style.display = 'none'; }
-  if (appEl) { appEl.classList.remove('active'); appEl.style.display = 'none'; }
-  if (facEl) {
-    facEl.classList.add('active');
-    facEl.style.display = 'block';
-  }
-  renderFacilitatorHome();
+  if (facEl) { facEl.classList.remove('active'); facEl.style.display = 'none'; }
+  if (appEl) { appEl.classList.add('active'); appEl.style.display = 'block'; }
+  applyFacilitatorChrome(true);
+  if (typeof renderHeader === 'function') renderHeader();
+  if (typeof applyA11yModes === 'function') applyA11yModes();
+  switchTab('students');
+  renderStudentsTab();
+  if (typeof renderZoomTab === 'function') renderZoomTab();
+  if (typeof renderMonth === 'function') renderMonth();
 }
+
 
 function hideFacilitatorScreen() {
   const facEl = document.getElementById('facilitator-screen');
@@ -5049,12 +5205,18 @@ async function deleteMyAccount() {
 }
 
 function logoutUser() {
+  try { localStorage.removeItem('sbl_active_session_v1'); } catch (e) {}
+  if (typeof applyFacilitatorChrome === 'function') applyFacilitatorChrome(false);
+  if (typeof hideFacilitatorScreen === 'function') hideFacilitatorScreen();
   if (firebaseReady && auth) auth.signOut();
   state.currentUser = null;
+  state.accountRole = 'student';
   save();
   closeModal();
   document.getElementById('app-screen').classList.remove('active');
   document.getElementById('app-screen').style.display = 'none';
+  const fac = document.getElementById('facilitator-screen');
+  if (fac) { fac.classList.remove('active'); fac.style.display = 'none'; }
   document.getElementById('auth-screen').classList.add('active');
   document.getElementById('auth-screen').style.display = '';
   showLogin();
@@ -5384,9 +5546,10 @@ function ensureSchoolCalendar() {
 }
 
 function enterApp() {
-  hideFacilitatorScreen();
+  if (typeof hideFacilitatorScreen === 'function') hideFacilitatorScreen();
   state.accountRole = 'student';
-  persistActiveSession();
+  if (typeof persistActiveSession === 'function') persistActiveSession();
+  if (typeof applyFacilitatorChrome === 'function') applyFacilitatorChrome(false);
 
   // Force hide login – never show it again while logged in
   const auth = document.getElementById('auth-screen');
@@ -5440,6 +5603,7 @@ function switchTab(tab) {
   if (tab === 'habits') renderHabits();
   if (tab === 'classes') renderClasses();
   if (tab === 'remember') renderNotes();
+  if (tab === 'students' && typeof renderStudentsTab === 'function') renderStudentsTab();
 }
 
 // ---------- Render Header ----------
