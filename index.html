@@ -4047,9 +4047,21 @@ function countSessionChecks() {
   (state.classes || []).forEach(c => { if (c && c.history) Object.keys(c.history).forEach(k => { if (c.history[k]) n++; }); });
   return n;
 }
-function isAvatarUnlocked(a) { ensureUnlockDefaults(); return state.unlockedAvatars.includes(a); }
-function isFontUnlocked(f) { ensureUnlockDefaults(); return state.unlockedFonts.includes(f); }
-function isThemeUnlocked(t) { ensureUnlockDefaults(); return state.unlockedThemes.includes(t); }
+function isAvatarUnlocked(a) {
+  ensureUnlockDefaults();
+  if (typeof isFacilitator === 'function' && isFacilitator()) return true;
+  return state.unlockedAvatars.includes(a);
+}
+function isFontUnlocked(f) {
+  ensureUnlockDefaults();
+  if (typeof isFacilitator === 'function' && isFacilitator()) return true;
+  return state.unlockedFonts.includes(f);
+}
+function isThemeUnlocked(t) {
+  ensureUnlockDefaults();
+  if (typeof isFacilitator === 'function' && isFacilitator()) return true;
+  return state.unlockedThemes.includes(t);
+}
 function applyAchievementReward(reward) {
   if (!reward) return;
   ensureUnlockDefaults();
@@ -4647,14 +4659,13 @@ function isFacilitator() {
 }
 
 function applyFacilitatorChrome(on) {
-  const facTabs = new Set(['month', 'zoom', 'students']);
+  // Facilitator: Month, Zoom, Students, Sessions (classes), Remember — NO Wins / Today / etc.
+  const facTabs = new Set(['month', 'zoom', 'students', 'classes', 'remember']);
   document.querySelectorAll('.nav-btn[data-tab]').forEach(btn => {
     const tab = btn.getAttribute('data-tab');
     if (on) {
-      // Facilitator: only Month, Zoom, Students
       btn.style.setProperty('display', facTabs.has(tab) ? 'flex' : 'none', 'important');
     } else {
-      // Student: everything except Students
       btn.style.setProperty('display', tab === 'students' ? 'none' : 'flex', 'important');
     }
   });
@@ -4662,10 +4673,8 @@ function applyFacilitatorChrome(on) {
   const focusChip = document.getElementById('chip-adhd');
   const fontChip = document.getElementById('chip-dyslexia');
   const themeChip = document.getElementById('chip-theme');
-  // Students see Facilitators button; facilitators do not
   if (facChip) facChip.style.setProperty('display', on ? 'none' : 'inline-flex', 'important');
   if (focusChip) focusChip.style.setProperty('display', on ? 'none' : 'inline-flex', 'important');
-  // Fonts + Themes always available
   if (fontChip) fontChip.style.setProperty('display', 'inline-flex', 'important');
   if (themeChip) themeChip.style.setProperty('display', 'inline-flex', 'important');
   document.body.classList.toggle('mode-facilitator', !!on);
@@ -4784,13 +4793,15 @@ function enterFacilitatorApp() {
   if (facEl) { facEl.classList.remove('active'); facEl.style.display = 'none'; }
   if (appEl) { appEl.classList.add('active'); appEl.style.display = 'block'; }
   applyFacilitatorChrome(true);
+  if (typeof ensureSchoolCalendar === 'function') ensureSchoolCalendar();
   if (typeof renderHeader === 'function') renderHeader();
   if (typeof applyA11yModes === 'function') applyA11yModes();
-  // Default landing: Students tab
   switchTab('students');
   if (typeof renderStudentsTab === 'function') renderStudentsTab();
   if (typeof renderZoomDirectory === 'function') renderZoomDirectory('');
   if (typeof renderMonth === 'function') renderMonth();
+  if (typeof renderClasses === 'function') renderClasses();
+  if (typeof renderNotes === 'function') renderNotes();
 }
 
 
@@ -5132,6 +5143,121 @@ function escFac(s) {
 
 // Keep old name stubs so leftover onclick handlers don't crash
 function openFacilitatorLogin() { showFacilitatorAuth(); }
+
+function defaultFacLink(email, name) {
+  return {
+    email: normalizeEmail(email),
+    name: name || email.split('@')[0],
+    allowed: true,
+    canBlock: false,
+    perms: Object.assign({}, (typeof DEFAULT_FAC_AREA_PERMS !== 'undefined' ? DEFAULT_FAC_AREA_PERMS : {
+      goals: 'view', habits: 'view', tasks: 'view', books: 'view', sessions: 'view',
+      notes: 'view', reflections: 'off', wins: 'view', encouragement: 'edit'
+    }))
+  };
+}
+
+function openStudentFacilitatorSettings() {
+  try {
+    ensureAllowedFacilitators();
+    const links = state.allowedFacilitators || {};
+    const rows = Object.keys(links).map(email => {
+      const L = links[email];
+      const allowed = !!L.allowed;
+      return `<div class="allow-row" style="display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px;border:1px solid #eee;border-radius:12px;margin:8px 0">
+        <div>
+          <div style="font-weight:800">${escFac(L.name || email)}</div>
+          <div style="font-size:0.8rem;color:var(--muted)">${escFac(email)}</div>
+        </div>
+        <div style="display:flex;gap:6px">
+          <button type="button" class="small-btn" style="${allowed ? 'background:#E8F5E9;color:#2E7D32' : ''}" onclick="setFacAllow('${email}', true)">Allow</button>
+          <button type="button" class="small-btn" style="${!allowed ? 'background:#FFEBEE;color:#C62828' : ''}" onclick="setFacAllow('${email}', false)">Don't allow</button>
+        </div>
+      </div>
+      <details style="margin:0 0 12px 6px">
+        <summary style="cursor:pointer;font-weight:700;font-size:0.85rem">What they can see / edit</summary>
+        <div style="margin-top:8px">
+          ${Object.keys(L.perms || {}).map(k => {
+            const cur = (L.perms && L.perms[k]) || 'view';
+            return `<div style="display:flex;justify-content:space-between;align-items:center;gap:8px;margin:6px 0">
+              <span style="font-weight:600;font-size:0.85rem">${k}</span>
+              <span>
+                <button type="button" class="small-btn" onclick="setStudentFacAreaPerm('${email}','${k}','off')" style="${cur==='off'?'background:#eee':''}">Off</button>
+                <button type="button" class="small-btn" onclick="setStudentFacAreaPerm('${email}','${k}','view')" style="${cur==='view'?'background:#E3F2FD':''}">View</button>
+                <button type="button" class="small-btn" onclick="setStudentFacAreaPerm('${email}','${k}','edit')" style="${cur==='edit'?'background:#E8F5E9':''}">Edit</button>
+              </span>
+            </div>`;
+          }).join('')}
+        </div>
+      </details>`;
+    }).join('') || '<p style="color:var(--muted)">No facilitators yet — add one by email below.</p>';
+
+    openModal(`
+      <h3>Facilitators</h3>
+      <p style="color:var(--muted);font-size:0.9rem">Add a facilitator by email. They sign in as Facilitator and see you under Students.</p>
+      ${rows}
+      <hr style="border:none;border-top:1px solid #eee;margin:14px 0">
+      <label>Facilitator email</label>
+      <input type="email" id="add-fac-email" value="@school-beyond-limitations.com" placeholder="name@school-beyond-limitations.com">
+      <label>Name (optional)</label>
+      <input type="text" id="add-fac-name" placeholder="Name">
+      <button class="btn primary" onclick="addFacilitatorEmail()">Add &amp; Allow</button>
+      <button class="btn add-btn" style="margin-top:8px;background:#00B894" onclick="saveStudentFacilitatorSettings()">Save</button>
+    `);
+  } catch (e) {
+    console.error(e);
+    toast('Could not open Facilitators');
+  }
+}
+
+function setStudentFacAreaPerm(facEmail, key, level) {
+  ensureAllowedFacilitators();
+  facEmail = normalizeEmail(facEmail);
+  if (!state.allowedFacilitators[facEmail]) return;
+  if (!state.allowedFacilitators[facEmail].perms) state.allowedFacilitators[facEmail].perms = {};
+  state.allowedFacilitators[facEmail].perms[key] = level;
+  openStudentFacilitatorSettings();
+}
+
+function setFacAllow(email, allowed) {
+  email = normalizeEmail(email);
+  ensureAllowedFacilitators();
+  if (!state.allowedFacilitators[email]) return;
+  state.allowedFacilitators[email].allowed = !!allowed;
+  save();
+  if (typeof publishStudentFacilitatorLinks === 'function') {
+    publishStudentFacilitatorLinks().then(() => toast(allowed ? 'Allowed — saved' : "Don't allow — saved"));
+  }
+  openStudentFacilitatorSettings();
+}
+
+function addFacilitatorEmail() {
+  const email = normalizeEmail(document.getElementById('add-fac-email')?.value);
+  const name = (document.getElementById('add-fac-name')?.value || '').trim();
+  if (!email || !email.includes('@') || email === (typeof SCHOOL_DOMAIN !== 'undefined' ? SCHOOL_DOMAIN.toLowerCase() : '')) {
+    toast('Enter a valid facilitator email'); return;
+  }
+  ensureAllowedFacilitators();
+  state.allowedFacilitators[email] = defaultFacLink(email, name);
+  save();
+  if (typeof publishStudentFacilitatorLinks === 'function') {
+    publishStudentFacilitatorLinks().then(() => toast('Added & saved'));
+  } else {
+    toast('Added');
+  }
+  openStudentFacilitatorSettings();
+}
+
+async function saveStudentFacilitatorSettings() {
+  save();
+  if (typeof publishStudentFacilitatorLinks === 'function') {
+    await publishStudentFacilitatorLinks();
+  }
+  toast('Facilitator access saved');
+  closeModal();
+}
+
+
 function openFacilitatorSettings() { openStudentFacilitatorSettings(); }
 
 /* ---------- Chrome extension download ---------- */
